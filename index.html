@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programari PCLS</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+   
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: url("https://cdn.discordapp.com/attachments/1208112750979579915/1297624044266459338/image_medici.png?ex=671742d0&is=6715f150&hm=a2431ac9e19fab2df1203e738c598c832258d73fd46e68572536d9dd78fe24f1&");
+            background-size:cover;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 850px;
+            padding: 40px;
+            background: rgba(128, 128, 128, 0.6); 
+            backdrop-filter: blur(8px); 
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+            position:relative;
+
+        }   
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: 1px solid #cccccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #FF4B4B;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #FF3333;
+        }
+
+        .back-button {
+            display: block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #FF4B4B;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background-color: #ff6b6b;
+        }
+        small {
+            display: block;
+            text-align: center;
+            color: #ffffff;
+            font-size: 12px;
+            bottom: 0px;
+            right: 330px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Ce tip de programare dorești?</h1>
+        <form id="appointmentForm">
+            <select id="location" required>
+                <option value="" disabled selected>Selecteaza tipul programarii.</option>
+                <option value="mm_page.html">M.M.L.S</option>
+                <option value="dsls_page.html">D.S.L.S</option>
+                <option value="isuls_page.html">I.S.U.L.S</option>
+            </select>
+            <button type="submit">Mai departe!</button>
+            <small>Copyright © 2024 Tristan & LLuka</small>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const selectedLocation = document.getElementById('location').value;
+            if (selectedLocation) {
+                window.location.href = selectedLocation; 
+            }
+        });
+    </script>
+</body>
+
+</html>

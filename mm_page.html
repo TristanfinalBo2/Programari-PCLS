@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programare M.M.L.S</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url("image_medici.png");
+            background-size: cover;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 850px;
+            padding: 40px;
+            background: rgba(128, 128, 128, 0.6); 
+            backdrop-filter: blur(8px); 
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+        }       
+
+        h4 {
+            text-align: center;
+            font-size: 38px;
+            color: #ffffff;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        form input,
+        form textarea {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #F5F5F5;
+            border: none;
+            border-radius: 8px;
+            color: #333333;
+            font-size: 16px;
+        }
+
+        form input:focus,
+        form textarea:focus {
+            outline: none;
+            border: 2px solid #FF4B4B;
+        }
+
+        form textarea {
+            resize: vertical;
+            height: 120px;
+        }
+
+        #submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #FF4B4B, #FF0000);
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        #submit:hover {
+            background: linear-gradient(135deg, #ff6b6b, #ff3333);
+            transform: translateY(-3px);
+        }
+
+        small {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        form input:not(:last-child),
+        form textarea {
+            border-bottom: 2px solid #cccccc;
+            padding-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px;
+            }
+
+            h4 {
+                font-size: 30px;
+            }
+
+            #submit {
+                font-size: 16px;
+            }
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #FF4B4B;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #FF3333;
+        }
+
+        .back-button {
+            display: block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #FF4B4B;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background-color: #ff6b6b;
+        }
+        #custom-alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        #custom-alert h5 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        #custom-alert button {
+            background: #FF4B4B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #custom-alert button:hover {
+            background: #FF6B6B;
+        }
+
+        #custom-alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Inapoi</a>
+        <h4>Programare M.M.L.S</h4>
+        <form method="post" action="https://script.google.com/macros/s/AKfycbyWIqMXbDTCrvc4eyVTJYvHj7FshwKBy1Y802tjCY2y-UEZeQDLcnbCBD9CR0NaEWPq/exec" name="contact-form" id="contact-form">
+            <input type="text" name="NUME" placeholder="Nume Prenume" required>
+            <input type="number" name="ID" placeholder="CNP (ID)" required>
+            <input type="text" name="NUME AFACERE" placeholder="Numele afacerii" required>
+            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
+            <input type="text" name="EMAIL" placeholder="Email (nume discord)" required>
+            <input type="text" name="AFACERE" placeholder="Tipul de afacere (Service, Frizerie, etc...)" required>
+            <input type="text" name="ADRESA" placeholder="Adresa afacerii, cat mai in detaliu" required minlength="10">
+            <textarea name="DETALII" rows="5" placeholder="Detalii extra"></textarea>
+            <input type="submit" value="Trimite Formularul" id="submit">
+        </form>
+        <small>Pentru intrebari sau alte probleme, contactați: @saliva_medicuthau sau @kishu4388</small>
+        <small>Copyright © 2024 Tristan & LLuka</small>
+    </div>
+    
+    <div id="custom-alert-overlay"></div>
+    <div id="custom-alert">
+        <h5>Multumim!</h5>
+        <h5>Cererea dvs a fost inregistrata in baza noastra de date.</h5>
+        <button id="close-alert">OK</button>
+    </div>
+
+
+    <script>
+        
+        const phoneInput = document.getElementById('NUMAR_TEL');
+        phoneInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); 
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7); 
+            }
+            e.target.value = value;
+        });
+
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyaEtZ9ynZU5SlO1wt6vQyIuwbaUGyjQ-46jP8k_snNiMEVPrfHu7LvrytsVgtwQSKe/exec';
+        const form = document.forms['contact-form'];
+        const customAlert = document.getElementById('custom-alert');
+        const customOverlay = document.getElementById('custom-alert-overlay');
+        const closeAlertButton = document.getElementById('close-alert');
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            fetch(scriptURL, { method: 'POST', body: new FormData(form) })
+                .then(response => {
+                    
+                    customOverlay.style.display = 'block';
+                    customAlert.style.display = 'block';
+                })
+                .catch(error => console.error('Error!', error.message));
+        });
+
+        closeAlertButton.addEventListener('click', () => {
+            customAlert.style.display = 'none';
+            customOverlay.style.display = 'none';
+            window.location.reload();
+        });
+    </script>
+</body>
+
+</html>
