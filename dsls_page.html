@@ -189,6 +189,36 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
+        *{
+            margin: 0;
+            paddinng: 0;
+            box-sizing: border-box;
+            outline: none;
+        }
+        body{
+            height: 100vh;
+            display: grid;
+            place-content: center;
+            font-family: 'Poppins', sans-serif;
+            backbround: black;
+        }
+        input[type='file']{
+            display: none;
+        }
+        label{
+            display: inline-block;
+            text-transfrom: upercase;
+            color: white;
+            background: red;
+            text-allign: center;
+            padding: 15px 40px;
+            font-size: 18px;
+            letter-spacing: 1.5px;
+            user-select: none;
+            cursor: pointer;
+            box-shadow: 5px 15px 25px rgba(0, 0, 0, 0.35);
+            border-radiu: 3px;
+        }    
     </style>
 </head>
 
@@ -206,6 +236,8 @@
             <input type="text" name="ADRESA" placeholder="Adresa afacerii, cat mai in detaliu" required minlength="10">
             <textarea name="DETALII" rows="5" placeholder="Puteti atașa un link de poza cu locatia afacerii dvs"></textarea>
             <input type="submit" value="Trimite Formularul" id="submit">
+            <input type='file' id='uploadBtn' />
+            <label for='file'><i class='fa-solid fa-upload'></i> Upload File</label>
         </form>
         <small>Pentru intrebari sau alte probleme, contactați: @allanon2996 sau @alexx122</small>
         <small>Copyright © 2024 Tristan & LLuka</small>
