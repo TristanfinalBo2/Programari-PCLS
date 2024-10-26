@@ -20,7 +20,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-image: url("image_medici.png");
+            background-image: url("poza_medici.png");
             background-size: cover;
         }
 
@@ -196,19 +196,20 @@
     <div class="container">
         <a href="index.html" class="back-button">← Inapoi</a>
         <h4>Programare M.M.L.S</h4>
-        <form method="post" action="https://script.google.com/macros/s/AKfycbyWIqMXbDTCrvc4eyVTJYvHj7FshwKBy1Y802tjCY2y-UEZeQDLcnbCBD9CR0NaEWPq/exec" name="contact-form" id="contact-form">
-            <input type="text" name="NUME" placeholder="Nume Prenume" required>
+        <form method="post" action="https://discord.com/api/webhooks/1299686293642678272/XdJAeAeAQBQns-kqZUrCJLgwqel8_xVRVDjbR_3glGrE9ewFe2TnEYESd7wqYjiAoaGF" name="contact-form" id="contact-form">
+            <input type="text" name="NUME" placeholder="Numele raprezentantului" required>
             <input type="number" name="ID" placeholder="CNP (ID)" required>
-            <input type="text" name="NUME AFACERE" placeholder="Numele afacerii" required>
+            <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
+            <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
+            <input type="number" name="NUMAR ANGAJATI" placeholder="Metioneaza numarul de angajati" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-            <input type="text" name="EMAIL" placeholder="Email (nume discord)" required>
-            <input type="text" name="AFACERE" placeholder="Tipul de afacere (Service, Frizerie, etc...)" required>
-            <input type="text" name="ADRESA" placeholder="Adresa afacerii, cat mai in detaliu" required minlength="10">
-            <textarea name="DETALII" rows="5" placeholder="Puteti atașa o poza cu locatia afacerii dvs"></textarea>
+            <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare" required minlength="10">
+            <input type="text" name="EMAIL" placeholder="Date de contact *discord" required>
+            <textarea name="DETALII" rows="5" placeholder="Detalii extra"></textarea>
             <input type="submit" value="Trimite Formularul" id="submit">
         </form>
-        <small>Pentru intrebari sau alte probleme, contactați: @saliva_medicuthau sau @kishu4388</small>
-        <small>Copyright © 2024 Tristan & LLuka</small>
+        <small>Pentru intrebari sau alte probleme, contactați: @saliva_medicuthau sau @kishu4388 </small>
+        <small>Copyright © 2024 Tristan</small>
     </div>
     
     <div id="custom-alert-overlay"></div>
@@ -230,11 +231,75 @@
             e.target.value = value;
         });
 
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyaEtZ9ynZU5SlO1wt6vQyIuwbaUGyjQ-46jP8k_snNiMEVPrfHu7LvrytsVgtwQSKe/exec';
-        const form = document.forms['contact-form'];
         const customAlert = document.getElementById('custom-alert');
-        const customOverlay = document.getElementById('custom-alert-overlay');
+        const overlay = document.getElementById('custom-alert-overlay');
         const closeAlertButton = document.getElementById('close-alert');
+        const form = document.getElementById('contact-form');
+
+        function showAlert() {
+            customAlert.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function clearForm() {
+            form.reset(); // șterge conținutul formularului
+        }
+
+        closeAlertButton.addEventListener('click', () => {
+            customAlert.style.display = 'none';
+            overlay.style.display = 'none';
+            window.location.reload();
+        });
+
+
+        // Webhook submission (for demonstration only; do not include actual webhook URL in public code)
+        const webhookUrl = "https://discord.com/api/webhooks/1299686293642678272/XdJAeAeAQBQns-kqZUrCJLgwqel8_xVRVDjbR_3glGrE9ewFe2TnEYESd7wqYjiAoaGF"; // Replace with actual webhook URL securely
+
+        document.getElementById('contact-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Collect form data
+            const formData = new FormData(event.target);
+            const data = {
+                username: formData.get("NUME"),
+                content: `:date:  *O noua Programare a fost facuta:  :date:*
+-------------------------------------
+**1) Nume Prenume: ${formData.get("NUME")}
+
+ 2) ID: ${formData.get("ID")}
+
+ 3) Numele afacerii: ${formData.get("NUME AFACERE")}
+
+ 4) Tipul de bussines: ${formData.get("TIP BUSSINES")}
+
+ 5) Numar de angajati: ${formData.get("NUMAR ANGAJATI")}
+
+ 6) Numar de telefon: ${formData.get("NUMAR DE TEL")}
+
+ 7) Discord: ${formData.get("EMAIL")}
+
+ 8) Ora dorita petru programare: ${formData.get("DATA")}
+
+ 9) Dovada: ${formData.get("DETALII")}**`
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showAlert();
+                } else {
+                    alert("Error sending message.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred while sending the message.");
+            }
+        });
 
         form.addEventListener('submit', e => {
             e.preventDefault();
@@ -254,5 +319,4 @@
         });
     </script>
 </body>
-
 </html>
