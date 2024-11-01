@@ -274,8 +274,8 @@
             <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
             <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-            <h1>Mentioneaza data si ora dorita pentru programare ↓<h1>
-            <input type="datetime-local" name="DATA" placeholder="Metioneaza ora dorita pentru programare (pana in ora 20:00)" required>
+            <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare (pana in ora 20:00)" required>
+            <input type="text" name="DATE" placeholder="Mentioneaza data in care doresti programarea" required>
             <input type="text" name="EMAIL" placeholder="Adresa de email (discord)" required>
             <textarea name="DETALII" rows="5" placeholder="Detalii extra"></textarea>
             <label class="custom-checkbox">
@@ -338,7 +338,6 @@
             // Collect form data
             const formData = new FormData(event.target);
             const data = {
-                username: formData.get("NUME"),
                 content: ` :date:  *O noua Programare a fost facuta:  :date:*
 -------------------------------------
 **1) Nume Prenume: ${formData.get("NUME")}
@@ -351,7 +350,7 @@
 
  5) Discord: ${formData.get("EMAIL")}
 
- 6) Data si Ora dorita petru programare: ${formData.get("DATA")}
+ 6) Data si Ora dorita petru programare: ${formData.get("DATA")},${formData.get("DATE")}
 
  7) Detalii Extra: ${formData.get("DETALII")}**`
             };
