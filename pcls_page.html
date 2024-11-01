@@ -28,7 +28,7 @@
             width: 90%;
             max-width: 850px;
             padding: 40px;
-            background: rgba(128, 128, 128, 0.6); 
+            background: rgba(128, 128, 128, 0.7); 
             backdrop-filter: blur(8px); 
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -37,7 +37,7 @@
 
         h4 {
             text-align: center;
-            font-size: 38px;
+            font-size: 30px;
             color: #ffffff;
             margin-bottom: 30px;
             text-transform: uppercase;
@@ -108,7 +108,6 @@
             h4 {
                 font-size: 30px;
             }
-
             #submit {
                 font-size: 16px;
                 position: relative;
@@ -165,7 +164,7 @@
 
         #custom-alert h5 {
             font-size: 24px;
-            color: #333;
+            color: #000000;
             margin-bottom: 30px;
         }
 
@@ -258,6 +257,11 @@
 .custom-checkbox .checkmark:after {
   transition: 0.5s;
 }
+            h1 {
+            color: #111111;
+            font-size: medium;
+            margin-top: 5px;
+            }
     </style>
 </head>
 
@@ -270,7 +274,8 @@
             <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
             <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-            <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare (pana in ora 20:00)" required>
+            <h1>Mentioneaza data si ora dorita pentru programare ↓<h1>
+            <input type="datetime-local" name="DATA" placeholder="Metioneaza ora dorita pentru programare (pana in ora 20:00)" required>
             <input type="text" name="EMAIL" placeholder="Adresa de email (discord)" required>
             <textarea name="DETALII" rows="5" placeholder="Detalii extra"></textarea>
             <label class="custom-checkbox">
@@ -346,7 +351,7 @@
 
  5) Discord: ${formData.get("EMAIL")}
 
- 6) Ora dorita pentru programare: ${formData.get("DATA")}
+ 6) Data si Ora dorita petru programare: ${formData.get("DATA")}
 
  7) Detalii Extra: ${formData.get("DETALII")}**`
             };
