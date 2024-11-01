@@ -278,8 +278,8 @@
             <input type="text" name="DATA" placeholder="adresa" required minlength="10">
             <input type="text" name="EMAIL" placeholder="tipul spatiului comercial" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-            <input type="text" name="EMAIL" placeholder="email (discord)" required>
-            <input type="text" name="EMAIL" placeholder="nume prenume solicitant (cel care completeaza formularul)" required>
+            <input type="text" name="DISC" placeholder="email (discord)" required>
+            <input type="text" name="EMA" placeholder="nume prenume solicitant (cel care completeaza formularul)" required>
             <label class="custom-checkbox">
                 <input type="checkbox" required>
                 <span class="checkmark"></span>
@@ -363,9 +363,9 @@
 
  8) Numar de telefon: ${formData.get("NUMAR_TEL")}
 
- 9) Discord: ${formData.get("EMAIL")}
+ 9) Discord: ${formData.get("DISC")}
  
- 10) Numele Solicitantului: ${formData.get("EMAIL")}**
+ 10) Numele Solicitantului: ${formData.get("EMA")}**
  -------------------------------------`
             };
 
