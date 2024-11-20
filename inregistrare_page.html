@@ -278,7 +278,7 @@
             <input type="text" name="DATA" placeholder="adresa" required minlength="10">
             <input type="text" name="EMAIL" placeholder="tipul spatiului comercial" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-            <input type="text" name="DISC" placeholder="email (discord)" required>
+            <input type="text" name="DISC" placeholder="introdu discord id-ul | click dreapta pe poza ta --> get discord id" required>
             <input type="text" name="EMA" placeholder="nume prenume solicitant (cel care completeaza formularul)" required>
             <label class="custom-checkbox">
                 <input type="checkbox" required>
@@ -363,7 +363,7 @@
 
  8) Numar de telefon: ${formData.get("NUMAR DE TEL")}
 
- 9) Discord: ${formData.get("DISC")}
+ 9) Discord: <@${formData.get("DISC")}>
  
  10) Numele Solicitantului: ${formData.get("EMA")}**
  -------------------------------------`
