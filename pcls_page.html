@@ -276,7 +276,7 @@
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
             <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare (pana in ora 20:00)" required>
             <input type="text" name="DATE" placeholder="Mentioneaza data in care doresti programarea" required>
-            <input type="text" name="EMAIL" placeholder="Adresa de email (discord)" required>
+            <input type="text" name="EMAIL" placeholder="discord id-ul | click pe poza ta de discord --> copy user id" required>
             <textarea name="DETALII" rows="5" placeholder="Detalii extra"></textarea>
             <label class="custom-checkbox">
                 <input type="checkbox" required>
@@ -349,7 +349,7 @@
 
  4) Numar de telefon: ${formData.get("NUMAR DE TEL")}
 
- 5) Discord: ${formData.get("EMAIL")}
+ 5) Discord: <@${formData.get("EMAIL")}>
 
  6) Data si Ora dorita petru programare: ${formData.get("DATA")},${formData.get("DATE")}
 
