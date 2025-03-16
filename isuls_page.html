@@ -189,6 +189,72 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
+                /* Stilizează eticheta care conține checkbox-ul */
+.custom-checkbox {
+  display: flex;
+  align-items: flex-start; /* Aliniază checkbox-ul mai sus față de text */
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #ffffff;
+  margin-top: 1%;
+}
+
+/* Ascunde checkbox-ul implicit */
+.custom-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+/* Stilizează caseta personalizată */
+.custom-checkbox .checkmark {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background-color: #eee;
+  border: 2px solid #bbb;
+  border-radius: 4px;
+  margin-right: 10px;
+  margin-top: 0px; /* Ajustează această valoare pentru a muta caseta mai sus sau mai jos */
+  transition: all 0.3s ease;
+  top: 100%;
+}
+
+/* Schimbă stilul la hover */
+.custom-checkbox:hover .checkmark {
+  background-color: #f0f0f0;
+  border-color: #888;
+}
+
+/* Starea bifată */
+.custom-checkbox input[type="checkbox"]:checked + .checkmark {
+  background-color: #456cc0;
+  border-color: #456cc0;
+}
+
+/* Iconiță bifată */
+.custom-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Apariția iconiței bifate când checkbox-ul este selectat */
+.custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
+  display: block;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Adaugă o tranziție pentru un efect mai fluid */
+.custom-checkbox .checkmark,
+.custom-checkbox .checkmark:after {
+  transition: 0.5s;
+}
     </style>
 </head>
 
@@ -204,6 +270,11 @@
             <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord*" required>
             <textarea name="DETALII" rows="5" placeholder="Puteti atasa un link cu poza locatiei de pe harta"></textarea>
+            <label class="custom-checkbox">
+                <input type="checkbox" required>
+                <span class="checkmark"></span>
+                Am primit confirmarea de inregistrare a afacerii din partea unui Secretar PCLS prin email!
+              </label>
             <input type="submit" value="Trimite Formularul" id="submit">
             <a href="index.html" class="back-button">← Inapoi</a>
         </form>
