@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghidul Operatorului Economic - PCLS</title>
+<style>
+  body {
+    background-color: #001000;
+    color: #e0ffe5;
+    font-family: "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    text-align: center;
+    padding: 40px 20px 20px;
+    border-bottom: 1px solid #00ff66;
+  }
+
+  header h1 {
+    color: #00ff66;
+    font-size: 28px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  header p {
+    font-size: 15px;
+    color: #b8ffcb;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 40px auto;
+    background-color: #001a00;
+    border: 1px solid #00ff66;
+    border-radius: 20px;
+    padding: 30px 40px;
+    box-shadow: 0 0 25px #00ff44;
+  }
+
+  h2 {
+    color: #00ff66;
+    border-left: 4px solid #00ff66;
+    padding-left: 10px;
+    margin-top: 40px;
+  }
+
+  h3 {
+    color: #00ff99;
+    margin-top: 25px;
+  }
+
+  p {
+    text-align: justify;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  ul li::before {
+    content: "✔ ";
+    color: #00ff66;
+  }
+
+  .highlight {
+    color: #00ff99;
+    font-weight: bold;
+  }
+
+  .warning {
+    color: #ff6666;
+    font-weight: bold;
+  }
+
+  footer {
+    text-align: center;
+    padding: 30px;
+    border-top: 1px solid #00ff66;
+    color: #b8ffcb;
+    font-size: 14px;
+  }
+
+  .btn-back {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid #00ff66;
+    color: white;
+    border-radius: 25px;
+    padding: 10px 25px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+  }
+
+  .btn-back:hover {
+    background-color: #00ff6620;
+  }
+
+  /* Scrollbar verde subtil */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #00ff66;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ghidul Operatorului Economic</h1>
+  <p>Protecția Consumatorilor Los Santos (PCLS)</p>
+</header>
+
+<main>
+  <p><span class="highlight">Protecția Consumatorilor Los Santos (PCLS)</span> este o instituţie publică ce coordonează şi realizează strategia în domeniul protecţiei consumatorilor. Scopul său este prevenirea şi combaterea practicilor care dăunează vieţii, sănătăţii, securităţii şi intereselor economice ale cetățenilor.</p>
+
+  <h2>Ghidul Operatorului Economic</h2>
+  <p>Acest ghid oferă operatorilor economici informații esențiale despre înființarea, administrarea și conformitatea unei entități economice în Municipiul Los Santos.</p>
+
+  <h3>Doresc să înființez o nouă entitate economică / am preluat o afacere</h3>
+  <ul>
+    <li>Declarați entitatea în Registrul PCLS prin formularul online.</li>
+    <li>Contactați Medicina Muncii Los Santos pentru programarea controlului.</li>
+    <li>Efectuați controalele ISULS și DSLS prin formularele online.</li>
+    <li>După avizele pozitive, programați controlul final PCLS.</li>
+  </ul>
+
+  <h3>Pot pune afacerea pe numele altcuiva?</h3>
+  <p class="warning">NU! Proprietarul legal trebuie declarat corect.</p>
+  <p>În caz contrar, riscați o amendă de <span class="highlight">400.000 RON</span> și repercusiuni legale pentru fals în declarații.</p>
+
+  <h3>Am închiriat un spațiu cuiva care dorește să deschidă o afacere</h3>
+  <p>Proprietarul real trebuie declarat în formularul online. Chiriașul va figura ca administrator al unității economice.</p>
+
+  <h3>Schimbarea numelui / administratorului / proprietarului</h3>
+  <p>Contactați PCLS prin e-mail pentru modificări în registru. Schimbarea proprietarului necesită reluarea procesului de certificare complet.</p>
+
+  <h3>Poate fi administratorul prezent la controale?</h3>
+  <ul>
+    <li>MMLS / ISULS / DSLS – <span class="highlight">DA</span></li>
+    <li>PCLS – <span class="warning">NU</span>, trebuie să fie proprietarul legal</li>
+  </ul>
+
+  <h3>Valabilitatea autorizațiilor</h3>
+  <p>Toate autorizațiile (MMLS / ISULS / DSLS / PCLS) sunt valabile <span class="highlight">4 luni</span> de la data efectuării controlului.</p>
+
+  <h3>De ce este închisă afacerea mea?</h3>
+  <ul>
+    <li>Nedeclararea entității economice la timp.</li>
+    <li>Neefectuarea controalelor obligatorii.</li>
+    <li>Depășirea termenului de reînnoire a autorizațiilor.</li>
+    <li>Nereguli constatate de PCLS sau raportate de consumatori.</li>
+  </ul>
+
+  <h3>Neefectuarea controalelor la timp</h3>
+  <p class="warning">După 7 zile de la expirarea autorizațiilor:</p>
+  <ul>
+    <li>Activitatea economică este suspendată.</li>
+    <li>Se aplică o amendă de <span class="highlight">100.000 RON+</span>.</li>
+  </ul>
+
+  <h3>Închiderea afacerii</h3>
+  <p>Trebuie notificat PCLS prin e-mail către Secretariat sau conducerea instituției.</p>
+
+  <h2>Tarife</h2>
+  <ul>
+    <li>Comerț carburanți – 200.000 RON</li>
+    <li>Reparații auto – 120.000 RON</li>
+    <li>Frizerie / Coafură – 40.000 RON</li>
+    <li>Restaurante / Magazine – 200.000 RON</li>
+    <li>Evenimente – 30.000 RON</li>
+  </ul>
+
+  <h2>Autorizații și Amenzi</h2>
+  <ul>
+    <li>MMLS – 50.000 RON taxă unică</li>
+    <li>Nedeclarare sau neefectuare controale – 100.000+ RON</li>
+    <li>Fals în declarații – 400.000 RON</li>
+  </ul>
+
+  <h2>Ierarhie PCLS</h2>
+  <ul>
+    <li>Președinte</li>
+    <li>Vicepreședinte</li>
+    <li>Secretar General</li>
+    <li>Director General</li>
+    <li>Comisari</li>
+  </ul>
+
+  <div style="text-align:center;">
+    <a href="index.html" class="btn-back">Înapoi la pagina principală</a>
+  </div>
+</main>
+
+<footer>
+  © 2025 Protecția Consumatorilor Los Santos (PCLS) — Toate drepturile rezervate.
+</footer>
+
+</body>
+</html>
