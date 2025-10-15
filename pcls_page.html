@@ -298,15 +298,14 @@
 
 
         // Webhook submission (for demonstration only; do not include actual webhook URL in public code)
-        const webhookUrl = "https://discord.com/api/webhooks/1300582034913235124/3X146f6kbTxl8jMonlRQePqR5UPYBKoGMLxRmzqLvZ-QAxWif2e0T6OBZ1ZetHEQaaBT"; // Replace with actual webhook URL securely
-
+        const webhookUrl = "https://discord.com/api/webhooks/1300582034913235124/3X146f6kbTxl8jMonlRQePqR5UPYBKoGMLxRmzqLvZ-QAxWif2e0T6OBZ1ZetHEQaaBT"; 
         document.getElementById('contact-form').addEventListener('submit', async (event) => {
             event.preventDefault();
 
             // Collect form data
             const formData = new FormData(event.target);
             const data = {
-                content: ` :date:  *O noua Programare a fost facuta:  :date:*
+                content: ` :date:  *O noua Programare a fost facuta:  :date: <@&1096472252448522282>*
 -------------------------------------
 **1) Nume Prenume: ${formData.get("NUME")}
 
