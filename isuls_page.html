@@ -79,7 +79,7 @@
     #submit {
       margin-top: 20px;
       width: 100%;
-      padding: 15px;
+      padding: 8px;
       background-color: transparent;
       border: 1px solid #4cff4c;
       color: #e0ffe0;
@@ -98,9 +98,9 @@
 
     small {
       display: block;
-      margin-top: 20px;
+      margin-top: 10px;
       color: #2B8C45;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .custom-checkbox {
@@ -109,7 +109,7 @@
       cursor: pointer;
       font-size: 14px;
       color: #d1d1d1;
-      margin-top: 10px;
+      margin-top: 1px;
       text-align: left;
     }
 
@@ -236,6 +236,7 @@
             <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
             <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare">
+            <input type="text" name="DAY" placeholder="Mentioneaza data dorita pentru efectuarea controlului">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord*" required>
             <textarea name="DETALII" rows="5" placeholder="Puteti atasa un link cu poza locatiei de pe harta"></textarea>
             <label class="custom-checkbox">
@@ -310,7 +311,9 @@
 
  7) Ora dorita pentru programare: ${formData.get("DATA")}
 
- 8) Detalii extra: ${formData.get("DETALII")}**`
+ 8) Data dorita pentru programare: ${formData.get("DAY")}
+
+ 9) Detalii extra: ${formData.get("DETALII")}**`
             };
 
             try {

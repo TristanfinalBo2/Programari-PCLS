@@ -38,7 +38,7 @@
     h4 {
       color: #9cff9ca1;
       font-size: 2rem;
-      margin-bottom: 10px;
+      margin-bottom: 4px;
       letter-spacing: 3px;
     }
 
@@ -48,7 +48,7 @@
         background: rgba(0, 0, 0, 0.4);
         border: 1px solid #2b8c45;
         border-radius: 20px;
-        padding: 25px 90px; /* 🔹 adaugă spațiu stânga-dreapta */
+        padding: 1px 90px; /* 🔹 adaugă spațiu stânga-dreapta */
         box-shadow: 0 0 30px rgba(0, 255, 100, 0.1);
     }
 
@@ -238,6 +238,7 @@
             <input type="number" name="NUMAR ANGAJATI" placeholder="Metioneaza numarul de angajati" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
             <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare">
+            <input type="text" name="DAY" placeholder="Mentioneaza data dorita pentru efectuarea controlului">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord" required>
             <textarea name="DETALII" rows="5" placeholder="Strada ,locatia afacerii mai in detaliu:"></textarea>
             <label class="custom-checkbox">
@@ -317,7 +318,9 @@
 
  8) Ora dorita petru programare: ${formData.get("DATA")}
 
- 9) Info Extra: ${formData.get("DETALII")}**`
+ 9) Data dorita pentru programare: ${formData.get("DAY")}
+
+ 10) Info Extra: ${formData.get("DETALII")}**`
             };
 
             try {
