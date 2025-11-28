@@ -210,17 +210,16 @@
     <h1>Bine ai venit pe Programari PCLS</h1>
     <p>Acest site este dedicat tuturor programarilor din cadrul PCLS</p>
       <div class="buttons"> 
-        <button class="buttons" onclick="window.open('pcls_page.html', '_blank')">
-          Depune o Cerere
+        <button class="buttons" onclick="window.location.href='pcls_page.html'">
+            Depune o Cerere
         </button>
-        <button class="buttons" onclick="window.open('ghid_pcls.html', '_blank')">
-          Informatii PCLS
+        <button class="buttons" onclick="window.location.href='ghid_pcls.html'">
+            Informatii PCLS
         </button>
-        <button class="buttons" onclick="window.open('inregistrare_page.html', '_blank')">
-          Înscrieți Afacerea
+        <button class="buttons" onclick="window.location.href='inregistrare_page.html'">
+            Înscrieți Afacerea
         </button>
         <button id="openPopup">Depune o Cerere la Medici</button>
-        </button>
     </div>
     <div class="logos">
         <img src="Logo Protecția Consumatorilor Los Santos.png" alt="Sigla 1">
@@ -246,6 +245,7 @@
       
 
         <script>
+          
                       function showNotification() {
               const notif = document.getElementById('notification');
               notif.classList.add('show');
