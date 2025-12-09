@@ -104,15 +104,68 @@
 
   /* Scrollbar verde subtil */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 5px;
   }
   ::-webkit-scrollbar-thumb {
-    background-color: #00ff66;
+    background-color: #1e8848;
     border-radius: 4px;
   }
+      .back-arrow {
+    position: fixed;
+    top: 25px;
+    left: 30px;
+    font-size: 19px;
+    color: #4cff4c;
+    text-decoration: none;
+    z-index: 2000;
+    padding: 9px 12px;
+    border: 2px solid #4cff4c;
+    border-radius: 15px;
+    background: rgba(17, 17, 17, 0.9);
+    transition: 0.5s;
+}
+
+.back-arrow:hover {
+    background: #4cff4c;
+    color: black;
+    box-shadow: 0 0 12px #ffffff;
+}
+
+/* Săgeată urcare la top */
+.scroll-top {
+    position: fixed;
+    bottom: 7px;
+    right: 25px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #00ff66;
+    font-size: 24px;
+    padding: 12px 23px;
+    border-radius: 14px;
+    border: 2.4px solid #00ff66;
+    cursor: pointer;
+    text-decoration: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+    z-index: 2500;
+}
+
+.scroll-top:hover {
+    background: #00ff66;
+    color: black;
+    box-shadow: 0 0 15px #00ff66;
+}
+
+.scroll-top.show {
+    opacity: 1;
+    visibility: visible;
+}
+
 </style>
 </head>
+<a href="#" id="scrollTopBtn" class="scroll-top">↑</a>
 <body>
+  <a href="index.html" class="back-arrow">⟵ Inapoi</a>
 
 <header>
   <h1>Ghidul Operatorului Economic</h1>
@@ -295,7 +348,6 @@
     <p class="warning">Reprogramările nu sunt automate.</p>
     
   <div style="text-align:center;">
-    <a href="index.html" class="btn-back">Înapoi la pagina principală</a>
   </div>
 </main>
 
@@ -303,4 +355,45 @@
   © 2025 Protecția Consumatorilor Los Santos (PCLS) — Toate drepturile rezervate.
 </footer>
 </body>
+<script>
+// Apariție/dispariție săgeată
+const scrollBtn = document.getElementById("scrollTopBtn");
+
+// Buton vizibil după scroll
+window.addEventListener("scroll", () => {
+    if (window.scrollY > 400) {
+        scrollBtn.classList.add("show");
+    } else {
+        scrollBtn.classList.remove("show");
+    }
+});
+
+// Ultra smooth scroll to top
+scrollBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    
+    smoothScrollToTop();
+});
+
+function smoothScrollToTop() {
+    const speed = 35; // ↓ cu cât este MAI MARE numărul, cu atât e MAI LENT scroll-ul
+    
+    const scrollInterval = setInterval(() => {
+        // Scade treptat viteza pe măsură ce se apropie de top (smooth feeling)
+        let pos = window.pageYOffset;
+        let step = Math.max(10, pos / speed);
+
+        window.scrollTo(0, pos - step);
+
+        if (pos <= 0) clearInterval(scrollInterval);
+    }, 10);
+}
+    window.addEventListener('scroll', () => {
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = (scrollTop / scrollHeight) * 100;
+        document.getElementById('progress-bar').style.width = progress + '%';
+    });
+</script>
 </html>
+<div id="progress-bar" style="position: fixed; top: 0; left: 0; height: 5px; background-color: #0ea500; width: 0%; z-index: 1000;"></div>

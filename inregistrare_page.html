@@ -224,10 +224,32 @@
         padding: 20px;
       }
     }
+
+    .back-arrow {
+    position: fixed;
+    top: 25px;
+    left: 30px;
+    font-size: 19px;
+    color: #4cff4c;
+    text-decoration: none;
+    z-index: 2000;
+    padding: 9px 12px;
+    border: 2px solid #4cff4c;
+    border-radius: 15px;
+    background: rgba(17, 17, 17, 0.9);
+    transition: 0.5s;
+}
+
+.back-arrow:hover {
+    background: #4cff4c;
+    color: black;
+    box-shadow: 0 0 12px #ffffff;
+}
     </style>
 </head>
 
 <body>
+  <a href="index.html" class="back-arrow">⟵ Inapoi</a>
     <div class="container">
         <h4>Inregistreaza-ti afacerea in baza de date P.C.L.S</h4>
         <form method="post" action="https://discord.com/api/webhooks/1300591874138177618/crigVzf7hYfmkyzWYWuEP00FyDAuz2Fqwg7c2lPdaupx-hUdMECExKjhUPDGvf0xS-ON" name="contact-form" id="contact-form">
