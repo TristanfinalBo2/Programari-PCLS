@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programare I.S.U.L.S</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100vw;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #111;
+  color: #d1d1d1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+.container {
+  background: linear-gradient(to bottom, #000000 56%, #004d1a 100%);
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 60px rgba(0, 255, 100, 0.1);
+  position: relative;
+  text-align: center;
+}
+
+
+    h4 {
+      color: #9cff9ca1;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      letter-spacing: 3px;
+    }
+
+    form {
+        width: 90%;
+        max-width: 600px; /* limitează lățimea pe ecrane mari */
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid #2b8c45;
+        border-radius: 20px;
+        padding: 25px 90px; /* 🔹 adaugă spațiu stânga-dreapta */
+        box-shadow: 0 0 30px rgba(0, 255, 100, 0.1);
+    }
+
+    form input,
+    form textarea {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 18px;
+      background-color: rgba(20, 20, 20, 0.9);
+      border: 1px solid #2b8c45;
+      border-radius: 12px;
+      color: #e0ffe0;
+      font-size: 16px;
+      transition: border 0.3s ease, background 0.3s ease;
+    }
+
+    form input:focus,
+    form textarea:focus {
+      outline: none;
+      border: 1px solid #4cff4c;
+      background-color: rgba(0, 60, 0, 0.6);
+    }
+
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+
+    #submit {
+      margin-top: 20px;
+      width: 100%;
+      padding: 8px;
+      background-color: transparent;
+      border: 1px solid #4cff4c;
+      color: #e0ffe0;
+      font-size: 1.15rem;
+      font-weight: bold;
+      border-radius: 19px;
+      cursor: pointer;
+      transition: all 0.9s ease;
+    }
+
+    #submit:hover {
+      background-color: #4cff4ca8;
+      color: white;
+      box-shadow: 0 0 20px 9px #4cff4c33;
+    }
+
+    small {
+      display: block;
+      margin-top: 10px;
+      color: #2B8C45;
+      font-size: 13px;
+    }
+
+    .custom-checkbox {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: #d1d1d1;
+      margin-top: 1px;
+      text-align: left;
+    }
+
+    .custom-checkbox input[type="checkbox"] {
+      display: none;
+    }
+
+    .custom-checkbox .checkmark {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      background-color: #111;
+      border: 1px solid #4cff4c;
+      border-radius: 5px;
+      margin-right: 10px;
+      transition: all 0.6s ease;
+    }
+
+    .custom-checkbox input[type="checkbox"]:checked + .checkmark {
+      background-color: #4cff4c;
+      box-shadow: 0 0 10px #4cff4c;
+    }
+
+    .custom-checkbox .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
+
+    .custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
+      display: block;
+      left: 6px;
+      top: 1px;
+      width: 5px;
+      height: 10px;
+      border: solid black;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #4cff4c9f;
+      color: black;
+      padding: 15px 25px;
+      border-radius: 19px;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 1000;
+    }
+
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+#custom-alert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        #custom-alert h5 {
+            font-size: 24px;
+            color: #000000;
+            margin-bottom: 30px;
+        }
+
+        #custom-alert button {
+            background: #4ac26e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #custom-alert button:hover {
+            background: #0d8d22;
+        }
+
+        #custom-alert-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+    @media (max-width: 600px) {
+      h4 {
+        font-size: 1.6rem;
+      }
+
+      form {
+        width: 95%;
+        padding: 20px;
+      }
+    }
+        .back-arrow {
+    position: fixed;
+    top: 25px;
+    left: 30px;
+    font-size: 19px;
+    color: #4cff4c;
+    text-decoration: none;
+    z-index: 2000;
+    padding: 9px 12px;
+    border: 2px solid #4cff4c;
+    border-radius: 15px;
+    background: rgba(17, 17, 17, 0.9);
+    transition: 0.5s;
+}
+
+.back-arrow:hover {
+    background: #4cff4c;
+    color: black;
+    box-shadow: 0 0 12px #ffffff;
+}
+    </style>
+</head>
+<body>
+   <a href="index.html" class="back-arrow">⟵ Inapoi</a>
+    <div class="container">
+        <h4>Programare S.S.M.L.S.</h4>
+        <form method="post" action="https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD" name="contact-form" id="contact-form">
+            <input type="text" name="NUME" placeholder="Numele reprezentantului" required>
+            <input type="number" name="ID" placeholder="CNP (ID)" required>
+            <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
+            <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
+            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
+            <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare">
+            <input type="text" name="DAY" placeholder="Mentioneaza data dorita pentru efectuarea controlului">
+            <input type="text" name="EMAIL" placeholder="Date de contact *discord ID*" required>
+            <input type="text" name="NAME" placeholder="Numele Primului Raprezentant" required>
+            <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Raprezentant" required>
+            <input type="text" name="NAME2" placeholder="Numele si Prenumele la al 2-lea Raprezentant" required>
+            <input type="text" name="NUMBER2" placeholder="Numarul de telefon la al 2-lea Raprezentant" required>
+            <textarea name="DETALII" rows="5" placeholder="Puteti atasa un link cu poza locatiei de pe harta"></textarea>
+            <label class="custom-checkbox">
+                <input type="checkbox" required>
+                <span class="checkmark"></span>
+                Am primit confirmarea de inregistrare a afacerii din partea unui Secretar PCLS prin email!
+              </label>
+            <input type="submit" value="Trimite Formularul" id="submit">
+        </form>
+        <small>Copyright © 2025 Tristan</small>
+    </div>
+
+    <div id="custom-alert-overlay"></div>
+    <div id="custom-alert">
+        <h5>Multumim!</h5>
+        <h5>Cererea dvs a fost inregistrata in baza noastra de date.</h5>
+        <button id="close-alert">OK</button>
+    </div>
+
+    <script>
+        
+        const phoneInput = document.getElementById('NUMAR_TEL');
+        phoneInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); 
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7); 
+            }
+            e.target.value = value;
+        });
+        const customAlert = document.getElementById('custom-alert');
+        const overlay = document.getElementById('custom-alert-overlay');
+        const closeAlertButton = document.getElementById('close-alert');
+        const form = document.getElementById('contact-form');
+
+        function showAlert() {
+            customAlert.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function clearForm() {
+            form.reset(); // șterge conținutul formularului
+        }
+
+        closeAlertButton.addEventListener('click', () => {
+            customAlert.style.display = 'none';
+            overlay.style.display = 'none';
+            window.location.reload();
+        });
+
+        // Webhook submission (for demonstration only; do not include actual webhook URL in public code)
+        const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD"; // Replace with actual webhook URL securely
+
+        document.getElementById('contact-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Collect form data
+            const formData = new FormData(event.target);
+            const data = {
+                content: `:date:  *O noua Programare a fost facuta:  :date: <@377076232254390273>*
+-------------------------------------
+**1) Nume Prenume: ${formData.get("NUME")}
+
+ 2) ID: ${formData.get("ID")}
+
+ 3) Numele afacerii: ${formData.get("NUME AFACERE")}
+
+ 4) Tipul de bussines: ${formData.get("TIP BUSSINES")}
+
+ 5) Numar de telefon: ${formData.get("NUMAR DE TEL")}
+
+ 6) Discord: ${formData.get("EMAIL")}
+
+ 7) Ora dorita pentru programare: ${formData.get("DATA")}
+
+ 8) Data dorita pentru programare: ${formData.get("DAY")}
+
+ 9) Numele si Prenumele Primului Raprezentant: ${formData.get("NAME")}
+
+ 10) Numarul de telefon al Primului Raprezentant: ${formData.get("NUMBER")}
+
+ 11) Numele si Prenumele la al 2-lea Raprezentant: ${formData.get("NAME2")}
+
+ 12) Numarul de telefon la al 2-lea Raprezentant: ${formData.get("NUMBER2")}
+
+ 13) Detalii extra: ${formData.get("DETALII")}**`
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showAlert();
+                } else {
+                    alert("Error sending message.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("An error occurred while sending the message.");
+            }
+        });
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            fetch(scriptURL, { method: 'POST', body: new FormData(form) })
+                .then(response => {
+                    
+                    customOverlay.style.display = 'block';
+                    customAlert.style.display = 'block';
+                })
+                .catch(error => console.error('Error!', error.message));
+        });
+
+        closeAlertButton.addEventListener('click', () => {
+            customAlert.style.display = 'none';
+            customOverlay.style.display = 'none';
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
