@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programare I.S.U.L.S</title>
+    <title>Programare S.S.M.L.S</title>
 <style>
 html, body {
   margin: 0;
@@ -274,9 +274,9 @@ body {
             <input type="text" name="DAY" placeholder="Mentioneaza data dorita pentru efectuarea controlului">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord ID*" required>
             <input type="text" name="NAME" placeholder="Numele Primului Raprezentant" required>
-            <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Raprezentant" required>
+            <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Raprezentant" required maxlength="8">
             <input type="text" name="NAME2" placeholder="Numele si Prenumele la al 2-lea Raprezentant" required>
-            <input type="text" name="NUMBER2" placeholder="Numarul de telefon la al 2-lea Raprezentant" required>
+            <input type="text" name="NUMBER2" placeholder="Numarul de telefon la al 2-lea Raprezentant" required maxlength="8">
             <textarea name="DETALII" rows="5" placeholder="Puteti atasa un link cu poza locatiei de pe harta"></textarea>
             <label class="custom-checkbox">
                 <input type="checkbox" required>
@@ -296,8 +296,7 @@ body {
     </div>
 
     <script>
-        
-        const phoneInput = document.getElementById('NUMAR_TEL');
+        const phoneInput = document.getElementById('NUMAR_TEL','NUMBER','NUMBER2');
         phoneInput.addEventListener('input', function (e) {
             let value = e.target.value.replace(/\D/g, ''); 
             if (value.length > 3) {
@@ -305,6 +304,7 @@ body {
             }
             e.target.value = value;
         });
+        
         const customAlert = document.getElementById('custom-alert');
         const overlay = document.getElementById('custom-alert-overlay');
         const closeAlertButton = document.getElementById('close-alert');
