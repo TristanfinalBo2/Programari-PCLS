@@ -114,10 +114,12 @@ body {
       display: flex;
       align-items: center;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13.5px;
+      font-weight: 650;
       color: #d1d1d1;
-      margin-top: 1px;
+      margin-top: 5px;
       text-align: left;
+      margin-bottom: 11px;
     }
 
     .custom-checkbox input[type="checkbox"] {
@@ -273,16 +275,21 @@ body {
             <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare">
             <input type="text" name="DAY" placeholder="Mentioneaza data dorita pentru efectuarea controlului">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord ID*" required>
-            <input type="text" name="NAME" placeholder="Numele Primului Raprezentant" required>
-            <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Raprezentant" required maxlength="8">
-            <input type="text" name="NAME2" placeholder="Numele si Prenumele la al 2-lea Raprezentant" required>
-            <input type="text" name="NUMBER2" placeholder="Numarul de telefon la al 2-lea Raprezentant" required maxlength="8">
+            <input type="text" name="NAME" placeholder="Numele Primului Reprezentant" required>
+            <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Reprezentant" required maxlength="8">
+            <input type="text" name="NAME2" placeholder="Numele si Prenumele la al 2-lea Reprezentant" required>
+            <input type="text" name="NUMBER2" placeholder="Numarul de telefon la al 2-lea Reprezentant" required maxlength="8">
             <textarea name="DETALII" rows="5" placeholder="Puteti atasa un link cu poza locatiei de pe harta"></textarea>
             <label class="custom-checkbox">
                 <input type="checkbox" required>
                 <span class="checkmark"></span>
                 Am primit confirmarea de inregistrare a afacerii din partea unui Secretar PCLS prin email!
               </label>
+              <label class="custom-checkbox">
+                <input type="checkbox" required>
+                <span class="checkmark"></span>
+                Sunt constient ca Instructajul va avea loc la spitalul din Roxwood!
+                </label>
             <input type="submit" value="Trimite Formularul" id="submit">
         </form>
         <small>Copyright © 2025 Tristan</small>
