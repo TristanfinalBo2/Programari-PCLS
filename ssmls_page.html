@@ -354,23 +354,20 @@ body {
             <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
             <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-<div class="form-group tooltip-group">
+            <div class="form-group tooltip-group">
+              <input
+                type="date"
+                name="DATA"
+                value="2026-01-01"
+                class="form-input">
 
-  <input
-    type="date"
-    name="DATA"
-    value="2026-01-01"
-    class="form-input">
+              <span class="info-icon">?</span>
 
-  <span class="info-icon">?</span>
-
-  <div class="tooltip-box">
-    Menționează data dorita pentru efectuarea controlului care sa fie diferita de ziua de Azi.
-  </div>
-</div>
-
-
-            <input type="text" name="DAY" placeholder="Mentioneaza data dorita pentru efectuarea controlului">
+              <div class="tooltip-box">
+                Menționează data dorita pentru efectuarea controlului care sa fie diferita de ziua de Azi.
+              </div>
+            </div>
+            <input type="text" name="DAY" placeholder="Mentioneaza ora dorita pentru efectuarea controlului">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord ID*" required>
             <input type="text" name="NAME" placeholder="Numele Primului Reprezentant" required>
             <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Reprezentant" required maxlength="8">
@@ -400,8 +397,6 @@ body {
     </div>
 
     <script>
-
-      document.getElementById("data").value = "2026-01-01";
 
         const phoneInput = document.getElementById('NUMAR_TEL');
         phoneInput.addEventListener('input', function (e) {
@@ -455,9 +450,9 @@ body {
 
  6) Discord: ${formData.get("EMAIL")}
 
- 7) Ora dorita pentru programare: ${formData.get("DATA")}
+ 7) Ora dorita pentru programare: ${formData.get("DAY")}
 
- 8) Data dorita pentru programare: ${formData.get("DAY")}
+ 8) Data dorita pentru programare: ${formData.get("DATA")}
 
  9) Numele si Prenumele Primului Raprezentant: ${formData.get("NAME")}
 
