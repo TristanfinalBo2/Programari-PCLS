@@ -49,7 +49,7 @@ body {
     }
 
     form {
-        width: 90%;
+        width: 95%;
         max-width: 600px; /* limitează lățimea pe ecrane mari */
         background: rgba(0, 0, 0, 0.4);
         border: 1px solid #2b8c45;
@@ -260,6 +260,88 @@ body {
     background-color: #1e8848;
     border-radius: 4px;
   }
+
+
+.form-group {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1px;
+}
+
+.date-label {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 6px;
+  display: block;
+  justify-content: left;
+  position: relative;
+  opacity: 0.8;
+}
+
+.form-input {
+  width: 105%;        
+  background: transparent;
+  border: 1px solid #00ff66;
+  opacity: 0.75;
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #ffffff;
+  background-color: rgba(20, 20, 20, 0.9);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  padding-bottom: 12px;
+}
+
+.form-input:focus {
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+}
+
+.info-icon {
+  position: absolute;
+  right: -16px;
+  top: 13px; /* ajustează dacă labelul e mai mare */
+  width: 18px;
+  height: 18px;
+  background: #00ff66;
+  color: #000000;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
+/* TOOLTIP */
+.tooltip-box {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: #0b0b0bb0;
+  border: 1px solid #00ff66;
+  color: #ffffff;
+  padding: 16px;
+  font-weight: 450;
+  border-radius: 12px;
+  font-size: 13px;
+  max-width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.4s ease;
+  z-index: 20;
+}
+
+.tooltip-group:hover .tooltip-box {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+
     </style>
 </head>
 <body>
@@ -272,7 +354,22 @@ body {
             <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
             <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
             <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-            <input type="text" name="DATA" placeholder="Metioneaza ora dorita pentru programare">
+<div class="form-group tooltip-group">
+
+  <input
+    type="date"
+    name="DATA"
+    value="2026-01-01"
+    class="form-input">
+
+  <span class="info-icon">?</span>
+
+  <div class="tooltip-box">
+    Menționează data dorita pentru efectuarea controlului care sa fie diferita de ziua de Azi.
+  </div>
+</div>
+
+
             <input type="text" name="DAY" placeholder="Mentioneaza data dorita pentru efectuarea controlului">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord ID*" required>
             <input type="text" name="NAME" placeholder="Numele Primului Reprezentant" required>
@@ -303,6 +400,9 @@ body {
     </div>
 
     <script>
+
+      document.getElementById("data").value = "2026-01-01";
+
         const phoneInput = document.getElementById('NUMAR_TEL');
         phoneInput.addEventListener('input', function (e) {
             let value = e.target.value.replace(/\D/g, ''); 
