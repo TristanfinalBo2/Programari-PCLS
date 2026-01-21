@@ -164,7 +164,7 @@ body {
       top: 20px;
       right: 20px;
       background-color: #4cff4c9f;
-      color: black;
+      color: rgb(255, 255, 255);
       padding: 15px 25px;
       border-radius: 19px;
       opacity: 0;
@@ -353,7 +353,7 @@ body {
             <input type="number" name="ID" placeholder="CNP (ID)" required>
             <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
             <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
-            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
+            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8" minlength="8">
             <div class="form-group tooltip-group">
               <input
                 type="date"
@@ -371,9 +371,9 @@ body {
             <input type="text" name="DAY" placeholder="Mentioneaza ora dorita pentru efectuarea controlului">
             <input type="text" name="EMAIL" placeholder="Date de contact *discord ID*" required>
             <input type="text" name="NAME" placeholder="Numele Primului Reprezentant" required>
-            <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Reprezentant" required maxlength="8">
+            <input type="text" name="NUMBER" placeholder="Numarul de telefon al Primului Reprezentant" required maxlength="8" minlength="8">
             <input type="text" name="NAME2" placeholder="Numele si Prenumele la al 2-lea Reprezentant" required>
-            <input type="text" name="NUMBER2" placeholder="Numarul de telefon la al 2-lea Reprezentant" required maxlength="8">
+            <input type="text" name="NUMBER2" placeholder="Numarul de telefon la al 2-lea Reprezentant" required maxlength="8" minlength="8">
             <textarea name="DETALII" rows="5" placeholder="Puteti atasa un link cu poza locatiei de pe harta"></textarea>
             <label class="custom-checkbox">
                 <input type="checkbox" required>
@@ -398,108 +398,140 @@ body {
     </div>
 
     <script>
+// 1️⃣ Selectăm toate input-urile de telefon de pe site
+const phoneInputs = document.querySelectorAll('#NUMAR_TEL, [name="NUMBER"], [name="NUMBER2"]');
 
-        const phoneInput = document.getElementById('NUMAR_TEL');
-        phoneInput.addEventListener('input', function (e) {
-            let value = e.target.value.replace(/\D/g, ''); 
-            if (value.length > 3) {
-                value = value.slice(0, 3) + '-' + value.slice(3, 7); 
-            }
-            e.target.value = value;
-        });
-        
-        const customAlert = document.getElementById('custom-alert');
-        const overlay = document.getElementById('custom-alert-overlay');
-        const closeAlertButton = document.getElementById('close-alert');
-        const form = document.getElementById('contact-form');
-
-        function showAlert() {
-            customAlert.style.display = 'block';
-            overlay.style.display = 'block';
+// 2️⃣ Formatare automată: xxx-xxxx
+phoneInputs.forEach(input => {
+    input.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, ''); // elimină tot ce nu e cifră
+        if (value.length > 3) {
+            value = value.slice(0, 3) + '-' + value.slice(3, 7);
         }
+        e.target.value = value;
+    });
+});
 
-        function clearForm() {
-            form.reset(); // șterge conținutul formularului
-        }
 
-        closeAlertButton.addEventListener('click', () => {
-            customAlert.style.display = 'none';
-            overlay.style.display = 'none';
-            window.location.reload();
-        });
+const form = document.getElementById('contact-form');
+const dateInput = document.getElementById('dataProgramare');
+const customAlert = document.getElementById('custom-alert');
+const overlay = document.getElementById('custom-alert-overlay');
+const closeAlertButton = document.getElementById('close-alert');
+const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD";
 
-        // Webhook submission (for demonstration only; do not include actual webhook URL in public code)
-        const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD"; // Replace with actual webhook URL securely
+// Notificare vizuală
+function showNotification(message) {
+    let notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerText = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 10);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 400);
+    }, 4000);
+}
 
-        document.getElementById('contact-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
+// Alert personalizat
+function showAlert() {
+    customAlert.style.display = 'block';
+    overlay.style.display = 'block';
+}
 
-            // Collect form data
-            const formData = new FormData(event.target);
-            const data = {
-                content: `:date:  *O noua Programare a fost facuta:  :date: <@&1461105499276574911>*
--------------------------------------
-**1) Nume Prenume: ${formData.get("NUME")}
+// Închide alert
+closeAlertButton.addEventListener('click', () => {
+    customAlert.style.display = 'none';
+    overlay.style.display = 'none';
+    form.reset();
+});
 
- 2) ID: ${formData.get("ID")}
+// Validarea datei
+function validateDate() {
+    if (!dateInput.value) return false;
 
- 3) Numele afacerii: ${formData.get("NUME AFACERE")}
+    const selectedDate = new Date(dateInput.value);
+    const today = new Date();
+    selectedDate.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
 
- 4) Tipul de bussines: ${formData.get("TIP BUSSINES")}
+    const diffDays = Math.floor((selectedDate - today) / (1000 * 60 * 60 * 24));
 
- 5) Numar de telefon: ${formData.get("NUMAR DE TEL")}
+    if (diffDays < 1) {
+        showNotification("Data trebuie să fie cel puțin mâine!");
+        return false;
+    }
 
- 6) Discord: ${formData.get("EMAIL")}
+    if (selectedDate.getMonth() !== today.getMonth() || selectedDate.getFullYear() !== today.getFullYear()) {
+        showNotification("Data trebuie să fie în aceeași lună și an cu azi!");
+        return false;
+    }
 
- 7) Ora dorita pentru programare: ${formData.get("DAY")}
+    return true;
+}
 
- 8) Data dorita pentru programare: ${formData.get("DATA")}
 
- 9) Numele si Prenumele Primului Raprezentant: ${formData.get("NAME")}
+// Submit formular
+form.addEventListener('submit', async (event) => {
+    event.preventDefault();
 
- 10) Numarul de telefon al Primului Raprezentant: ${formData.get("NUMBER")}
+    // Validăm data
+    if (!validateDate()) return;
 
- 11) Numele si Prenumele la al 2-lea Raprezentant: ${formData.get("NAME2")}
+    const formData = new FormData(form);
+    const name1 = formData.get("NAME") || "N/A";
+    const number1 = formData.get("NUMBER") || "N/A";
+    const name2 = formData.get("NAME2") || "N/A";
+    const number2 = formData.get("NUMBER2") || "N/A";
 
- 12) Numarul de telefon la al 2-lea Raprezentant: ${formData.get("NUMBER2")}
+    // Fixăm lungimea coloanei "mesaj" la 20 caractere, orice nume mai scurt va fi completat cu spații
+    const line1 = name1.padEnd(20, ' ') + number1;
+    const line2 = name2.padEnd(20, ' ') + number2;
 
- 13) Detalii extra: ${formData.get("DETALII")}**`
-            };
-
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    showAlert();
-                } else {
-                    alert("Error sending message.");
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("An error occurred while sending the message.");
+    // Construim embed-ul
+    const embedData = {
+        username: "SSMLS Bot",
+        content: "<@&1461105499276574911>",
+        embeds: [
+            {
+                title: ":pushpin: O nouă programare a fost înregistrată!",
+                color: 65280,
+                fields: [
+                { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
+                { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
+                { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
+                { name: "Tip Bussines", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
+                { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
+                { name: "Discord / Email", value: formData.get("EMAIL") ? `<@${formData.get("EMAIL")}>` : "N/A", inline: false },
+                { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
+                { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
+                { name: "Primul Reprezentant", value: "```Nume Prenume         telefon\n" + line1 + "```", inline: false },
+                { name: "Al 2-lea Reprezentant", value: "```Nume Prenume         telefon\n" + line2 + "```", inline: false },
+                { name: "Detalii extra", value: formData.get("DETALII") || "N/A", inline: false }
+            ],  
+                footer: { text: "Programare S.S.M.L.S" },
+                timestamp: new Date().toISOString()
             }
+        ]
+    };
+
+    try {
+        const response = await fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(embedData)
         });
 
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            fetch(scriptURL, { method: 'POST', body: new FormData(form) })
-                .then(response => {
-                    
-                    customOverlay.style.display = 'block';
-                    customAlert.style.display = 'block';
-                })
-                .catch(error => console.error('Error!', error.message));
-        });
-
-        closeAlertButton.addEventListener('click', () => {
-            customAlert.style.display = 'none';
-            customOverlay.style.display = 'none';
-            window.location.reload();
-        });
+        if (response.ok) {
+            showAlert(); // alert custom de succes
+        } else {
+            showNotification("Eroare la trimiterea formularului!");
+        }
+    } catch (error) {
+        console.error(error);
+        showNotification("A apărut o eroare la trimiterea mesajului.");
+    }
+});
     </script>
 </body>
 </html>
