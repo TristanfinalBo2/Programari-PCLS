@@ -431,6 +431,30 @@ closeAlertButton.addEventListener('click', () => {
     form.reset();
 });
 
+// Validarea datei
+function validateDate() {
+    if (!dateInput.value) return false;
+
+    const selectedDate = new Date(dateInput.value);
+    const today = new Date();
+    selectedDate.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+
+    const diffDays = Math.floor((selectedDate - today) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 1) {
+        showNotification("Data trebuie să fie cel puțin mâine!");
+        return false;
+    }
+
+    if (selectedDate.getMonth() !== today.getMonth() || selectedDate.getFullYear() !== today.getFullYear()) {
+        showNotification("Data trebuie să fie în aceeași lună și an cu azi!");
+        return false;
+    }
+
+    return true;
+}
+
 
 // Submit formular
 form.addEventListener('submit', async (event) => {
@@ -455,8 +479,8 @@ form.addEventListener('submit', async (event) => {
                 { name: "Numele Afacerii", value: formData.get("NUME AFACERE") || "N/A", inline: false },
                 { name: "Tipul de Bussines", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
                 { name: "Numar de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
-                { name: "Data Dorita", value: formData.get("DATA") || "N/A", inline: false },
-                { name: "Ora Dorita", value: formData.get("DATE") || "N/A", inline: false },
+                { name: "Ora Dorita", value: formData.get("DATA") || "N/A", inline: false },
+                { name: "Data Dorita", value: formData.get("DATE") || "N/A", inline: false },
                 { name: "Discord", value: formData.get("EMAIL") ? `<@${formData.get("EMAIL")}>` : "N/A", inline: false },
                 { name: "Extra", value: formData.get("DETALII") || "N/A", inline: false }
             ],  
