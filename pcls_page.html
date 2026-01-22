@@ -251,6 +251,84 @@
     background-color: #1e8848;
     border-radius: 4px;
   }
+
+  .form-group {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1px;
+}
+
+.date-label {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 6px;
+  display: block;
+  justify-content: left;
+  position: relative;
+  opacity: 0.8;
+}
+
+.form-input {
+  width: 105%;        
+  background: transparent;
+  border: 1px solid #00ff66;
+  opacity: 0.75;
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #ffffff;
+  background-color: rgba(20, 20, 20, 0.9);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  padding-bottom: 12px;
+}
+
+.form-input:focus {
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+}
+
+.info-icon {
+  position: absolute;
+  right: -16px;
+  top: 13px; /* ajustează dacă labelul e mai mare */
+  width: 18px;
+  height: 18px;
+  background: #00ff66;
+  color: #000000;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+
+/* TOOLTIP */
+.tooltip-box {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: #0b0b0bb0;
+  border: 1px solid #00ff66;
+  color: #ffffff;
+  padding: 16px;
+  font-weight: 450;
+  border-radius: 12px;
+  font-size: 13px;
+  max-width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.4s ease;
+  z-index: 20;
+}
+
+.tooltip-group:hover .tooltip-box {
+  opacity: 1;
+  visibility: visible;
+}
   </style>
 </head>
 
@@ -265,7 +343,20 @@
       <input type="text" name="TIP BUSSINES" placeholder="Menționează tipul de Business" required>
       <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Număr de telefon (ex. 123-4567)" required maxlength="8">
       <input type="text" name="DATA" placeholder="Menționează ora dorită pentru programare (până în ora 20:00)" required>
-      <input type="text" name="DATE" placeholder="Menționează data dorită" required>
+                  <div class="form-group tooltip-group">
+              <input
+                type="date"
+                name="DATE"
+                id="dataProgramare"
+                value="2026-01-01"
+                class="form-input" required>
+
+              <span class="info-icon">?</span>
+
+              <div class="tooltip-box">
+                Menționează data dorita pentru efectuarea controlului care sa fie diferita de ziua de Azi.
+              </div>
+            </div>
       <input type="number" name="EMAIL" placeholder="Discord ID (Copy User ID)" required>
       <textarea name="DETALII" rows="5" placeholder="Detalii extra"></textarea>
 
@@ -295,96 +386,103 @@
     </div>
 
     <script>
-        
-        const phoneInput = document.getElementById('NUMAR_TEL');
-        phoneInput.addEventListener('input', function (e) {
-            let value = e.target.value.replace(/\D/g, ''); 
-            if (value.length > 3) {
-                value = value.slice(0, 3) + '-' + value.slice(3, 7); 
+
+      const phoneInput = document.getElementById('NUMAR_TEL');
+
+phoneInput.addEventListener('input', (e) => {
+    let value = e.target.value.replace(/\D/g, '').slice(0, 7);
+
+    if (value.length > 3) {
+        value = value.slice(0, 3) + '-' + value.slice(3);
+    }
+
+    e.target.value = value;
+});
+
+          const form = document.getElementById('contact-form');
+          const dateInput = document.getElementById('dataProgramare');
+          const customAlert = document.getElementById('custom-alert');
+          const overlay = document.getElementById('custom-alert-overlay');
+          const closeAlertButton = document.getElementById('close-alert');
+          const webhookUrl = "https://discord.com/api/webhooks/1300582034913235124/3X146f6kbTxl8jMonlRQePqR5UPYBKoGMLxRmzqLvZ-QAxWif2e0T6OBZ1ZetHEQaaBT";
+
+        function showNotification(message) {
+    let notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerText = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 10);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 400);
+    }, 4000);
+}
+
+// Alert personalizat
+function showAlert() {
+    customAlert.style.display = 'block';
+    overlay.style.display = 'block';
+}
+
+// Închide alert
+closeAlertButton.addEventListener('click', () => {
+    customAlert.style.display = 'none';
+    overlay.style.display = 'none';
+    form.reset();
+});
+
+
+// Submit formular
+form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+    const name1 = formData.get("ID") || "N/A";
+    const number1 = formData.get("NUMAR_TEL") || "N/A";
+
+    // Fixăm lungimea coloanei "mesaj" la 20 caractere, orice nume mai scurt va fi completat cu spații
+    const line1 = name1.padEnd(20, ' ') + number1;
+
+            const embedData = {
+        username: "PCLS Bot",
+        content: "<@&956186666626871362>",
+        embeds: [
+            {
+                title: ":pushpin: Ati primit o noua cerere!",
+                color: 65280,
+                fields: [
+                { name: "Nume Prenume", value: formData.get("NUME") || "N/A", inline: false },
+                { name: "Numele Afacerii", value: formData.get("NUME AFACERE") || "N/A", inline: false },
+                { name: "Tipul de Bussines", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
+                { name: "Numar de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
+                { name: "Data Dorita", value: formData.get("DATA") || "N/A", inline: false },
+                { name: "Ora Dorita", value: formData.get("DATE") || "N/A", inline: false },
+                { name: "Discord", value: formData.get("EMAIL") ? `<@${formData.get("EMAIL")}>` : "N/A", inline: false },
+                { name: "Extra", value: formData.get("DETALII") || "N/A", inline: false }
+            ],  
+                footer: { text: "Control P.C.L.S" },
+                timestamp: new Date().toISOString()
             }
-            e.target.value = value;
+        ]
+    };
+
+    try {
+        const response = await fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(embedData)
         });
 
-        const customAlert = document.getElementById('custom-alert');
-        const overlay = document.getElementById('custom-alert-overlay');
-        const closeAlertButton = document.getElementById('close-alert');
-        const form = document.getElementById('contact-form');
-
-        function showAlert() {
-            customAlert.style.display = 'block';
-            overlay.style.display = 'block';
+        if (response.ok) {
+            showAlert(); // alert custom de succes
+        } else {
+            showNotification("Eroare la trimiterea formularului!");
         }
-
-        function clearForm() {
-            form.reset(); // șterge conținutul formularului
-        }
-
-        closeAlertButton.addEventListener('click', () => {
-            customAlert.style.display = 'none';
-            overlay.style.display = 'none';
-            window.location.reload();
-        });
-
-
-        // Webhook submission (for demonstration only; do not include actual webhook URL in public code)
-        const webhookUrl = "https://discord.com/api/webhooks/1300582034913235124/3X146f6kbTxl8jMonlRQePqR5UPYBKoGMLxRmzqLvZ-QAxWif2e0T6OBZ1ZetHEQaaBT"; 
-        document.getElementById('contact-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            // Collect form data
-            const formData = new FormData(event.target);
-            const data = {
-                content: ` :date:  *O noua Programare a fost facuta:  :date: <@&956186666626871362>*
--------------------------------------
-**1) Nume Prenume: ${formData.get("NUME")}
-
- 2) Numele afacerii: ${formData.get("NUME AFACERE")}
-
- 3) Tipul de bussines: ${formData.get("TIP BUSSINES")}
-
- 4) Numar de telefon: ${formData.get("NUMAR DE TEL")}
-
- 5) Discord: <@${formData.get("EMAIL")}>
-
- 6) Data si Ora dorita petru programare: ${formData.get("DATA")},${formData.get("DATE")}
-
- 7) Detalii Extra: ${formData.get("DETALII")}**`
-            };
-
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    showAlert();
-                } else {
-                    alert("Error sending message.");
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("An error occurred while sending the message.");
-            }
-        });
-
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            fetch(scriptURL, { method: 'POST', body: new FormData(form) })
-                .then(response => {
-                    
-                    customOverlay.style.display = 'block';
-                    customAlert.style.display = 'block';
-                })
-                .catch(error => console.error('Error!', error.message));
-        });
-
-        closeAlertButton.addEventListener('click', () => {
-            customAlert.style.display = 'none';
-            customOverlay.style.display = 'none';
-            window.location.reload();
-        });
+    } catch (error) {
+        console.error(error);
+        showNotification("A apărut o eroare la trimiterea mesajului.");
+    }
+});
     </script>
 </body>
 </html>
