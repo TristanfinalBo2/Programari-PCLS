@@ -515,6 +515,13 @@ form.addEventListener('submit', async (event) => {
         ]
     };
 
+    const discordId = formData.get("EMAIL");
+
+    if (!/^\d{17,20}$/.test(discordId)) {
+  showNotification("ID Discord invalid");
+  return;
+}
+
     try {
         const response = await fetch(webhookUrl, {
             method: "POST",
