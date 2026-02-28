@@ -435,29 +435,6 @@ closeAlertButton.addEventListener('click', () => {
     form.reset();
 });
 
-// Validarea datei
-function validateDate() {
-    if (!dateInput.value) return false;
-
-    const selectedDate = new Date(dateInput.value);
-    const today = new Date();
-    selectedDate.setHours(0,0,0,0);
-    today.setHours(0,0,0,0);
-
-    const diffDays = Math.floor((selectedDate - today) / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 1) {
-        showNotification("Data trebuie să fie cel puțin mâine!");
-        return false;
-    }
-
-    if (selectedDate.getMonth() !== today.getMonth() || selectedDate.getFullYear() !== today.getFullYear()) {
-        showNotification("Data trebuie să fie în aceeași lună și an cu azi!");
-        return false;
-    }
-
-    return true;
-}
 
 // Notificare vizuală
 function showNotification(message) {
