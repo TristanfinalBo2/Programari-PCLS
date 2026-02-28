@@ -473,8 +473,6 @@ closeAlertButton.addEventListener('click', () => {
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    // Validăm data
-    if (!validateDate()) return;
 
     const formData = new FormData(form);
     const name1 = formData.get("NAME") || "N/A";
