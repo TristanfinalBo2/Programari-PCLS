@@ -178,60 +178,110 @@ body {
       transform: translateY(0);
     }
 
-#custom-alert {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            z-index: 1000;
-        }
+#alert-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  z-index: 9998;
+  display: none;
+}
 
-        #custom-alert h5 {
-            font-size: 24px;
-            color: #000000;
-            margin-bottom: 30px;
-        }
+#alert-box{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 320px;
+  padding: 25px;
+  border-radius: 18px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid #2bff88;
+  box-shadow: 0 0 30px rgba(0,255,100,0.25);
+  text-align: center;
+  color: #d1ffd9;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.35s ease;
+}
 
-        #custom-alert button {
-            background: #4ac26e;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+#alert-box.show{
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
 
-        #custom-alert button:hover {
-            background: #0d8d22;
-        }
+/* TEXT */
+#alert-box h2{
+  margin: 10px 0 5px;
+  color: #4cff9a;
+  letter-spacing: 1px;
+}
 
-        #custom-alert-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
+#alert-box p{
+  font-size: 14px;
+  opacity: 0.8;
+}
 
-    @media (max-width: 600px) {
-      h4 {
-        font-size: 1.6rem;
-      }
+/* BUTTON */
+#alert-box button{
+  margin-top: 15px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid #4cff9a;
+  background: transparent;
+  color: #4cff9a;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-      form {
-        width: 95%;
-        padding: 20px;
-      }
-    }
+#alert-box button:hover{
+  background: #4cff9a;
+  color: #000;
+  box-shadow: 0 0 15px #4cff9a;
+}
+
+/* SVG ICON */
+.alert-icon{
+  width: 70px;
+  height: 70px;
+  margin: auto;
+}
+
+.alert-icon svg{
+  width: 70px;
+  height: 70px;
+}
+
+.circle{
+  fill: none;
+  stroke: #4cff9a;
+  stroke-width: 2;
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: drawCircle 0.8s ease forwards;
+}
+
+.check{
+  fill: none;
+  stroke: #4cff9a;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: drawCheck 0.6s 0.6s ease forwards;
+}
+
+@keyframes drawCircle{
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes drawCheck{
+  to { stroke-dashoffset: 0; }
+}
+
         .back-arrow {
     position: fixed;
     top: 25px;
@@ -390,15 +440,24 @@ body {
         <small>Copyright © 2025 Tristan</small>
     </div>
 
-    <div id="custom-alert-overlay"></div>
-    <div id="custom-alert">
-        <h5>Multumim!</h5>
-        <h5>Cererea dvs a fost inregistrata in baza noastra de date.</h5>
-        <button id="close-alert">OK</button>
-    </div>
+<div id="alert-overlay"></div>
 
-    <script>
-      document.addEventListener("contextmenu", e => e.preventDefault());
+<div id="alert-box">
+  <div class="alert-icon">
+    <svg viewBox="0 0 52 52">
+      <circle class="circle" cx="26" cy="26" r="25" />
+      <path class="check" d="M14 27 L22 35 L38 18" />
+    </svg>
+  </div>
+
+  <h2>Succes!</h2>
+  <p>Cererea ta a fost trimisă cu succes.</p>
+
+  <button id="close-alert">OK</button>
+</div>
+
+<script>
+document.addEventListener("contextmenu", e => e.preventDefault());
 
 document.addEventListener("keydown", function (e) {
     if (
@@ -411,13 +470,12 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
-// 1️⃣ Selectăm toate input-urile de telefon de pe site
+// Telefon format xxx-xxxx (toate câmpurile)
 const phoneInputs = document.querySelectorAll('#NUMAR_TEL, [name="NUMBER"], [name="NUMBER2"]');
 
-// 2️⃣ Formatare automată: xxx-xxxx
 phoneInputs.forEach(input => {
     input.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, ''); // elimină tot ce nu e cifră
+        let value = e.target.value.replace(/\D/g, '');
         if (value.length > 3) {
             value = value.slice(0, 3) + '-' + value.slice(3, 7);
         }
@@ -425,58 +483,84 @@ phoneInputs.forEach(input => {
     });
 });
 
-
 const form = document.getElementById('contact-form');
 const dateInput = document.getElementById('dataProgramare');
-const customAlert = document.getElementById('custom-alert');
-const overlay = document.getElementById('custom-alert-overlay');
 const closeAlertButton = document.getElementById('close-alert');
+
 const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD";
 
-// Notificare vizuală
+// 🔥 BLOCARE DATA: doar de mâine încolo
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+dateInput.min = tomorrow.toISOString().split('T')[0];
+
+// Notificare
 function showNotification(message) {
     let notification = document.createElement('div');
     notification.className = 'notification';
     notification.innerText = message;
     document.body.appendChild(notification);
+
     setTimeout(() => notification.classList.add('show'), 10);
+
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 400);
     }, 4000);
 }
 
-// Alert personalizat
-function showAlert() {
-    customAlert.style.display = 'block';
-    overlay.style.display = 'block';
+// Alert succes
+const alertBox = document.getElementById("alert-box");
+const overlay = document.getElementById("alert-overlay");
+const closeBtn = document.getElementById("close-alert");
+
+function showAlert(){
+  overlay.style.display = "block";
+  alertBox.classList.add("show");
 }
 
-// Închide alert
-closeAlertButton.addEventListener('click', () => {
-    customAlert.style.display = 'none';
-    overlay.style.display = 'none';
-    form.reset();
-});
+function hideAlert(){
+  overlay.style.display = "none";
+  alertBox.classList.remove("show");
+}
 
+closeBtn.addEventListener("click", hideAlert);
+overlay.addEventListener("click", hideAlert);
 
-
-
-// Submit formular
+// SUBMIT FORMULAR
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    
 
     const formData = new FormData(form);
+
+    // 🔥 VALIDARE DATA
+    const selectedDate = new Date(formData.get("DATA"));
+    selectedDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate <= today) {
+        showNotification("Nu poți selecta ziua de azi. Alege o dată viitoare.");
+        return;
+    }
+
+    const discordId = formData.get("EMAIL");
+
+    if (!/^\d{17,20}$/.test(discordId)) {
+        showNotification("ID Discord invalid");
+        return;
+    }
+
     const name1 = formData.get("NAME") || "N/A";
     const number1 = formData.get("NUMBER") || "N/A";
     const name2 = formData.get("NAME2") || "N/A";
     const number2 = formData.get("NUMBER2") || "N/A";
 
-    // Fixăm lungimea coloanei "mesaj" la 20 caractere, orice nume mai scurt va fi completat cu spații
     const line1 = name1.padEnd(20, ' ') + number1;
     const line2 = name2.padEnd(20, ' ') + number2;
 
-    // Construim embed-ul
     const embedData = {
         username: "SSMLS Bot",
         content: "<@&1461105499276574911>",
@@ -485,30 +569,23 @@ form.addEventListener('submit', async (event) => {
                 title: ":pushpin: O nouă programare a fost înregistrată!",
                 color: 65280,
                 fields: [
-                { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
-                { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
-                { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
-                { name: "Tip Bussines", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
-                { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
-                { name: "Discord / Email", value: formData.get("EMAIL") ? `<@${formData.get("EMAIL")}>` : "N/A", inline: false },
-                { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
-                { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
-                { name: "Primul Reprezentant", value: "```Nume Prenume         telefon\n" + line1 + "```", inline: false },
-                { name: "Al 2-lea Reprezentant", value: "```Nume Prenume         telefon\n" + line2 + "```", inline: false },
-                { name: "Detalii extra", value: formData.get("DETALII") || "N/A", inline: false }
-            ],  
+                    { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
+                    { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
+                    { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
+                    { name: "Tip Business", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
+                    { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
+                    { name: "Discord / Email", value: `<@${discordId}>`, inline: false },
+                    { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
+                    { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
+                    { name: "Primul Reprezentant", value: "```Nume Prenume         telefon\n" + line1 + "```", inline: false },
+                    { name: "Al 2-lea Reprezentant", value: "```Nume Prenume         telefon\n" + line2 + "```", inline: false },
+                    { name: "Detalii extra", value: formData.get("DETALII") || "N/A", inline: false }
+                ],
                 footer: { text: "Programare S.S.M.L.S" },
                 timestamp: new Date().toISOString()
             }
         ]
     };
-
-    const discordId = formData.get("EMAIL");
-
-    if (!/^\d{17,20}$/.test(discordId)) {
-  showNotification("ID Discord invalid");
-  return;
-}
 
     try {
         const response = await fetch(webhookUrl, {
@@ -518,7 +595,7 @@ form.addEventListener('submit', async (event) => {
         });
 
         if (response.ok) {
-            showAlert(); // alert custom de succes
+            showAlert();
         } else {
             showNotification("Eroare la trimiterea formularului!");
         }
@@ -527,6 +604,6 @@ form.addEventListener('submit', async (event) => {
         showNotification("A apărut o eroare la trimiterea mesajului.");
     }
 });
-    </script>
+</script>
 </body>
 </html>

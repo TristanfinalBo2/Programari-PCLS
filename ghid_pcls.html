@@ -1,462 +1,575 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ghidul Operatorului Economic - PCLS</title>
-<style>
-  body {
-    background: linear-gradient(to bottom, #000000 56%, #004d1a 100%);
-    color: #e0ffe5;
-    font-family: "Segoe UI", Arial, sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghidul Operatorului Economic - PCLS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #030504;
+            --bg-card: rgba(18, 20, 19, 0.75); /* Mai opac pentru contrast mai bun cu textul */
+            --accent: #00ffa3;
+            --accent-dim: rgba(0, 255, 163, 0.1);
+            --danger: #ff3366;
+            --danger-dim: rgba(255, 51, 102, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #b8c4be; /* Mai deschis pentru o lizibilitate excelentă */
+            --border-light: rgba(255, 255, 255, 0.08);
+            --glass-blur: blur(24px);
+        }
 
-  header {
-    text-align: center;
-    padding: 40px 20px 20px;
-    border-bottom: 1px solid #00ff66;
-  }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  header h1 {
-    color: #00ff66;
-    font-size: 28px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+        html {
+            scroll-behavior: smooth;
+        }
 
-  header p {
-    font-size: 15px;
-    color: #b8ffcb;
-  }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-muted);
+            line-height: 1.7; /* Spațiere mai mare între rânduri */
+            overflow-x: hidden;
+        }
 
-  main {
-    max-width: 900px;
-    margin: 40px auto;
-    background-color: #001a00;
-    border: 1px solid #00ff66;
-    border-radius: 20px;
-    padding: 30px 40px;
-    box-shadow: 0 0 25px #00ff44;
-  }
+        /* Ambient Background Glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.06) 0%, transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
 
-  h2 {
-    color: #00ff66;
-    border-left: 4px solid #00ff66;
-    padding-left: 10px;
-    margin-top: 40px;
-  }
+        /* Bara de progres superioară */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #008855, var(--accent));
+            width: 0%;
+            z-index: 9999;
+            box-shadow: 0 0 15px var(--accent-dim);
+            border-radius: 0 2px 2px 0;
+            transition: width 0.1s ease;
+        }
 
-  h3 {
-    color: #00ff99;
-    margin-top: 25px;
-  }
+        /* Scrollbar Premium */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { 
+            background: #1a241f; 
+            border-radius: 10px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-  p {
-    text-align: justify;
-  }
+        /* Typography & Layout */
+        header {
+            text-align: center;
+            padding: 120px 20px 60px;
+            max-width: 1000px; /* Lățime mărită */
+            margin: 0 auto;
+        }
 
-  ul {
-    list-style: none;
-    padding-left: 0;
-  }
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(0, 255, 163, 0.2);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
 
-  ul li::before {
-    content: "󠁯● ";
-    color: #ffffff;
-  }
+        header h1 {
+            color: var(--text-main);
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
 
-  .highlight {
-    color: #00ff99;
-    font-weight: bold;
-  }
+        header h1 span {
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-  .warning {
-    color: #ff6666;
-    font-weight: bold;
-  }
+        header p {
+            font-size: 1.3rem; /* Text mai mare */
+            font-weight: 400; /* Font îngroșat pentru lizibilitate */
+            color: var(--text-muted);
+        }
 
-  footer {
-    text-align: center;
-    padding: 30px;
-    border-top: 1px solid #00ff66;
-    color: #b8ffcb;
-    font-size: 14px;
-  }
+        main {
+            max-width: 1100px; /* Lățime mărită considerabil */
+            margin: 0 auto 100px;
+            padding: 0 24px;
+        }
 
-  .btn-back {
-    display: inline-block;
-    background: transparent;
-    border: 1px solid #00ff66;
-    color: white;
-    border-radius: 25px;
-    padding: 10px 25px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    margin-top: 20px;
-  }
+        /* Carduri Glassmorphism */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            padding: 60px; /* Padding mai mare ca textul să respire */
+            margin-bottom: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+        }
 
-  .btn-back:hover {
-    background-color: #00ff6620;
-  }
+        .glass-card:hover {
+            border-color: rgba(0, 255, 163, 0.3);
+            transform: translateY(-5px);
+        }
 
-  /* Scrollbar verde subtil */
-  ::-webkit-scrollbar {
-    width: 5px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: #1e8848;
-    border-radius: 4px;
-  }
-      .back-arrow {
-    position: fixed;
-    top: 25px;
-    left: 30px;
-    font-size: 19px;
-    color: #4cff4c;
-    text-decoration: none;
-    z-index: 2000;
-    padding: 9px 12px;
-    border: 2px solid #4cff4c;
-    border-radius: 15px;
-    background: rgba(17, 17, 17, 0.9);
-    transition: 0.5s;
-}
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
 
-.back-arrow:hover {
-    background: #4cff4c;
-    color: black;
-    box-shadow: 0 0 12px #ffffff;
-}
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
 
-/* Săgeată urcare la top */
-.scroll-top {
-    position: fixed;
-    bottom: 7px;
-    right: 25px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #00ff66;
-    font-size: 24px;
-    padding: 12px 23px;
-    border-radius: 14px;
-    border: 2.4px solid #00ff66;
-    cursor: pointer;
-    text-decoration: none;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.4s ease;
-    z-index: 2500;
-}
+        .section-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
 
-.scroll-top:hover {
-    background: #00ff66;
-    color: black;
-    box-shadow: 0 0 15px #00ff66;
-}
+        .glass-card h2 {
+            color: var(--text-main);
+            font-size: 2.2rem; /* Font mai mare */
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
 
-.scroll-top.show {
-    opacity: 1;
-    visibility: visible;
-}
+        h3 {
+            color: var(--text-main);
+            font-size: 1.4rem; /* Font mai mare */
+            font-weight: 500;
+            margin: 40px 0 16px;
+        }
 
-.image-box {
-    max-width: 900px;
-    margin: 30px auto 40px;
-    background: #001a00;
-    border: 1.5px solid #00ff66;
-    border-radius: 18px;
-    padding: 13px;
-    box-shadow: 0 0 25px #00ff44;
-    text-align: center;
-}
+        p {
+            margin-bottom: 16px;
+            font-size: 1.1rem; /* Text mai mare și mai ușor de citit */
+            font-weight: 400; /* Font regular, nu subțire */
+        }
 
-.image-box img {
-    width: 100%;
-    height: auto;
-    border-radius: 15px;
-    opacity: 0.9;
-}
+        .highlight {
+            color: var(--text-main);
+            font-weight: 500;
+            border-bottom: 1px solid var(--accent);
+        }
 
-</style>
+        /* Liste Profesionale */
+        ul.styled-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        ul.styled-list li {
+            position: relative;
+            padding-left: 36px;
+            margin-bottom: 16px;
+            font-size: 1.1rem; /* Text mai mare */
+            font-weight: 400;
+        }
+
+        ul.styled-list li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 20px;
+            height: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa3' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        /* Casete de Avertizare Premium */
+        .alert-box {
+            background: var(--danger-dim);
+            border: 1px solid rgba(255, 51, 102, 0.2);
+            border-left: 4px solid var(--danger);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 30px 0;
+            display: flex;
+            gap: 20px;
+        }
+
+        .alert-box svg {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            stroke: var(--danger);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .alert-content p {
+            margin: 0;
+            color: rgba(255,255,255,0.95);
+            font-size: 1.05rem;
+            font-weight: 400;
+        }
+
+        .alert-content strong { color: var(--danger); font-weight: 600; }
+
+        /* Tabel Tarife */
+        .price-table {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-top: 20px;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px dashed var(--border-light);
+            font-size: 1.1rem;
+        }
+
+        .price-row:last-child { border-bottom: none; }
+        .price-name { color: var(--text-main); font-weight: 400; }
+        .price-value { color: var(--accent); font-weight: 600; font-family: monospace; font-size: 1.3rem; }
+
+        /* Imagini */
+        .image-wrapper {
+            margin: 40px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        
+        .image-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+            border-radius: 16px;
+            pointer-events: none;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            display: block;
+            height: auto;
+            transition: transform 0.5s ease;
+        }
+
+        .image-wrapper:hover img {
+            transform: scale(1.015);
+        }
+
+        /* Controale Flotante */
+        .floating-btn {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 17, 16, 0.85);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            text-decoration: none;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-back {
+            top: 30px; left: 30px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-top {
+            bottom: 30px; right: 30px;
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            opacity: 0; visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .btn-top.show {
+            opacity: 1; visibility: visible;
+            transform: translateY(0);
+        }
+
+        .floating-btn svg {
+            width: 20px; height: 20px;
+            fill: none; stroke: currentColor; stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .floating-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 10px 25px var(--accent-dim);
+            transform: translateY(-3px);
+        }
+
+        .btn-back:hover svg { transform: translateX(-4px); transition: transform 0.3s; }
+        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
+
+        /* Clasa pentru animația la scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--border-light);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        @media (max-width: 900px) {
+            header h1 { font-size: 2.8rem; }
+            .glass-card { padding: 40px 30px; }
+            main { padding: 0 20px; }
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 2.2rem; }
+            .glass-card { padding: 30px 20px; }
+            .btn-back { top: 20px; left: 20px; padding: 10px 16px; font-size: 0.8rem; }
+        }
+    </style>
 </head>
-<a href="#" id="scrollTopBtn" class="scroll-top">↑</a>
 <body>
-  <a href="index.html" class="back-arrow">⟵ Inapoi</a>
 
-<header>
-  <h1>Ghidul Operatorului Economic</h1>
-  <p>Protecția Consumatorilor Los Santos (PCLS)</p>
-</header>
+    <div id="progress-bar"></div>
 
-<main>
-  <p><span class="highlight">Protecția Consumatorilor Los Santos (PCLS)</span> este o instituţie publică ce coordonează şi realizează strategia în domeniul protecţiei consumatorilor. Scopul său este prevenirea şi combaterea practicilor care dăunează vieţii, sănătăţii, securităţii şi intereselor economice ale cetățenilor.</p>
+    <a href="index.html" class="floating-btn btn-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Înapoi
+    </a>
 
-  <h2>Ghidul Operatorului Economic</h2>
-  <p>Acest ghid oferă operatorilor economici informații esențiale despre înființarea, administrarea și conformitatea unei entități economice în Municipiul Los Santos.</p>
+    <a href="#" id="scrollTopBtn" class="floating-btn btn-top">
+        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </a>
 
-  <div class="image-box">
-    <img src="preturipcls.png" alt="Taxe PCLS">
-  </div>
+    <header class="reveal">
+        <div class="badge">Document Oficial</div>
+        <h1>Ghidul Operatorului <span>Economic</span></h1>
+        <p>Informații, reglementări și norme oficiale — P.C.L.S.</p>
+    </header>
 
+    <main>
+        
+        <section class="glass-card reveal">
+            <div class="section-header">
+                <div class="section-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <h2>Protecția Consumatorilor (PCLS)</h2>
+            </div>
+            
+            <p><span class="highlight">Protecția Consumatorilor Los Santos (PCLS)</span> este instituţia publică centrală ce coordonează strategia în domeniul protecţiei consumatorilor. Rolul nostru este prevenirea practicilor care dăunează vieţii, securităţii şi intereselor economice ale cetățenilor.</p>
 
-  <h3>Doresc să înființez o nouă entitate economică / am preluat o afacere</h3>
-  <ul>
-    <li>Declarați entitatea în Registrul PCLS prin formularul online.</li>
-    <li>Contactați Medicina Muncii Los Santos pentru programarea controlului.</li>
-    <li>Efectuați controalele ISULS și DSLS prin formularele online.</li>
-    <li>După avizele pozitive, programați controlul final PCLS.</li>
-  </ul>
+            <div class="image-wrapper">
+                <img src="preturipcls.png" alt="Taxe Oficiale PCLS">
+            </div>
 
-  <h3>Pot pune afacerea pe numele altcuiva?</h3>
-  <p class="warning">NU! Proprietarul legal trebuie declarat corect.</p>
-  <p>În caz contrar, riscați o amendă de <span class="highlight">400.000 RON</span> și repercusiuni legale pentru fals în declarații.</p>
+            <h3>Procedura de înființare / preluare afacere</h3>
+            <ul class="styled-list">
+                <li>Declararea entității în Registrul PCLS prin formularul online.</li>
+                <li>Programarea și efectuarea controlului Medicina Muncii (MMLS).</li>
+                <li>Efectuarea controalelor tehnice și de siguranță: ISULS și DSLS.</li>
+                <li>Obținerea avizelor pozitive și programarea controlului final PCLS.</li>
+            </ul>
 
-  <h3>Am închiriat un spațiu cuiva care dorește să deschidă o afacere</h3>
-  <p>Proprietarul real trebuie declarat în formularul online. Chiriașul va figura ca administrator al unității economice.</p>
+            <div class="alert-box">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <div class="alert-content">
+                    <p><strong>FALS ÎN DECLARAȚII:</strong> Afacerea nu poate fi înregistrată pe numele altei persoane. Declararea proprietarului legal este obligatorie. Încălcarea se sancționează cu amendă de <strong>400.000 RON</strong> și repercusiuni penale.</p>
+                </div>
+            </div>
 
-  <h3>Schimbarea numelui / administratorului / proprietarului</h3>
-  <p>Contactați PCLS prin e-mail pentru modificări în registru. Schimbarea proprietarului necesită reluarea procesului de certificare complet.</p>
+            <h3>Prezența la controale & Valabilitate</h3>
+            <p>La controalele MMLS, ISULS și DSLS se acceptă prezența Administratorului. Însă, la controlul final PCLS, <strong>proprietarul legal trebuie să fie prezent obligatoriu</strong>.</p>
+            <p>Toate autorizațiile sunt valabile strict <span class="highlight">4 luni</span>. Depășirea termenului cu 7 zile duce automat la suspendarea activității și amendă (100.000+ RON).</p>
 
-  <h3>Poate fi administratorul prezent la controale?</h3>
-  <ul>
-    <li>MMLS / ISULS / DSLS – <span class="highlight">DA</span></li>
-    <li>PCLS – <span class="warning">NU</span>, trebuie să fie proprietarul legal</li>
-  </ul>
+            <h3>Tarife Oficiale pentru Avizare</h3>
+            <div class="price-table">
+                <div class="price-row"><span class="price-name">Comerț carburanți (Benzinării)</span><span class="price-value">200.000 RON</span></div>
+                <div class="price-row"><span class="price-name">Restaurante / Magazine</span><span class="price-value">200.000 RON</span></div>
+                <div class="price-row"><span class="price-name">Reparații auto (Mecanică)</span><span class="price-value">120.000 RON</span></div>
+                <div class="price-row"><span class="price-name">Frizerie / Coafură / Saloane</span><span class="price-value">40.000 RON</span></div>
+                <div class="price-row"><span class="price-name">Organizare Evenimente</span><span class="price-value">30.000 RON</span></div>
+            </div>
+        </section>
 
-  <h3>Valabilitatea autorizațiilor</h3>
-  <p>Toate autorizațiile (MMLS / ISULS / DSLS / PCLS) sunt valabile <span class="highlight">4 luni</span> de la data efectuării controlului.</p>
+        <section class="glass-card reveal">
+            <div class="section-header">
+                <div class="section-icon" style="color: #ffaa00; background: rgba(255, 170, 0, 0.1);">
+                    <svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"></path></svg>
+                </div>
+                <h2>I.S.U.L.S. (Securitate la Incendiu)</h2>
+            </div>
+            
+            <p><strong>Program de lucru:</strong> Luni – Duminică, 16:00 – 20:00.</p>
+            <p>Controlul ISU PCLS condiționează deținerea unui aviz valabil de la Medicina Muncii (MMLS). Fără acest aviz prealabil, controlul de securitate la incendiu nu poate fi efectuat.</p>
 
-  <h3>De ce este închisă afacerea mea?</h3>
-  <ul>
-    <li>Nedeclararea entității economice la timp.</li>
-    <li>Neefectuarea controalelor obligatorii.</li>
-    <li>Depășirea termenului de reînnoire a autorizațiilor.</li>
-    <li>Nereguli constatate de PCLS sau raportate de consumatori.</li>
-  </ul>
+            <h3>Inspecția Tehnică Vizează:</h3>
+            <ul class="styled-list">
+                <li>Funcționalitatea sistemelor de supraveghere video.</li>
+                <li>Integritatea panoului electric și a instalațiilor aferente.</li>
+                <li>Amplasarea, numărul și valabilitatea stingătoarelor de incendiu.</li>
+                <li>Sistemul de ventilație și structura de rezistență a clădirii.</li>
+            </ul>
 
-  <h3>Neefectuarea controalelor la timp</h3>
-  <p class="warning">După 7 zile de la expirarea autorizațiilor:</p>
-  <ul>
-    <li>Activitatea economică este suspendată.</li>
-    <li>Se aplică o amendă de <span class="highlight">100.000 RON+</span>.</li>
-  </ul>
+            <div class="alert-box" style="border-color: rgba(255, 170, 0, 0.3); background: rgba(255, 170, 0, 0.05);">
+                <svg viewBox="0 0 24 24" style="stroke: #ffaa00;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <div class="alert-content">
+                    <p><strong>Termen limită obligatoriu:</strong> 28.02.2026. Operatorii economici care nu se conformează până la această dată vor fi sancționați conform normelor în vigoare.</p>
+                </div>
+            </div>
+        </section>
 
-  <h3>Închiderea afacerii</h3>
-  <p>Trebuie notificat PCLS prin e-mail către Secretariat sau conducerea instituției.</p>
+        <section class="glass-card reveal">
+            <div class="section-header">
+                <div class="section-icon" style="color: #00bfff; background: rgba(0, 191, 255, 0.1);">
+                    <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                </div>
+                <h2>M.M.L.S. (Medicina Muncii)</h2>
+            </div>
+            
+            <p>Controlul de Medicină a Muncii este o evaluare clinică obligatorie pentru a atesta faptul că starea de sănătate a personalului permite desfășurarea activităților economice în siguranță.</p>
 
-  <h2>Program De Lucru</h2>
-  <ul>
-    <p>Programul de lucru pentru <span class="highlight">SSMLS, ISULS, DSLS, MMLS</span> este :</p>
-    <li> <span class="warning"> 08:00 - 21:00</span></li>
-    <p>Programul de lucru pentru <span class="highlight">PCLS</span> este : </p>
-    <li> <span class="warning"> 08:00 - 20:00</span></li>
-  </ul>
+            <h3>Eligibilitate & Program</h3>
+            <ul class="styled-list">
+                <li>Obligatoriu pentru Administratori, Proprietari și personalul activ.</li>
+                <li><strong>Luni - Vineri:</strong> 08:00 – 20:00 | <strong>Sâmbătă - Duminică:</strong> 10:00 – 20:00.</li>
+                <li>Cost control: <strong>50.000 RON</strong> (se achită pe loc).</li>
+            </ul>
 
-  <h2>Tarife</h2>
-  <ul>
-    <li>Comerț carburanți – 200.000 RON</li>
-    <li>Reparații auto – 120.000 RON</li>
-    <li>Frizerie / Coafură – 40.000 RON</li>
-    <li>Restaurante / Magazine – 200.000 RON</li>
-    <li>Evenimente – 30.000 RON</li>
-  </ul>
+            <p>Avizul poate fi reînnoit anticipat cu maxim 14 zile înainte de expirare. Reprogramările nu se efectuează automat; lipsa nejustificată de la programare atrage anularea acesteia.</p>
+        </section>
 
-  <h2>Autorizații și Amenzi</h2>
-  <ul>
-    <li>MMLS – 50.000 RON taxă unică</li>
-    <li>Nedeclarare sau neefectuare controale – 100.000+ RON</li>
-    <li>Fals în declarații – 400.000 RON</li>
-  </ul>
+        <section class="glass-card reveal">
+            <div class="section-header">
+                <div class="section-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.1);">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+                </div>
+                <h2>S.S.M.L.S. (Securitate și Sănătate în Muncă)</h2>
+            </div>
 
-  <h2>Ierarhie PCLS</h2>
-  <ul>
-    <li>Președinte</li>
-    <li>Vicepreședinte</li>
-    <li>Secretar General</li>
-    <li>Director General</li>
-    <li>Comisari</li>
-  </ul>
-  
-  <H1><span class="highlight">I.S.U.L.S.</span></H1>
-  <h2>Termenul maxim pentru efectuarea instructajelor</h2>
-  <p>Termenul limita pentru efectuarea controalelor este 28.02.2026!! Cine nu respecta acest termen, va fi penalizat conform Codului Penal si al Muncii!!.</p>
-  </ul>
-  
-  <h2>Programul de lucru</h2>
-  <p>Programul de lucru al ISU PCLS este stabilit astfel:
-  Luni – Duminică, în intervalul orar 16:00 – 20:00.</p>
+            <p>Acest departament monitorizează aplicarea măsurilor pentru protejarea integrității angajaților la locul de muncă.</p>
 
-  <h2>Condiții de eligibilitate pentru efectuarea controlului ISU PCLS</h2>
-  <p>Controlul ISU PCLS nu poate fi efectuat în cazul în care controlul MMLS este expirat.
-  Solicitanții trebuie să se asigure că avizul MMLS este valabil la momentul programării și efectuării controlului ISU PCLS.</p>
+            <h3>Norme privind Instructorii SSM</h3>
+            <ul class="styled-list">
+                <li>Operatorii economici trebuie să delege <strong>2 Instructori SSMLS</strong> (excepții: magazine alimentare, digital den, baruri fără personal dedicat).</li>
+                <li>Instructorii sunt formați de SSMLS și au termen de <strong>2 săptămâni</strong> să instruiască restul personalului din subordine.</li>
+                <li>Schimbarea primului instructor pe perioada valabilității de 4 luni este gratuită; a doua modificare necesită plata taxei de 50.000$.</li>
+            </ul>
 
-  <h2>Programarea concomitentă a controalelor</h2>
-  <p>Controlul ISU PCLS poate fi programat în aceeași zi cu controlul MMLS, cu condiția ca MMLS să fie efectuat primul.
-  În cazul în care solicitantul este declarat inapt în urma controlului MMLS, programarea ISU va fi anulată automat, fiind necesară o reprogramare după obținerea unui rezultat favorabil la MMLS.</p>
+            <div class="alert-box" style="border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.05);">
+                <svg viewBox="0 0 24 24" style="stroke: #a855f7;"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+                <div class="alert-content">
+                    <p><strong>Atenție la Controale Inopinate:</strong> Inspectorii SSMLS vor testa angajații fără notificare prealabilă. Necunoașterea normelor de către personal atrage amendarea sau suspendarea unității economice.</p>
+                </div>
+            </div>
+        </section>
 
-  <h2>Conținutul controlului ISU PCLS</h2>
-  <p>Controlul ISU PCLS constă în verificarea următoarelor elemente :</p>
-  <ul>
-    <li>Sistemele de <strong>supraveghere video</strong></li>
-    <li><strong>Panoul electric</strong> și instalațiile aferente</li>
-    <li><strong>Stingătoarele</strong> de incendiu și amplasarea acestora</li>
-    <li><strong>Sistemul de ventilație</strong></li>
-    <li><strong>Structura clădirii</strong> și elementele de rezistență</li>
-    <li>Alte componente relevante pentru siguranța la incendiu.</li>
-  </ul>
+    </main>
 
-  <h2>Anunțarea absenței și reprogramarea controlului</h2>
-  <p>În situația în care nu mai puteți fi prezenți la controlul programat, vă rugăm să ne anunțați în prealabil, pentru a putea efectua o reprogramare într-un interval convenabil.</p>
-  <p>În cazul în care persoana nu se prezintă la programare fara sa anunte absenta, aceasta va trebui să inițieze o nouă programare din proprie inițiativă. Reprogramările nu vor fi efectuate automat din partea instituției.</p>
+    <footer class="reveal">
+        © 2025 Protecția Consumatorilor Los Santos (PCLS). Toate drepturile rezervate. Document oficial.
+    </footer>
 
-    <h2>Instrucțiuni generale în caz de incendiu</h2>
-    <ul>
-    <li><strong>Apelați numărul de urgență 112</strong> și comunicați clar <strong> locația și identitatea </strong> dumneavoastră.</li>
-    <li>În încăperile cu fum dens,<strong> deplasați-vă târâș sau aplecat,</strong> pentru a evita inhalarea fumului.</li>
-    <li><strong>Strigați după victime</strong> și verificați spațiile unde acestea ar fi putut încerca să se adăpostească.</li>
-    <li><strong>Acoperiți-vă fața și părul </strong>cu o cârpă umedă dacă trebuie să traversați zone în care incendiul este activ.</li>
-    <li>Dacă vi se aprinde îmbrăcămintea, <strong>nu fugiți — tăvăliți-vă pe sol pentru a stinge flăcările.</strong></li>
-    <li>Dacă unei alte persoane i s-a aprins îmbrăcămintea,<strong> acoperiți-o cu o pătură sau un material etanș, </strong> pentru a opri alimentarea cu oxigen.</li>
-    <li>În cazul arderii unei suprafețe verticale, <strong> aplicați apa de sus în jos. </strong></li>
-    <li><strong>Lichidele incendiate </strong>se sting prin acoperirea cu <strong> nisip, cârpe ude sau pături umede, </strong>nu prin aruncarea de apă.</li>
-    <li><strong>Părăsiți zona afectată </strong>în direcția în care bate vântul, pentru a evita expunerea la fum.</li>
-    <li><strong>Nu deschideți brusc ușile.</strong> aportul brusc de oxigen poate intensifica flăcările.</li>
-    <li><strong>Amplasați stingătoarele </strong>în locuri vizibile și ușor accesibile, pentru intervenție rapidă.</li>
-    <li><strong>Evitați blocarea ieșirilor.</strong> toate căile de evacuare trebuie menținute libere în permanență.</li>
-    </ul>
+    <script>
+        // 1. Progress Bar pe Scroll
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const progress = (scrollTop / scrollHeight) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        });
 
-      <H1><span class="highlight">M.M.L.S</span></H1>
-    <h2>Obligație Legală pentru Administratorii și Deținătorii de Afaceri</h2>
-    <p>Toți cetățenii care dețin sau administrează una sau mai multe afaceri au obligația legală de a efectua Controlul de Medicină a Muncii, conform reglementărilor în vigoare.</p>
+        // 2. Apariție Buton Scroll to Top
+        const scrollBtn = document.getElementById("scrollTopBtn");
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 500) {
+                scrollBtn.classList.add("show");
+            } else {
+                scrollBtn.classList.remove("show");
+            }
+        });
 
-    <h2>Ce Este Controlul de Medicină a Muncii?</h2>
-    <p>Controlul de Medicină a Muncii reprezintă o evaluare medicală profesională a angajaților, menită să asigure că activitatea acestora nu afectează sănătatea proprie sau a celor din jur.</p>
+        scrollBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
 
-    <h2>Cine Este Obligat să Efectueze Controlul?</h2>
-    <ul>
-    <li>Administratorii sau proprietarii de firme înregistrate</li>
-    <li>Persoanele care administrează una sau mai multe afaceri cu angajați activi</li>
-    <li>Entitățile care urmează să fie supuse altor controale (DSLS, ISULS etc.) </li>
-    </ul>
+        // 3. Reveal Animations (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target); 
+                }
+            });
+        };
 
-    <h2>Informatii Plata</h2>
-    <ul>
-    <li>Plata se efectuează în momentul realizării controlului</li>
-    <li>Suma include toate serviciile aferente evaluării medicale</li>
-    </ul>
+        const revealOptions = {
+            threshold: 0.1, 
+            rootMargin: "0px 0px -50px 0px" 
+        };
 
-    <h2>Program de Efectuare și Programări</h2>
-    <p><strong> lucrătoare:</strong></p>
-    <ul>
-    <li>Luni – Vineri: 08:00 – 20:00</li>
-    </ul>
-    <p><strong>Weekend</strong></p>
-    <ul>
-    <li>Sâmbătă – Duminică: 10:00 – 20:00</li>
-    </ul>
-    <p class="warning">Programările în afara intervalului orar nu vor fi procesate</p>
-
-    <h2>Termen Minim Pentru Efectuare</h2>
-    <p>Controlul de Medicină a Muncii poate fi efectuat cu cel mult 14 zile înainte de expirarea avizului anterior</p>
-    <p><strong>Exemplu : </strong></p>
-    <li>Dacă avizul dvs. expiră la 30 octombrie, controlul poate fi programat începând cu 16 octombrie.</li>
-
-    <h2>Obligații Legale Privind Declarațiile</h2>
-    <p>Conform Capitolului 4, alineatul 12 din Codul Penal privind falsul în declarații, administratorii sunt obligați să furnizeze date corecte și reale privind numărul de angajați.</p>
-    <p>Furnizarea de informații false atrage sancțiuni legale și poate duce la închiderea afacerii.</p>
-
-    <h2>Anunțarea Absenței și Reprogramări</h2>
-    <p>Dacă nu vă puteți prezenta la control, anunțați din timp pentru reprogramare</p>
-    <p class="warning">Neanunțarea absenței = anularea programării</p>
-    <p>În acest caz, o nouă programare trebuie inițiată de către dvs.</p>
-    <p class="warning">Reprogramările nu sunt automate.</p>
-    
-<H1><span class="highlight">S.S.M.L.S.</span></H1>
-<h2>informații</h2>
-<p><strong>Securitatea și Sănătatea în Muncă (SSM)</strong> reprezintă ansamblul de activități și măsuri planificate și aplicate în mod sistematic de către angajatori, lucrători și instituții specializate, cu scopul de a asigura cele mai bune condiții de muncă posibile, protejarea vieții, integrității corporale și sănătății tuturor persoanelor implicate în procesul de muncă.</p>
-  
-  <h2>Oblgiatii Legale Pentru Fiecare Operator Economic</h2> 
-  <p><li>Va trebui ca fiecare afacere <strong>(in afara de cele de tipul fast-food, Digital Den, magazin alimentar, benzinarie, baruri/cluburi daca este cazul si nu aveti angajati care sa se ocupe de acest tip de afacere)</strong> sa isi aleaga 2 persoane ce se vor numi <strong>INSTRUCTORI SSMLS.</strong></li></p>
-  <p><li> Ce vor face acestia? In urma instructajului pe care noi, <strong>SSMLS,</strong> il vom face celor doua persoane, au obligatia sa isi instruiasca conform instructajului primit de la noi, toti angajatii afacerii dumneavoastra, <strong>avand timp 2 saptamani sa faca acest lucru.</strong></li></p>
-  <p><li>Acest instructaj este valabil 4 luni de zile. In aceste 4 luni de zile, daca doriti sa va schimbati unul dintre instructorii dumneavoastra, veti avea sansa ca primul sa fie gratis. Dar, daca veti vrea sa il mai schimbati si pe urmatorul, va trebui sa platiti din nou suma de <strong>50.000$</strong>, implicit sa va faceti din nou programare pentru acea persoana.</li></p>
-  <p><li><strong>Pe parcursul celor 4 luni,</strong> avem dreptul de a veni la afacerea dumneavoastra intr-un control inopinat, verificand fiecare angajat in parte. Daca unul dintre angajati greseste la intrebarile puse de <strong>INSPECTORII SSMLS</strong> care au venit in control, veti fi sanctionat ca atare.  </li></p>
-  <p><li>Sunteti obligati sa aveti numarul minim de <strong>instructori SSMLS! </strong></li></p>
-  <p class="warning">Va rog sa luati in serios acest lucru deoarece nu este de joaca si riscati sa va pierdeti chiar si dreptul la acea afacere.</p>
-  <p class="warning">Daca nu veti respecta acest lucru, veti fi pasibili de contraventie sau inchiderea afacerii, in functie de gravitatea situatiei!!!</p>
-  
-  <h2>Conținutul controlului SSMLS</h2>
-  <p>Controlul aplicării normelor SSM :</p>
-  <ul>
-    <li>Verifică respectarea regulilor de către angajați</li>
-    <li>Verifică folosirea corectă a echipamentului de protecție.</li>
-    <li>Propune măsuri disciplinare în caz de nerespectare.</li>
-  </ul>
-
-  <h2>Condiții de eligibilitate pentru efectuarea controlului SSMLS</h2>
-  <p>Controlul SSM nu poate fi efectuat în cazul în care controlul MMLS este expirat. Solicitanții trebuie să se asigure că avizul MMLS este valabil la momentul programării și efectuării controlului ISU PCLS.</p>
-  
-  <h2>Programul de lucru</h2>
-  <p>Programul de lucru al SSM PCLS este stabilit astfel:
-  Luni – Duminică, în intervalul orar 16:00 – 20:00.</p>
-
-  <h2>Programarea concomitentă a controalelor</h2>
-  <p>Controlul SSMLS poate fi programat în aceeași zi cu controlul MMLS, cu condiția ca MMLS să fie efectuat primul.
-    În cazul în care solicitantul este declarat inapt în urma controlului MMLS, programarea SSM va fi anulată automat, fiind necesară o reprogramare după obținerea unui rezultat favorabil la MMLS.</p>
-  
-    <h2>Anunțarea absenței și reprogramarea controlului</h2>
-  <p><li>În situația în care nu mai puteți fi prezenți la controlul programat, vă rugăm să ne anunțați în prealabil, pentru a putea efectua o reprogramare într-un interval convenabil.</li></p>
-  <p><li>În cazul în care persoana nu se prezintă la programare fara sa anunte absenta, aceasta va trebui să inițieze o nouă programare din proprie inițiativă. Reprogramările nu vor fi efectuate automat din partea instituției.</li></p>
-  
-  
-  <div style="text-align:center;">
-  </div>
-</main>
-
-<footer>
-  © 2025 Protecția Consumatorilor Los Santos (PCLS) — Toate drepturile rezervate.
-</footer>
+        const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
+        
+        revealElements.forEach(el => revealObserver.observe(el));
+    </script>
 </body>
-<script>
-// Apariție/dispariție săgeată
-const scrollBtn = document.getElementById("scrollTopBtn");
-
-// Buton vizibil după scroll
-window.addEventListener("scroll", () => {
-    if (window.scrollY > 400) {
-        scrollBtn.classList.add("show");
-    } else {
-        scrollBtn.classList.remove("show");
-    }
-});
-
-// Ultra smooth scroll to top
-scrollBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    
-    smoothScrollToTop();
-});
-
-function smoothScrollToTop() {
-    const speed = 35; // ↓ cu cât este MAI MARE numărul, cu atât e MAI LENT scroll-ul
-    
-    const scrollInterval = setInterval(() => {
-        // Scade treptat viteza pe măsură ce se apropie de top (smooth feeling)
-        let pos = window.pageYOffset;
-        let step = Math.max(10, pos / speed);
-
-        window.scrollTo(0, pos - step);
-
-        if (pos <= 0) clearInterval(scrollInterval);
-    }, 10);
-}
-    window.addEventListener('scroll', () => {
-        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const progress = (scrollTop / scrollHeight) * 100;
-        document.getElementById('progress-bar').style.width = progress + '%';
-    });
-</script>
 </html>
-<div id="progress-bar" style="position: fixed; top: 0; left: 0; height: 5px; background-color: #0ea500; width: 0%; z-index: 1000;"></div>
