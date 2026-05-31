@@ -5,573 +5,579 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Programare M.M.L.S</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #050505;
+            --accent: #00ffa3;
+            --error: #ff3c64;
+            --text-primary: #ffffff;
+            --text-secondary: #88928c;
+            --surface-bg: rgba(255, 255, 255, 0.02);
+            --surface-border: rgba(255, 255, 255, 0.06);
+            --input-bg: rgba(0, 0, 0, 0.2);
+        }
 
-<style>
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      width: 100vw;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #111;
-      color: #d1d1d1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .container {
-      background: linear-gradient(to bottom, #000000 56%, #004d1a 100%);
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      box-shadow: inset 0 0 60px rgba(0, 255, 100, 0.1);
-      position: relative;
-      text-align: center;
-      padding: 0px;
-      overflow-y: auto;
-    }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.05) 0%, transparent 60%);
+        }
 
-    h4 {
-      color: #9cff9ca1;
-      font-size: 2rem;
-      margin-bottom: 4px;
-      letter-spacing: 3px;
-    }
-
-    form {
-        width: 90%;
-        max-width: 600px; /* limitează lățimea pe ecrane mari */
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid #2b8c45;
-        border-radius: 20px;
-        padding: 1px 90px; /* 🔹 adaugă spațiu stânga-dreapta */
-        box-shadow: 0 0 30px rgba(0, 255, 100, 0.1);
-    }
-
-    form input,
-    form textarea {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 18px;
-      background-color: rgba(20, 20, 20, 0.9);
-      border: 1px solid #2b8c45;
-      border-radius: 12px;
-      color: #e0ffe0;
-      font-size: 16px;
-      transition: border 0.3s ease, background 0.3s ease;
-    }
-
-    form input:focus,
-    form textarea:focus {
-      outline: none;
-      border: 1px solid #4cff4c;
-      background-color: rgba(0, 60, 0, 0.6);
-    }
-
-    textarea {
-      resize: vertical;
-      height: 100px;
-    }
-
-    #submit {
-      margin-top: 15px;
-      width: 100%;
-      padding: 10px;
-      background-color: transparent;
-      border: 1px solid #4cff4c;
-      color: #e0ffe0;
-      font-size: 1.15rem;
-      font-weight: bold;
-      border-radius: 19px;
-      cursor: pointer;
-      transition: all 0.9s ease;
-    }
-
-    #submit:hover {
-      background-color: #4cff4ca8;
-      color: white;
-      box-shadow: 0 0 20px 9px #4cff4c33;
-    }
-
-    small {
-      display: block;
-      margin-top: 2px;
-      color: #2B8C45;
-      font-size: 14px;
-    }
-
-    .custom-checkbox {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      font-size: 14px;
-      color: #d1d1d1;
-      margin-top: 0px;
-      text-align: left;
-    }
-
-    .custom-checkbox input[type="checkbox"] {
-      display: none;
-    }
-
-    .custom-checkbox .checkmark {
-      position: relative;
-      width: 20px;
-      height: 20px;
-      background-color: #111;
-      border: 1px solid #4cff4c;
-      border-radius: 5px;
-      margin-right: 10px;
-      transition: all 0.6s ease;
-    }
-
-    .custom-checkbox input[type="checkbox"]:checked + .checkmark {
-      background-color: #4cff4c;
-      box-shadow: 0 0 10px #4cff4c;
-    }
-
-    .custom-checkbox .checkmark:after {
-      content: "";
-      position: absolute;
-      display: none;
-    }
-
-    .custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
-      display: block;
-      left: 6px;
-      top: 1px;
-      width: 5px;
-      height: 10px;
-      border: solid black;
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg);
-    }
-
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #4cff4c9f;
-      color: black;
-      padding: 15px 25px;
-      border-radius: 19px;
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      z-index: 1000;
-    }
-
-    .notification.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-#alert-overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(6px);
-  z-index: 9998;
-  display: none;
-}
-
-#alert-box{
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.8);
-  width: 320px;
-  padding: 25px;
-  border-radius: 18px;
-  background: rgba(10, 10, 10, 0.85);
-  border: 1px solid #2bff88;
-  box-shadow: 0 0 30px rgba(0,255,100,0.25);
-  text-align: center;
-  color: #d1ffd9;
-  z-index: 9999;
-  opacity: 0;
-  visibility: hidden;
-  transition: 0.35s ease;
-}
-
-#alert-box.show{
-  opacity: 1;
-  visibility: visible;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-/* TEXT */
-#alert-box h2{
-  margin: 10px 0 5px;
-  color: #4cff9a;
-  letter-spacing: 1px;
-}
-
-#alert-box p{
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-/* BUTTON */
-#alert-box button{
-  margin-top: 15px;
-  padding: 10px 18px;
-  border-radius: 12px;
-  border: 1px solid #4cff9a;
-  background: transparent;
-  color: #4cff9a;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-#alert-box button:hover{
-  background: #4cff9a;
-  color: #000;
-  box-shadow: 0 0 15px #4cff9a;
-}
-
-/* SVG ICON */
-.alert-icon{
-  width: 70px;
-  height: 70px;
-  margin: auto;
-}
-
-.alert-icon svg{
-  width: 70px;
-  height: 70px;
-}
-
-.circle{
-  fill: none;
-  stroke: #4cff9a;
-  stroke-width: 2;
-  stroke-dasharray: 160;
-  stroke-dashoffset: 160;
-  animation: drawCircle 0.8s ease forwards;
-}
-
-.check{
-  fill: none;
-  stroke: #4cff9a;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 50;
-  stroke-dashoffset: 50;
-  animation: drawCheck 0.6s 0.6s ease forwards;
-}
-
-@keyframes drawCircle{
-  to { stroke-dashoffset: 0; }
-}
-
-@keyframes drawCheck{
-  to { stroke-dashoffset: 0; }
-}
         .back-arrow {
-    position: fixed;
-    top: 25px;
-    left: 30px;
-    font-size: 19px;
-    color: #4cff4c;
-    text-decoration: none;
-    z-index: 2000;
-    padding: 9px 12px;
-    border: 2px solid #4cff4c;
-    border-radius: 15px;
-    background: rgba(17, 17, 17, 0.9);
-    transition: 0.5s;
-}
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            background: transparent;
+            padding: 0;
+        }
 
-.back-arrow:hover {
-    background: #4cff4c;
-    color: black;
-    box-shadow: 0 0 12px #ffffff;
-}
+        .back-arrow:hover {
+            color: var(--text-primary);
+            transform: translateX(-5px);
+        }
 
-  ::-webkit-scrollbar {
-    width: 5px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: #1e8848;
-    border-radius: 4px;
-  }
+        .container {
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.8s ease-out;
+            padding: 60px 20px;
+        }
 
-  .form-group {
-    position: relative;
-  width: 100%;
-  margin-bottom: 1px;
-}
+        h4 {
+            font-weight: 400;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
 
-.date-label {
-  color: #ffffff;
-  font-size: 16px;
-  margin-bottom: 6px;
-  display: block;
-  justify-content: left;
-  position: relative;
-  opacity: 0.8;
-}
+        form {
+            width: 100%;
+            background: var(--surface-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 40px 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
 
-.form-input {
-  width: 105%;        
-  background: transparent;
-  border: 1px solid #00ff66;
-  opacity: 0.75;
-  border-radius: 14px;
-  padding: 12px 14px;
-  color: #ffffff;
-  background-color: rgba(20, 20, 20, 0.9);
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  padding-bottom: 12px;
-}
+        /* Aliniere Grid Simetrică pentru M.M.L.S */
+        form input[name="NUME"],
+        form input[name="ID"],
+        form input[name="NUME AFACERE"],
+        form input[name="TIP BUSSINES"],
+        form input[name="NUMAR ANGAJATI"],
+        form input[name="NUMAR DE TEL"],
+        form input[name="DAY"],
+        .date-container {
+            grid-column: span 1;
+        }
 
-.form-input:focus {
-  box-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
-}
+        form input[name="EMAIL"],
+        form textarea[name="DETALII"],
+        .custom-checkbox,
+        #submit {
+            grid-column: span 2;
+        }
 
-.info-icon {
-  position: absolute;
-  right: -16px;
-  top: 13px; /* ajustează dacă labelul e mai mare */
-  width: 18px;
-  height: 18px;
-  background: #00ff66;
-  color: #000000;
-  border-radius: 50%;
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
+        form input[type="text"],
+        form input[type="number"],
+        form input[type="date"],
+        form textarea {
+            width: 100%;
+            padding: 16px 20px;
+            background-color: var(--input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: 300;
+            transition: all 0.3s ease;
+            outline: none;
+        }
 
+        form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
 
-/* TOOLTIP */
-.tooltip-box {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(5px);
-  background: #0b0b0bb0;
-  border: 1px solid #00ff66;
-  color: #ffffff;
-  padding: 16px;
-  font-weight: 450;
-  border-radius: 12px;
-  font-size: 13px;
-  max-width: 100%;
-  opacity: 0;
-  visibility: hidden;
-  transition: 0.4s ease;
-  z-index: 20;
-}
+        form input::placeholder,
+        form textarea::placeholder {
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
 
-.tooltip-group:hover .tooltip-box {
-  opacity: 1;
-  visibility: visible;
-}
+        form input:focus,
+        form textarea:focus {
+            border-color: var(--accent);
+            background-color: rgba(0, 255, 163, 0.02);
+            box-shadow: 0 0 8px rgba(0, 255, 163, 0.2);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            transition: color 0.3s;
+            margin-top: 5px;
+        }
+
+        .custom-checkbox:hover {
+            color: var(--text-primary);
+        }
+
+        .custom-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .custom-checkbox .checkmark {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            margin-right: 16px;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox input[type="checkbox"]:checked + .checkmark {
+            border-color: var(--accent);
+            background-color: var(--accent);
+        }
+
+        .custom-checkbox .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            width: 5px;
+            height: 10px;
+            border: solid #000;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-top: -2px;
+        }
+
+        .custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
+            display: block;
+        }
+
+        #submit {
+            margin-top: 10px;
+            opacity: 0.8;
+            width: 100%;
+            padding: 18px;
+            background-color: var(--accent);
+            color: #000000;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 163, 0.25);
+            background-color: #00e592;
+            opacity: 1;
+        }
+
+        small {
+            display: block;
+            margin-top: 25px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .date-container {
+            position: relative;
+            width: 100%;
+        }
+
+        /* --- Scurtătură Calendar Webkit --- */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.4;
+            cursor: pointer;
+        }
+
+        /* --- STILURI MODALE (POP-UP) --- */
+        #alert-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: none;
+        }
+
+        #alert-box, #error-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 100%;
+            max-width: 400px;
+            padding: 50px 40px;
+            border-radius: 24px;
+            background: #0a0a0a;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #alert-box {
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        #error-box {
+            border: 1px solid rgba(255, 60, 100, 0.3);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 60, 100, 0.05);
+        }
+
+        #alert-box.show, #error-box.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #alert-box h2, #error-box h2 {
+            margin: 24px 0 12px;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        #alert-box p, #error-box p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        #alert-box button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--surface-bg);
+            border: 1px solid var(--surface-border);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #alert-box button:hover {
+            background: var(--text-primary);
+            color: #000;
+        }
+
+        #error-box button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 60, 100, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #error-box button:hover {
+            background: var(--error);
+            color: #000;
+            box-shadow: 0 8px 25px rgba(255, 60, 100, 0.3);
+        }
+
+        .date-hint {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: -10px;
+            padding-left: 5px;
+        }
+
+        .alert-icon { width: 64px; height: 64px; margin: 0 auto; }
+        .alert-icon svg { width: 100%; height: 100%; display: block; }
+        
+        .circle { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
+        .check { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
+        
+        .circle-error { fill: none; stroke: var(--error); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
+        .x-mark { fill: none; stroke: var(--error); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
+
+        @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        @media (max-width: 768px) {
+            form { grid-template-columns: 1fr; padding: 30px 24px; }
+            form input[name="NUME"], form input[name="ID"], form input[name="NUME AFACERE"], form input[name="TIP BUSSINES"], form input[name="NUMAR ANGAJATI"], form input[name="NUMAR DE TEL"], form input[name="DAY"], .date-container, form input[name="EMAIL"], form textarea[name="DETALII"], .custom-checkbox, #submit { grid-column: span 1; }
+            .container { padding: 80px 24px 40px; }
+        }
     </style>
 </head>
 
 <body>
-  <a href="index.html" class="back-arrow">⟵ Inapoi</a>
+    <a href="index.html" class="back-arrow">⟵ Inapoi</a>
+    
     <div class="container">
         <h4>Programare M.M.L.S</h4>
-        <form method="post" action="https://discord.com/api/webhooks/1299686293642678272/XdJAeAeAQBQns-kqZUrCJLgwqel8_xVRVDjbR_3glGrE9ewFe2TnEYESd7wqYjiAoaGF" name="contact-form" id="contact-form">
-            <input type="text" name="NUME" placeholder="Numele raprezentantului" required>
+        <form name="contact-form" id="contact-form">
+            <input type="text" name="NUME" placeholder="Numele reprezentantului" required>
             <input type="number" name="ID" placeholder="CNP (ID)" required>
+            
             <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
-            <input type="text" name="TIP BUSSINES" placeholder="Metioneaza tipul de Bussines" required>
-            <input type="number" name="NUMAR ANGAJATI" placeholder="Metioneaza numarul de angajati" required>
-            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
-            <input type="text" name="DAY" placeholder="Metioneaza ora dorita pentru programare">
-            <div class="form-group tooltip-group">
-              <input
-                type="date"
-                name="DATA"
-                id="dataProgramare"
-                value="2026-01-01"
-                class="form-input" required>
-
-              <span class="info-icon">?</span>
-
-              <div class="tooltip-box">
-                Menționează data dorita pentru efectuarea controlului care sa fie diferita de ziua de Azi.
-              </div>
+            <input type="text" name="TIP BUSSINES" placeholder="Menționează tipul de Business" required>
+            
+            <input type="number" name="NUMAR ANGAJATI" placeholder="Menționează numărul de angajați" required>
+            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Număr de telefon (ex. 123-4567)" required maxlength="8">
+            
+            <input type="text" name="DAY" placeholder="Menționează ora dorită pentru programare">
+            
+            <div class="date-container">
+                <input type="date" name="DATA" id="dataProgramare" required>
             </div>
-            <input type="number" name="EMAIL" placeholder="Discord ID -> click dreapta pe poza de discord -> copy ID" required>
-            <textarea name="DETALII" rows="5" placeholder="Strada ,locatia afacerii mai in detaliu:"></textarea>
+            
+            <input type="text" name="EMAIL" placeholder="Discord ID -> click dreapta pe poza de discord -> copy ID" required>
+            
+            <textarea name="DETALII" rows="5" placeholder="Strada, locația afacerii mai în detaliu:"></textarea>
+            
             <label class="custom-checkbox">
                 <input type="checkbox" required>
                 <span class="checkmark"></span>
-                Am primit confirmarea de inregistrare a afacerii din partea unui Secretar PCLS prin email!
-              </label>
+                Am primit confirmarea de înregistrare a afacerii din partea unui Secretar PCLS prin email!
+            </label>
+            <span class="date-hint">* Programarea nu se poate face in aceasi zi.</span>
             <input type="submit" value="Trimite Formularul" id="submit">
         </form>
         <small>Copyright © 2025 Tristan</small>
     </div>
     
-<div id="alert-overlay"></div>
+    <div id="alert-overlay"></div>
 
-<div id="alert-box">
-  <div class="alert-icon">
-    <svg viewBox="0 0 52 52">
-      <circle class="circle" cx="26" cy="26" r="25" />
-      <path class="check" d="M14 27 L22 35 L38 18" />
-    </svg>
-  </div>
+    <div id="alert-box">
+        <div class="alert-icon">
+            <svg viewBox="0 0 52 52">
+                <circle class="circle" cx="26" cy="26" r="25" />
+                <path class="check" d="M14 27 L22 35 L38 18" />
+            </svg>
+        </div>
+        <h2>Cerere Înregistrată</h2>
+        <p>Informațiile au fost transmise cu succes către sistemul nostru. Veți fi contactat în scurt timp.</p>
+        <button id="close-alert">Finalizare</button>
+    </div>
 
-  <h2>Succes!</h2>
-  <p>Cererea ta a fost trimisă cu succes.</p>
-
-  <button id="close-alert">OK</button>
-</div>
-
+    <div id="error-box">
+        <div class="alert-icon">
+            <svg viewBox="0 0 52 52">
+                <circle class="circle-error" cx="26" cy="26" r="25" />
+                <path class="x-mark" d="M16 16 L36 36 M36 16 L16 36" />
+            </svg>
+        </div>
+        <h2 style="color: var(--error);">Eroare!</h2>
+        <p id="error-text">ID Discord invalid</p>
+        <button id="close-error">OK</button>
+    </div>
 
     <script>
-document.addEventListener("contextmenu", e => e.preventDefault());
-
-document.addEventListener("keydown", function (e) {
-    if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && e.key === "I") ||
-        (e.ctrlKey && e.shiftKey && e.key === "J") ||
-        (e.ctrlKey && e.key === "U")
-    ) {
-        e.preventDefault();
-    }
-});
-
-// Telefon format xxx-xxxx
-const phoneInputs = document.querySelectorAll('#NUMAR_TEL');
-
-phoneInputs.forEach(input => {
-    input.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 3) {
-            value = value.slice(0, 3) + '-' + value.slice(3, 7);
-        }
-        e.target.value = value;
-    });
-});
-
-const form = document.getElementById('contact-form');
-const dateInput = document.getElementById('dataProgramare');
-const webhookUrl = "https://discord.com/api/webhooks/1299686293642678272/XdJAeAeAQBQns-kqZUrCJLgwqel8_xVRVDjbR_3glGrE9ewFe2TnEYESd7wqYjiAoaGF";
-
-// 🔥 BLOCARE DATA: doar de mâine încolo
-const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-dateInput.min = tomorrow.toISOString().split('T')[0];
-
-// Notificare
-function showNotification(message) {
-    let notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.innerText = message;
-    document.body.appendChild(notification);
-
-    setTimeout(() => notification.classList.add('show'), 10);
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 400);
-    }, 4000);
-}
-
-const alertBox = document.getElementById("alert-box");
-const overlay = document.getElementById("alert-overlay");
-const closeBtn = document.getElementById("close-alert");
-
-function showAlert(){
-  overlay.style.display = "block";
-  alertBox.classList.add("show");
-}
-
-function hideAlert(){
-  overlay.style.display = "none";
-  alertBox.classList.remove("show");
-}
-
-closeBtn.addEventListener("click", hideAlert);
-overlay.addEventListener("click", hideAlert);
-
-// SUBMIT FORMULAR
-form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const formData = new FormData(form);
-
-    // 🔥 VALIDARE DATA (nu azi / nu trecut)
-    const selectedDate = new Date(formData.get("DATA"));
-    selectedDate.setHours(0, 0, 0, 0);
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (selectedDate <= today) {
-        showNotification("Nu poți selecta ziua de azi. Alege o dată viitoare.");
-        return;
-    }
-
-    const discordId = formData.get("EMAIL");
-
-    if (!/^\d{17,20}$/.test(discordId)) {
-        showNotification("ID Discord invalid");
-        return;
-    }
-
-    const embedData = {
-        username: "MMLS Bot",
-        content: "<@&1108121643571757126>",
-        embeds: [
-            {
-                title: ":pushpin: O nouă programare a fost înregistrată!",
-                color: 3447003,
-                fields: [
-                    { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
-                    { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
-                    { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
-                    { name: "Tip Business", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
-                    { name: "Număr de angajați", value: formData.get("NUMAR ANGAJATI") || "N/A", inline: false },
-                    { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
-                    { name: "Discord / Email", value: `<@${discordId}>`, inline: false },
-                    { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
-                    { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
-                    { name: "Detalii extra", value: formData.get("DETALII") || "N/A", inline: false }
-                ],
-                footer: { text: "Programare M.M.L.S" },
-                timestamp: new Date().toISOString()
+        // Securitate bază
+        document.addEventListener("contextmenu", e => e.preventDefault());
+        document.addEventListener("keydown", function (e) {
+            if (
+                e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && e.key === "I") ||
+                (e.ctrlKey && e.shiftKey && e.key === "J") ||
+                (e.ctrlKey && e.key === "U")
+            ) {
+                e.preventDefault();
             }
-        ]
-    };
-
-    try {
-        const response = await fetch(webhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(embedData)
         });
 
-        if (response.ok) {
-            showAlert();
-        } else {
-            showNotification("Eroare la trimiterea formularului!");
+        // Formatează telefonul ca xxx-xxxx
+        const phoneInput = document.getElementById('NUMAR_TEL');
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7);
+            }
+            e.target.value = value;
+        });
+
+        const form = document.getElementById('contact-form');
+        const dateInput = document.getElementById('dataProgramare');
+        const webhookUrl = "https://discord.com/api/webhooks/1299686293642678272/XdJAeAeAQBQns-kqZUrCJLgwqel8_xVRVDjbR_3glGrE9ewFe2TnEYESd7wqYjiAoaGF";
+
+        // Configurare dată minimă: doar de mâine încolo
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.min = tomorrow.toISOString().split('T')[0];
+
+        // Management Modale Premium
+        const overlay = document.getElementById("alert-overlay");
+        const alertBox = document.getElementById("alert-box");
+        const errorBox = document.getElementById("error-box");
+        const errorText = document.getElementById("error-text");
+
+        function showSuccess() {
+            overlay.style.display = "block";
+            alertBox.classList.add("show");
         }
-    } catch (error) {
-        console.error(error);
-        showNotification("A apărut o eroare la trimiterea mesajului.");
-    }
-});
-</script>
+
+        function showError(message) {
+            errorText.innerText = message;
+            overlay.style.display = "block";
+            errorBox.classList.add("show");
+        }
+
+        function closeModals() {
+            overlay.style.display = "none";
+            alertBox.classList.remove("show");
+            errorBox.classList.remove("show");
+        }
+
+        document.getElementById("close-alert").addEventListener("click", closeModals);
+        document.getElementById("close-error").addEventListener("click", closeModals);
+        overlay.addEventListener("click", closeModals);
+
+        // Submit Formular + Validări Corecte
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            // Validare dată selectată
+            const selectedDate = new Date(formData.get("DATA"));
+            selectedDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate <= today) {
+                showError("Nu poți selecta ziua de azi. Alege o dată viitoare.");
+                return;
+            }
+
+            // Validare strictă ID Discord
+            const discordId = formData.get("EMAIL").trim();
+            if (!/^\d{17,20}$/.test(discordId)) {
+                showError("ID Discord invalid");
+                return;
+            }
+
+            // Pregătire Payload Discord Embed
+            const embedData = {
+                username: "MMLS Bot",
+                content: "<@&1108121643571757126>",
+                embeds: [
+                    {
+                        title: ":pushpin: O nouă programare a fost înregistrată!",
+                        color: 3447003,
+                        fields: [
+                            { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
+                            { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
+                            { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
+                            { name: "Tip Business", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
+                            { name: "Număr de angajați", value: formData.get("NUMAR ANGAJATI") || "N/A", inline: false },
+                            { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
+                            { name: "Discord ID", value: `<@${discordId}>`, inline: false },
+                            { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
+                            { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
+                            { name: "Detalii extra", value: formData.get("DETALII") || "N/A", inline: false }
+                        ],
+                        footer: { text: "Programare M.M.L.S" },
+                        timestamp: new Date().toISOString()
+                    }
+                ]
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(embedData)
+                });
+
+                if (response.ok) {
+                    showSuccess();
+                    form.reset();
+                } else {
+                    showError("Eroare la trimiterea către Discord.");
+                }
+            } catch (error) {
+                console.error(error);
+                showError("A apărut o eroare la trimiterea mesajului.");
+            }
+        });
+    </script>
 </body>
 </html>
