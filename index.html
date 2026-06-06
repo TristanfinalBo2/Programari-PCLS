@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Programari PCLS</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@400;500&display=swap" rel="stylesheet">
 <style>
     :root {
         --bg-main: #020604;
@@ -13,34 +14,34 @@
         --text-secondary: #8b9d93;
         --glass-bg: rgba(255, 255, 255, 0.02);
         --glass-border: rgba(0, 255, 163, 0.15);
+        /* modal vars */
+        --surface:  #131312;
+        --border:   rgba(255,255,255,0.07);
+        --border-h: rgba(255,255,255,0.18);
+        --text:     #ede9e1;
+        --muted:    rgba(237,233,225,0.38);
+        --accent:   #00ffa3;
     }
 
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-body {
+    body {
         font-family: 'Outfit', sans-serif;
         background-color: var(--bg-main);
         color: var(--text-primary);
-        height: 100vh; /* Forțează înălțimea să fie exact cât ecranul */
-        width: 100%; /* Folosim 100% în loc de 100vw pentru a preveni scroll-ul orizontal */
-        overflow: hidden; /* Această comandă taie/ascunde absolut orice tentativă de scroll */
+        height: 100vh;
+        width: 100%;
+        overflow: hidden;
         position: relative;
         display: flex;
         align-items: center;
     }
 
-    /* Iluminare de fundal */
     body::before {
         content: '';
         position: absolute;
-        top: 20%;
-        right: -10%;
-        width: 70vw;
-        height: 70vw;
+        top: 20%; right: -10%;
+        width: 70vw; height: 70vw;
         background: radial-gradient(circle, rgba(0, 255, 163, 0.08) 0%, transparent 50%);
         z-index: -1;
         pointer-events: none;
@@ -59,7 +60,6 @@ body {
         gap: 60px;
     }
 
-    /* Partea Stanga: Text si Butoane */
     .hero-content {
         flex: 1;
         max-width: 650px;
@@ -118,26 +118,19 @@ body {
         transform: translateX(-10px);
         transition: all 0.3s ease;
     }
-
-    button:hover::after {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
+    button:hover::after { opacity: 1; transform: translateX(0); }
     button:hover {
         background: rgba(0, 255, 163, 0.05);
         border-color: rgba(0, 255, 163, 0.4);
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 255, 163, 0.1);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 0 15px rgba(0,255,163,0.1);
     }
-
     button#openPopup {
         background: rgba(0, 255, 163, 0.1);
         border-color: var(--accent-glow);
         color: #fff;
     }
 
-    /* Partea Dreapta: Element Vizual (Widget) */
     .hero-visual {
         flex: 1;
         display: flex;
@@ -160,8 +153,6 @@ body {
         position: relative;
         overflow: hidden;
     }
-
-    /* Efect de reflexie subtila pe card */
     .status-card::before {
         content: '';
         position: absolute;
@@ -171,7 +162,6 @@ body {
         transform: rotate(45deg);
         pointer-events: none;
     }
-
     .status-header {
         display: flex;
         align-items: center;
@@ -181,37 +171,23 @@ body {
         font-weight: 600;
         color: var(--accent-glow);
     }
-
     .pulse-dot {
-        width: 15px;
-        height: 15px;
+        width: 15px; height: 15px;
         background-color: var(--accent-glow);
         border-radius: 50%;
         box-shadow: 0 0 10px var(--accent-glow);
         animation: pulse 2s infinite;
     }
-
-    .status-body {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-
+    .status-body { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
     .info-row {
         display: flex;
         justify-content: space-between;
         font-size: 0.9rem;
         color: var(--text-secondary);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
         padding-bottom: 8px;
     }
-
-    .info-row span:last-child {
-        color: #fff;
-        font-weight: 600;
-    }
-
+    .info-row span:last-child { color: #fff; font-weight: 600; }
     .status-footer {
         font-size: 0.85rem;
         color: var(--text-secondary);
@@ -219,17 +195,11 @@ body {
         align-items: center;
         gap: 8px;
     }
+    .status-footer::before { content: '✓'; color: var(--accent-glow); }
 
-    .status-footer::before {
-        content: '✓';
-        color: var(--accent-glow);
-    }
-
-    /* Bara inferioara pentru logouri */
     .logos-bar {
         position: fixed;
-        bottom: 0;
-        left: 0;
+        bottom: 0; left: 0;
         width: 100%;
         background: rgba(2, 6, 4, 0.7);
         backdrop-filter: blur(15px);
@@ -242,7 +212,6 @@ body {
         gap: 50px;
         z-index: 20;
     }
-
     .logos-bar img {
         height: 38px;
         object-fit: contain;
@@ -250,135 +219,12 @@ body {
         filter: grayscale(100%);
         transition: all 0.4s ease;
     }
+    .logos-bar img:hover { transform: translateY(-3px); opacity: 0.9; filter: grayscale(0%); }
 
-    .logos-bar img:hover {
-        transform: translateY(-3px);
-        opacity: 0.9;
-        filter: grayscale(0%);
-    }
-
-    /* Modal / Popup */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0; top: 0;
-        width: 100vw; height: 100vh;
-        background-color: rgba(0, 5, 2, 0.8);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-content {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        padding: 40px;
-        text-align: center;
-        max-width: 100%;
-        width: 450px;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 255, 163, 0.05);
-        animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .modal-content h2 {
-        color: var(--text-primary);
-        font-size: 1.4rem;
-        margin-bottom: 25px;
-        font-weight: 400;
-        text-align: left;
-    }
-
-    .modal-content select {
-        width: 100%;
-        padding: 14px;
-        border-radius: 6px;
-        border: 1px solid var(--glass-border);
-        background-color: rgba(0, 0, 0, 0.5);
-        color: var(--text-primary);
-        font-size: 1rem;
-        font-family: inherit;
-        outline: none;
-        margin-bottom: 30px;
-        cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ffa3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right 1rem center;
-        background-size: 1em;
-    }
-
-    .modal-content select:focus {
-        border-color: var(--accent-glow);
-    }
-
-    .modal-content select option {
-        background-color: #020604;
-        color: #fff;
-    }
-
-    /* --- Stiluri Imbunatatite pentru Butoanele din Modal --- */
-    .modal-buttons {
-        display: flex;
-        gap: 15px;
-        margin-top: 10px;
-    }
-
-    .modal-buttons button {
-        flex: 1;
-        padding: 14px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        border-radius: 8px;
-        text-align: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
-    .modal-buttons button::after {
-        display: none; /* Ascundem sageata din butoanele principale */
-    }
-
-    /* Buton Secundar (Anuleaza) */
-    .modal-buttons #closePopup {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-secondary);
-        box-shadow: none;
-    }
-
-    .modal-buttons #closePopup:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.2);
-        color: var(--text-primary);
-        transform: translateY(-2px);
-    }
-
-    /* Buton Principal (Continua) */
-    .modal-buttons #nextPage {
-        background: var(--accent-glow);
-        border: 1px solid var(--accent-glow);
-        color: #020604;
-        box-shadow: 0 4px 15px rgba(0, 255, 163, 0.15);
-    }
-
-    .modal-buttons #nextPage:hover {
-        background: #00e693;
-        border-color: #00e693;
-        color: #000;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 255, 163, 0.4);
-    }
-
-    /* Notificare */
+    /* ── NOTIFICATION (original) ── */
     .notification {
         position: fixed;
-        top: 30px;  
-        right: 30px; 
+        top: 30px; right: 30px;
         background: rgba(0, 255, 163, 0.1);
         backdrop-filter: blur(10px);
         border-left: 4px solid var(--accent-glow);
@@ -392,41 +238,176 @@ body {
         z-index: 2000;
         pointer-events: none;
     }
+    .notification.show { opacity: 1; transform: translateX(0); }
 
-    .notification.show {
-        opacity: 1;
-        transform: translateX(0);
+    /* ════════════════════════════════════════
+       MODAL NOU
+    ════════════════════════════════════════ */
+    .overlay {
+        display: none;
+        position: fixed; inset: 0; z-index: 1000;
+        background: rgba(2,6,4,0.85);
+        backdrop-filter: blur(1px);
+        -webkit-backdrop-filter: blur(1px);
+        align-items: center;
+        justify-content: center;
+    }
+    .overlay.open { display: flex; }
+
+    .modal-new {
+        width: 720px;
+        max-width: 95vw;
+        background: #0d1210;
+        border: 1px solid rgba(0,255,163,0.2);
+        border-radius: 12px;
+        overflow: hidden;
+        animation: modalIn .28s cubic-bezier(.22,1,.36,1);
     }
 
-    /* Animatii */
-    @keyframes fadeRight {
-        from { opacity: 0; transform: translateX(-30px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-    
-    @keyframes fadeLeft {
-        from { opacity: 0; transform: translateX(30px); }
-        to { opacity: 1; transform: translateX(0); }
+    @keyframes modalIn {
+        from { opacity: 0; transform: translateY(16px) scale(.98); }
+        to   { opacity: 1; transform: none; }
     }
 
-    @keyframes floating {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
+    .modal-top {
+        padding: 28px 28px 22px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .modal-eyebrow {
+        font-family: 'Syne', sans-serif;
+        font-size: .6rem;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+        color: var(--accent-glow);
+        margin-bottom: 10px;
+        opacity: .7;
+    }
+    .modal-top h2 {
+        font-family: 'Syne', serif;
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #fff;
+        -webkit-text-fill-color: #fff;
+        background: none;
+        letter-spacing: 0;
+        margin-bottom: 0;
     }
 
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(0, 255, 163, 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(0, 255, 163, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(0, 255, 163, 0); }
+    .modal-opts {
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
-    @keyframes scaleIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
+    .opt {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 14px;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: background .15s;
+        border: 1px solid transparent;
+    }
+    .opt:hover { background: rgba(255,255,255,0.04); }
+    .opt.active {
+        background: rgba(0,255,163,0.06);
+        border-color: rgba(0,255,163,0.2);
     }
 
-    /* Responsive */
+    .opt-circle {
+        width: 18px; height: 18px;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        transition: border-color .15s;
+    }
+    .opt.active .opt-circle { border-color: var(--accent-glow); }
+    .opt-circle::after {
+        content: '';
+        width: 8px; height: 8px;
+        background: var(--accent-glow);
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity .15s;
+    }
+    .opt.active .opt-circle::after { opacity: 1; }
+
+    .opt-info { flex: 1; }
+    .opt-name {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 2.5px;
+        font-family: 'Outfit', sans-serif;
+    }
+    .opt-desc {
+        font-size: .8rem;
+        color: var(--text-secondary);
+        font-weight: 300;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    .modal-bottom {
+        padding: 16px 28px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .m-btn {
+        font-family: 'Outfit', sans-serif;
+        font-size: .78rem;
+        font-weight: 500;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        padding: 11px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all .2s;
+        border: 1px solid;
+    }
+    .m-cancel {
+        background: transparent;
+        border-color: rgba(255,255,255,0.1);
+        color: var(--text-secondary);
+    }
+    .m-cancel:hover {
+        border-color: rgba(255,255,255,0.25);
+        color: #fff;
+        transform: none;
+    }
+    .m-cancel::after { display: none; }
+    .m-go {
+        background: var(--accent-glow);
+        border-color: var(--accent-glow);
+        color: #020604;
+        box-shadow: 0 4px 15px rgba(0,255,163,0.15);
+    }
+    .m-go:hover {
+        background: #00e693;
+        border-color: #00e693;
+        box-shadow: 0 8px 25px rgba(0,255,163,0.3);
+        transform: none;
+    }
+    .m-go:disabled {
+        background: rgba(0,255,163,0.15);
+        border-color: transparent;
+        color: rgba(2,6,4,0.4);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    .m-go::after, .m-cancel::after { display: none; }
+
+    /* Animations */
+    @keyframes fadeRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes fadeLeft  { from { opacity: 0; transform: translateX(30px);  } to { opacity: 1; transform: translateX(0); } }
+    @keyframes floating  { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    @keyframes pulse     { 0% { box-shadow: 0 0 0 0 rgba(0,255,163,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,163,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,163,0); } }
+
     @media (max-width: 992px) {
         .container { flex-direction: column; text-align: center; justify-content: center; gap: 40px; }
         .hero-content { margin-top: 40px; }
@@ -435,7 +416,6 @@ body {
         button { justify-content: center; }
         button::after { display: none; }
     }
-
     @media (max-width: 600px) {
         .container { padding: 0 25px; padding-bottom: 80px; }
         h1 { font-size: 2.2rem; }
@@ -478,7 +458,7 @@ body {
                 </div>
                 <div class="info-row">
                     <span>Timp Mediu Răspuns</span>
-                    <span>< 5 Ore</span>
+                    <span>&lt; 5 Ore</span>
                 </div>
             </div>
             <div class="status-footer">
@@ -497,74 +477,121 @@ body {
     <img src="mmls.png" alt="MM">
     <img src="logossmls.png" alt="SSMLS">
 </nav>
-    
-<div id="popup" class="modal">
-    <div class="modal-content">
-        <h2>Selectează Tipul Cererii</h2>
-        <select id="tipCerere">
-            <option value="" disabled selected>Alege o opțiune...</option>
-            <option value="ISULS">ISULS</option>
-            <option value="DSLS">DSLS</option>
-            <option value="Medicina Muncii">Medicina Muncii</option>
-            <option value="Securitatea">Securitatea și Sănătatea în Muncă</option>
-        </select>
-        
-        <div class="modal-buttons">
-            <button id="closePopup">Anulează</button>
-            <button id="nextPage">Continuă</button>
+
+<!-- MODAL NOU -->
+<div class="overlay" id="overlay">
+    <div class="modal-new">
+        <div class="modal-top">
+            <div class="modal-eyebrow">Cerere Medicală</div>
+            <h2>Alege departamentul</h2>
+        </div>
+
+        <div class="modal-opts">
+            <div class="opt" data-val="ISULS">
+                <div class="opt-circle"></div>
+                <div class="opt-info">
+                    <div class="opt-name">I.S.U.L.S.</div>
+                    <div class="opt-desc">Inspectoratul pentru Situații de Urgență los santos</div>
+                </div>
+            </div>
+            <div class="opt" data-val="DSLS">
+                <div class="opt-circle"></div>
+                <div class="opt-info">
+                    <div class="opt-name">D.S.L.S.</div>
+                    <div class="opt-desc">Direcția de Sănătate Publică los santos</div>
+                </div>
+            </div>
+            <div class="opt" data-val="Medicina Muncii">
+                <div class="opt-circle"></div>
+                <div class="opt-info">
+                    <div class="opt-name">M.M.L.S.</div>
+                    <div class="opt-desc">Avize medicale și evaluări ocupaționale</div>
+                </div>
+            </div>
+            <div class="opt" data-val="Securitatea">
+                <div class="opt-circle"></div>
+                <div class="opt-info">
+                    <div class="opt-name">S.S.M.L.S.</div>
+                    <div class="opt-desc">Securitatea la locul de munca</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-bottom">
+            <button class="m-btn m-cancel" id="closePopup">Anulează</button>
+            <button class="m-btn m-go" id="nextPage" disabled>Continuă</button>
         </div>
     </div>
 </div>
-      
+
 <script>
     function showNotification(message) {
         const notif = document.getElementById('notification');
         notif.innerText = message || "Acțiune completată!";
         notif.classList.add('show');
-        setTimeout(() => {
-            notif.classList.remove('show');
-        }, 3500);
+        setTimeout(() => notif.classList.remove('show'), 3500);
     }
 
-    const popup = document.getElementById("popup");
-    const openPopupBtn = document.getElementById("openPopup");
-    const closePopupBtn = document.getElementById("closePopup");
-    const nextPageBtn = document.getElementById("nextPage");
-    
-    openPopupBtn.addEventListener("click", () => {
-        popup.style.display = "flex";
-    });
+    const overlay    = document.getElementById('overlay');
+    const openBtn    = document.getElementById('openPopup');
+    const closeBtn   = document.getElementById('closePopup');
+    const nextBtn    = document.getElementById('nextPage');
+    let selected     = null;
 
-    closePopupBtn.addEventListener("click", () => {
-        popup.style.display = "none";
-    });
-
-    window.addEventListener("click", (event) => {
-        if (event.target === popup) {
-            popup.style.display = "none";
+    // Deschide modalul
+    document.querySelector('button#openPopup') && 
+    document.querySelectorAll('.btn-grid button').forEach(btn => {
+        if (btn.id === 'openPopup') {
+            btn.addEventListener('click', () => overlay.classList.add('open'));
         }
     });
 
-    nextPageBtn.addEventListener("click", () => {
-        const opt = document.getElementById("tipCerere").value;
-
-        if (!opt) {
-            showNotification("Te rog selectează departamentul dorit.");
-            return;
-        }
-
-        const links = {
-            "ISULS": "isuls_page.html",
-            "DSLS": "dsls_page.html",
-            "Medicina Muncii": "mm_page.html",
-            "Securitatea": "ssmls_page.html"
-        };
-        
-        if(links[opt]) {
-            window.open(links[opt], "_blank");
-            popup.style.display = "none";
-        }
+    // fallback direct
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('openPopup').addEventListener('click', () => {
+            overlay.classList.add('open');
+        });
     });
+
+    closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
+
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+
+    document.querySelectorAll('.opt').forEach(opt => {
+        opt.addEventListener('click', () => {
+            document.querySelectorAll('.opt').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            selected = opt.dataset.val;
+            nextBtn.disabled = false;
+        });
+    });
+
+    const links = {
+    "ISULS":           "isuls_page.html",
+    "DSLS":            "dsls_page.html",
+    "Medicina Muncii": "mm_page.html",
+    "Securitatea":     "ssmls_page.html"
+};
+
+nextBtn.addEventListener('click', () => {
+    if (!selected) {
+        showNotification("Te rog selectează departamentul dorit.");
+        return;
+    }
+
+    // Deschide în aceeași filă
+    window.location.href = links[selected];
+
+    overlay.classList.remove('open');
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        overlay.classList.remove('open');
+    }
+});
 </script>
 </body>
 </html>

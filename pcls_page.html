@@ -37,27 +37,60 @@
         background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.05) 0%, transparent 60%);
     }
 
-    .back-arrow {
-        position: fixed;
-        top: 40px;
-        left: 40px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        text-decoration: none;
-        z-index: 2000;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+                            /* Controale Flotante */
+        .floating-btn {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 17, 16, 0.85);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            text-decoration: none;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-    .back-arrow:hover {
-        color: var(--text-primary);
-        transform: translateX(-5px);
-    }
+        .btn-back {
+            top: 30px; left: 30px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-top {
+            bottom: 30px; right: 30px;
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            opacity: 0; visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .btn-top.show {
+            opacity: 1; visibility: visible;
+            transform: translateY(0);
+        }
+
+        .floating-btn svg {
+            width: 20px; height: 20px;
+            fill: none; stroke: currentColor; stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .floating-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 10px 25px var(--accent-dim);
+            transform: translateY(-3px);
+        }
+
+        .btn-back:hover svg { transform: translateX(-4px); transition: transform 0.3s; }
+        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
 
     .container {
         width: 100%;
@@ -377,7 +410,10 @@
 </head>
 
 <body>
-  <a href="index.html" class="back-arrow">← Înapoi</a>
+  <a href="index.html" class="floating-btn btn-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Înapoi
+    </a>
   
   <div class="container">
     <h4>Programare <span>P.C.L.S</span></h4>
