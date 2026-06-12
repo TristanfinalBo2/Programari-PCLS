@@ -1,597 +1,676 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Programari PCLS</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@400;500&display=swap" rel="stylesheet">
-<style>
-    :root {
-        --bg-main: #020604;
-        --accent-glow: #00ffa3;
-        --text-primary: #ffffff;
-        --text-secondary: #8b9d93;
-        --glass-bg: rgba(255, 255, 255, 0.02);
-        --glass-border: rgba(0, 255, 163, 0.15);
-        /* modal vars */
-        --surface:  #131312;
-        --border:   rgba(255,255,255,0.07);
-        --border-h: rgba(255,255,255,0.18);
-        --text:     #ede9e1;
-        --muted:    rgba(237,233,225,0.38);
-        --accent:   #00ffa3;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programări PCLS | Portal Oficial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #050507;
+            --bg-glow: #0a1929;
+            --accent-primary: #00e6a8;
+            --accent-secondary: #0088ff;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.06);
+            --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-        font-family: 'Outfit', sans-serif;
-        background-color: var(--bg-main);
-        color: var(--text-primary);
-        height: 100vh;
-        width: 100%;
-        overflow: hidden;
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
 
-    body::before {
-        content: '';
-        position: absolute;
-        top: 20%; right: -10%;
-        width: 70vw; height: 70vw;
-        background: radial-gradient(circle, rgba(0, 255, 163, 0.08) 0%, transparent 50%);
-        z-index: -1;
-        pointer-events: none;
-    }
+        /* Fundal cu gradient ambiental */
+        .ambient-light {
+            position: fixed;
+            top: -20vh;
+            right: -10vw;
+            width: 80vw;
+            height: 80vh;
+            background: radial-gradient(circle, rgba(0, 230, 168, 0.15) 0%, transparent 60%);
+            filter: blur(80px);
+            z-index: -1;
+            pointer-events: none;
+        }
 
-    .container {
-        width: 100%;
-        max-width: 1300px;
-        margin: 0 auto;
-        padding: 0 40px;
-        padding-bottom: 100px;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 60px;
-    }
+        .ambient-light-2 {
+            position: fixed;
+            bottom: -20vh;
+            left: -10vw;
+            width: 60vw;
+            height: 60vh;
+            background: radial-gradient(circle, rgba(0, 136, 255, 0.1) 0%, transparent 60%);
+            filter: blur(80px);
+            z-index: -1;
+            pointer-events: none;
+        }
 
-    .hero-content {
-        flex: 1;
-        max-width: 650px;
-        animation: fadeRight 1s ease-out;
-    }
+        .container {
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 5%;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 80px;
+            align-items: center;
+        }
 
-    h1 {
-        font-weight: 600;
-        font-size: 3.8rem;
-        line-height: 1.1;
-        margin-bottom: 20px;
-        background: linear-gradient(135deg, #ffffff 40%, var(--accent-glow) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: -1.5px;
-    }
+        /* --- Secțiunea Hero --- */
+        .hero-content {
+            animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-    p {
-        color: var(--text-secondary);
-        font-size: 1.2rem;
-        font-weight: 300;
-        margin-bottom: 40px;
-        line-height: 1.6;
-    }
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .btn-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 600px;
+            margin-bottom: 48px;
+            font-weight: 300;
+        }
 
-    button {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        color: var(--text-primary);
-        padding: 16px 24px;
-        border-radius: 8px;
-        font-size: 1.05rem;
-        font-weight: 400;
-        font-family: inherit;
-        cursor: pointer;
-        text-align: left;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
+        /* --- Butoane --- */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
 
-    button::after {
-        content: '→';
-        font-size: 1.2rem;
-        color: var(--accent-glow);
-        opacity: 0;
-        transform: translateX(-10px);
-        transition: all 0.3s ease;
-    }
-    button:hover::after { opacity: 1; transform: translateX(0); }
-    button:hover {
-        background: rgba(0, 255, 163, 0.05);
-        border-color: rgba(0, 255, 163, 0.4);
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 0 15px rgba(0,255,163,0.1);
-    }
-    button#openPopup {
-        background: rgba(0, 255, 163, 0.1);
-        border-color: var(--accent-glow);
-        color: #fff;
-    }
+        .action-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--text-main);
+            padding: 20px 24px;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .hero-visual {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        animation: fadeLeft 1s ease-out;
-    }
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
 
-    .status-card {
-        background: rgba(2, 6, 4, 0.6);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        padding: 30px;
-        width: 100%;
-        max-width: 380px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        animation: floating 6s ease-in-out infinite;
-        position: relative;
-        overflow: hidden;
-    }
-    .status-card::before {
-        content: '';
-        position: absolute;
-        top: -50%; left: -50%;
-        width: 200%; height: 200%;
-        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.03), transparent);
-        transform: rotate(45deg);
-        pointer-events: none;
-    }
-    .status-header {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 25px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--accent-glow);
-    }
-    .pulse-dot {
-        width: 15px; height: 15px;
-        background-color: var(--accent-glow);
-        border-radius: 50%;
-        box-shadow: 0 0 10px var(--accent-glow);
-        animation: pulse 2s infinite;
-    }
-    .status-body { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        padding-bottom: 8px;
-    }
-    .info-row span:last-child { color: #fff; font-weight: 600; }
-    .status-footer {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .status-footer::before { content: '✓'; color: var(--accent-glow); }
+        .action-btn:hover::before {
+            transform: translateX(100%);
+        }
 
-    .logos-bar {
-        position: fixed;
-        bottom: 0; left: 0;
-        width: 100%;
-        background: rgba(2, 6, 4, 0.7);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border-top: 1px solid var(--glass-border);
-        padding: 20px 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 50px;
-        z-index: 20;
-    }
-    .logos-bar img {
-        height: 38px;
-        object-fit: contain;
-        opacity: 0.3;
-        filter: grayscale(100%);
-        transition: all 0.4s ease;
-    }
-    .logos-bar img:hover { transform: translateY(-3px); opacity: 0.9; filter: grayscale(0%); }
+        .action-btn:hover {
+            background: var(--glass-hover);
+            border-color: rgba(0, 230, 168, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 230, 168, 0.1);
+        }
 
-    /* ── NOTIFICATION (original) ── */
-    .notification {
-        position: fixed;
-        top: 30px; right: 30px;
-        background: rgba(0, 255, 163, 0.1);
-        backdrop-filter: blur(10px);
-        border-left: 4px solid var(--accent-glow);
-        color: var(--text-primary);
-        padding: 16px 24px;
-        border-radius: 4px;
-        font-weight: 400;
-        opacity: 0;
-        transform: translateX(50px);
-        transition: all 0.4s ease;
-        z-index: 2000;
-        pointer-events: none;
-    }
-    .notification.show { opacity: 1; transform: translateX(0); }
+        .action-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.3s ease;
+        }
 
-    /* ════════════════════════════════════════
-       MODAL NOU
-    ════════════════════════════════════════ */
-    .overlay {
-        display: none;
-        position: fixed; inset: 0; z-index: 1000;
-        background: rgba(2,6,4,0.85);
-        backdrop-filter: blur(1px);
-        -webkit-backdrop-filter: blur(1px);
-        align-items: center;
-        justify-content: center;
-    }
-    .overlay.open { display: flex; }
+        .action-btn:hover svg {
+            transform: translateX(4px);
+        }
 
-    .modal-new {
-        width: 720px;
-        max-width: 95vw;
-        background: #0d1210;
-        border: 1px solid rgba(0,255,163,0.2);
-        border-radius: 12px;
-        overflow: hidden;
-        animation: modalIn .28s cubic-bezier(.22,1,.36,1);
-    }
+        .btn-primary {
+            background: rgba(0, 230, 168, 0.1);
+            border-color: rgba(0, 230, 168, 0.4);
+        }
+        .btn-primary:hover {
+            background: rgba(0, 230, 168, 0.15);
+        }
 
-    @keyframes modalIn {
-        from { opacity: 0; transform: translateY(16px) scale(.98); }
-        to   { opacity: 1; transform: none; }
-    }
+        /* --- Card Statistici --- */
+        .hero-visual {
+            position: relative;
+            animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        }
 
-    .modal-top {
-        padding: 28px 28px 22px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .modal-eyebrow {
-        font-family: 'Syne', sans-serif;
-        font-size: .6rem;
-        letter-spacing: .2em;
-        text-transform: uppercase;
-        color: var(--accent-glow);
-        margin-bottom: 10px;
-        opacity: .7;
-    }
-    .modal-top h2 {
-        font-family: 'Syne', serif;
-        font-size: 1.5rem;
-        font-weight: 400;
-        color: #fff;
-        -webkit-text-fill-color: #fff;
-        background: none;
-        letter-spacing: 0;
-        margin-bottom: 0;
-    }
+        .status-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .modal-opts {
-        padding: 12px 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
 
-    .opt {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 14px 14px;
-        border-radius: 7px;
-        cursor: pointer;
-        transition: background .15s;
-        border: 1px solid transparent;
-    }
-    .opt:hover { background: rgba(255,255,255,0.04); }
-    .opt.active {
-        background: rgba(0,255,163,0.06);
-        border-color: rgba(0,255,163,0.2);
-    }
+        .status-indicator {
+            position: relative;
+            width: 12px; height: 12px;
+        }
 
-    .opt-circle {
-        width: 18px; height: 18px;
-        border: 1px solid rgba(255,255,255,0.18);
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-        transition: border-color .15s;
-    }
-    .opt.active .opt-circle { border-color: var(--accent-glow); }
-    .opt-circle::after {
-        content: '';
-        width: 8px; height: 8px;
-        background: var(--accent-glow);
-        border-radius: 50%;
-        opacity: 0;
-        transition: opacity .15s;
-    }
-    .opt.active .opt-circle::after { opacity: 1; }
+        .dot {
+            position: absolute;
+            inset: 0;
+            background: var(--accent-primary);
+            border-radius: 50%;
+        }
 
-    .opt-info { flex: 1; }
-    .opt-name {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: #fff;
-        margin-bottom: 2.5px;
-        font-family: 'Outfit', sans-serif;
-    }
-    .opt-desc {
-        font-size: .8rem;
-        color: var(--text-secondary);
-        font-weight: 300;
-        font-family: 'Outfit', sans-serif;
-    }
+        .ping {
+            position: absolute;
+            inset: -4px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
 
-    .modal-bottom {
-        padding: 16px 28px;
-        border-top: 1px solid rgba(255,255,255,0.06);
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-    }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
 
-    .m-btn {
-        font-family: 'Outfit', sans-serif;
-        font-size: .78rem;
-        font-weight: 500;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        padding: 11px 24px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all .2s;
-        border: 1px solid;
-    }
-    .m-cancel {
-        background: transparent;
-        border-color: rgba(255,255,255,0.1);
-        color: var(--text-secondary);
-    }
-    .m-cancel:hover {
-        border-color: rgba(255,255,255,0.25);
-        color: #fff;
-        transform: none;
-    }
-    .m-cancel::after { display: none; }
-    .m-go {
-        background: var(--accent-glow);
-        border-color: var(--accent-glow);
-        color: #020604;
-        box-shadow: 0 4px 15px rgba(0,255,163,0.15);
-    }
-    .m-go:hover {
-        background: #00e693;
-        border-color: #00e693;
-        box-shadow: 0 8px 25px rgba(0,255,163,0.3);
-        transform: none;
-    }
-    .m-go:disabled {
-        background: rgba(0,255,163,0.15);
-        border-color: transparent;
-        color: rgba(2,6,4,0.4);
-        cursor: not-allowed;
-        box-shadow: none;
-    }
-    .m-go::after, .m-cancel::after { display: none; }
+        .stat-row:last-of-type { border-bottom: none; }
 
-    /* Animations */
-    @keyframes fadeRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes fadeLeft  { from { opacity: 0; transform: translateX(30px);  } to { opacity: 1; transform: translateX(0); } }
-    @keyframes floating  { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
-    @keyframes pulse     { 0% { box-shadow: 0 0 0 0 rgba(0,255,163,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,163,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,163,0); } }
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
 
-    @media (max-width: 992px) {
-        .container { flex-direction: column; text-align: center; justify-content: center; gap: 40px; }
-        .hero-content { margin-top: 40px; }
-        h1 { font-size: 3rem; }
-        .btn-grid { grid-template-columns: 1fr; }
-        button { justify-content: center; }
-        button::after { display: none; }
-    }
-    @media (max-width: 600px) {
-        .container { padding: 0 25px; padding-bottom: 80px; }
-        h1 { font-size: 2.2rem; }
-        .logos-bar { gap: 20px; flex-wrap: wrap; padding: 15px; }
-        .logos-bar img { height: 28px; }
-    }
-</style>
+        .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .text-green { color: var(--accent-primary); }
+
+        /* --- Footer Logos --- */
+        .logos-bar {
+            background: linear-gradient(to top, rgba(5,5,7,1) 0%, transparent 100%);
+            padding: 40px 0 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 3rem;
+            z-index: 10;
+        }
+
+        .logos-bar img {
+            height: 40px;
+            object-fit: contain;
+            opacity: 0.4;
+            filter: grayscale(100%);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+        }
+
+        .logos-bar img:hover {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        /* --- Notificare --- */
+        .notification {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: #111827;
+            border: 1px solid rgba(0, 230, 168, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            color: var(--text-main);
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition-smooth);
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .notif-icon { color: var(--accent-primary); }
+
+        /* --- Modal Nou --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 7, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #0f141e;
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            transform: translateY(20px) scale(0.95);
+            transition: var(--transition-smooth);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            margin-bottom: 30px;
+        }
+
+        .modal-subtitle {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .modal-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            color: var(--text-main);
+        }
+
+        .dept-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .dept-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .dept-card:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .dept-card.active {
+            background: rgba(0, 230, 168, 0.08);
+            border-color: var(--accent-primary);
+        }
+
+        .radio-circle {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--text-muted);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        .dept-card.active .radio-circle {
+            border-color: var(--accent-primary);
+        }
+
+        .radio-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dept-card.active .radio-dot {
+            transform: scale(1);
+        }
+
+        .dept-info h4 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .dept-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+
+        .btn-text {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 12px 24px;
+            border-radius: 12px;
+            transition: var(--transition-smooth);
+        }
+        .btn-text:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
+
+        .btn-solid {
+            background: var(--text-main);
+            color: var(--bg-base);
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .btn-solid:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,255,255,0.2);
+        }
+        .btn-solid:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--text-muted);
+        }
+
+        /* --- Animații --- */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes ping {
+            75%, 100% { transform: scale(2.5); opacity: 0; }
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 50px;
+                padding-top: 60px;
+            }
+            .hero-desc { margin: 0 auto 40px; }
+            .status-card { max-width: 500px; margin: 0 auto; text-align: left; }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            .btn-grid { grid-template-columns: 1fr; }
+            .logos-bar { gap: 20px; padding: 20px; }
+            .logos-bar img { height: 30px; }
+            .modal-box { padding: 30px 20px; border-radius: 20px; }
+        }
+    </style>
 </head>
 <body>
 
-<div id="notification" class="notification">Notificare Trimisă!</div>
+    <div class="ambient-light"></div>
+    <div class="ambient-light-2"></div>
 
-<main class="container">
-    <div class="hero-content">
-        <h1>Programări PCLS</h1>
-        <p>Portalul oficial pentru programări, depunere cereri și informații destinate siguranței și protecției în mediul de afaceri.</p>
-        
-        <div class="btn-grid"> 
-            <button onclick="window.location.href='pcls_page.html'">Depune o Cerere</button>
-            <button onclick="window.location.href='ghid_pcls.html'">Informații PCLS</button>
-            <button onclick="window.location.href='inregistrare_page.html'">Înscrieți Afacerea</button>
-            <button id="openPopup">Cerere la Medici</button>
+    <main class="container">
+        <div class="hero-content">
+            <h1>Programări PCLS</h1>
+            <p class="hero-desc">Portalul oficial pentru programări, depunere cereri și informații destinate siguranței și protecției în mediul de afaceri din Los Santos.</p>
+            
+            <div class="btn-grid">
+                <button class="action-btn" onclick="window.location.href='pcls_page.html'">
+                    Depune o Cerere
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+                <button class="action-btn" onclick="window.location.href='ghid_pcls.html'">
+                    Informații PCLS
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+                <button class="action-btn" onclick="window.location.href='inregistrare_page.html'">
+                    Înscrieți Afacerea
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+                <button class="action-btn btn-primary" id="openModalBtn">
+                    Cerere la Medici
+                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-indicator">
+                        <div class="ping"></div>
+                        <div class="dot"></div>
+                    </div>
+                    Sistem PCLS Online
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-label">Stare Servere</span>
+                    <span class="stat-value text-green">Operațional</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Cereri Procesate Azi</span>
+                    <span class="stat-value">2</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Timp Mediu Răspuns</span>
+                    <span class="stat-value">&lt; 5 Ore</span>
+                </div>
+                <div class="stat-row" style="margin-top: 10px;">
+                    <span class="stat-label" style="font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Conexiune securizată end-to-end
+                    </span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav class="logos-bar">
+        <img src="Logo Protecția Consumatorilor Los Santos.png" alt="PCLS" title="Protecția Consumatorilor">
+        <img src="image.png" alt="Medici" title="Departamentul Medical">
+        <img src="pool.png" alt="Politia" title="Poliția Los Santos">
+        <img src="ISULS.png" alt="ISU" title="I.S.U.L.S">
+        <img src="DSLS.png" alt="DSP" title="D.S.L.S">
+        <img src="mmls.png" alt="MM" title="Medicina Muncii">
+        <img src="logossmls.png" alt="SSMLS" title="S.S.M.L.S">
+    </nav>
+
+    <div id="toast" class="notification">
+        <svg class="notif-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span id="toastMsg">Acțiune realizată!</span>
+    </div>
+
+    <div class="modal-overlay" id="deptModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-subtitle">Departament Medical</div>
+                <h2 class="modal-title">Alege destinația cererii</h2>
+            </div>
+
+            <div class="dept-grid">
+                <div class="dept-card" data-link="isuls_page.html">
+                    <div class="radio-circle"><div class="radio-dot"></div></div>
+                    <div class="dept-info">
+                        <h4>I.S.U.L.S.</h4>
+                        <p>Inspectoratul pentru Situații de Urgență Los Santos</p>
+                    </div>
+                </div>
+                <div class="dept-card" data-link="dsls_page.html">
+                    <div class="radio-circle"><div class="radio-dot"></div></div>
+                    <div class="dept-info">
+                        <h4>D.S.L.S.</h4>
+                        <p>Direcția de Sănătate Publică Los Santos</p>
+                    </div>
+                </div>
+                <div class="dept-card" data-link="mm_page.html">
+                    <div class="radio-circle"><div class="radio-dot"></div></div>
+                    <div class="dept-info">
+                        <h4>M.M.L.S.</h4>
+                        <p>Avize medicale și evaluări ocupaționale</p>
+                    </div>
+                </div>
+                <div class="dept-card" data-link="ssmls_page.html">
+                    <div class="radio-circle"><div class="radio-dot"></div></div>
+                    <div class="dept-info">
+                        <h4>S.S.M.L.S.</h4>
+                        <p>Securitatea și sănătatea la locul de muncă</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-text" id="closeModalBtn">Anulează</button>
+                <button class="btn-solid" id="continueBtn" disabled>Continuă</button>
+            </div>
         </div>
     </div>
 
-    <div class="hero-visual">
-        <div class="status-card">
-            <div class="status-header">
-                <div class="pulse-dot"></div>
-                Sistem PCLS Online
-            </div>
-            <div class="status-body">
-                <div class="info-row">
-                    <span>Stare Servere</span>
-                    <span style="color: var(--accent-glow);">Online</span>
-                </div>
-                <div class="info-row">
-                    <span>Cereri Procesate Azi</span>
-                    <span>2</span>
-                </div>
-                <div class="info-row">
-                    <span>Timp Mediu Răspuns</span>
-                    <span>&lt; 5 Ore</span>
-                </div>
-            </div>
-            <div class="status-footer">
-                Conexiune securizată end-to-end
-            </div>
-        </div>
-    </div>
-</main>
-
-<nav class="logos-bar">
-    <img src="Logo Protecția Consumatorilor Los Santos.png" alt="PCLS">
-    <img src="image.png" alt="Medici">
-    <img src="pool.png" alt="Politia">
-    <img src="ISULS.png" alt="ISU">
-    <img src="DSLS.png" alt="DSP">
-    <img src="mmls.png" alt="MM">
-    <img src="logossmls.png" alt="SSMLS">
-</nav>
-
-<!-- MODAL NOU -->
-<div class="overlay" id="overlay">
-    <div class="modal-new">
-        <div class="modal-top">
-            <div class="modal-eyebrow">Cerere Medicală</div>
-            <h2>Alege departamentul</h2>
-        </div>
-
-        <div class="modal-opts">
-            <div class="opt" data-val="ISULS">
-                <div class="opt-circle"></div>
-                <div class="opt-info">
-                    <div class="opt-name">I.S.U.L.S.</div>
-                    <div class="opt-desc">Inspectoratul pentru Situații de Urgență los santos</div>
-                </div>
-            </div>
-            <div class="opt" data-val="DSLS">
-                <div class="opt-circle"></div>
-                <div class="opt-info">
-                    <div class="opt-name">D.S.L.S.</div>
-                    <div class="opt-desc">Direcția de Sănătate Publică los santos</div>
-                </div>
-            </div>
-            <div class="opt" data-val="Medicina Muncii">
-                <div class="opt-circle"></div>
-                <div class="opt-info">
-                    <div class="opt-name">M.M.L.S.</div>
-                    <div class="opt-desc">Avize medicale și evaluări ocupaționale</div>
-                </div>
-            </div>
-            <div class="opt" data-val="Securitatea">
-                <div class="opt-circle"></div>
-                <div class="opt-info">
-                    <div class="opt-name">S.S.M.L.S.</div>
-                    <div class="opt-desc">Securitatea la locul de munca</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-bottom">
-            <button class="m-btn m-cancel" id="closePopup">Anulează</button>
-            <button class="m-btn m-go" id="nextPage" disabled>Continuă</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    function showNotification(message) {
-        const notif = document.getElementById('notification');
-        notif.innerText = message || "Acțiune completată!";
-        notif.classList.add('show');
-        setTimeout(() => notif.classList.remove('show'), 3500);
-    }
-
-    const overlay    = document.getElementById('overlay');
-    const openBtn    = document.getElementById('openPopup');
-    const closeBtn   = document.getElementById('closePopup');
-    const nextBtn    = document.getElementById('nextPage');
-    let selected     = null;
-
-    // Deschide modalul
-    document.querySelector('button#openPopup') && 
-    document.querySelectorAll('.btn-grid button').forEach(btn => {
-        if (btn.id === 'openPopup') {
-            btn.addEventListener('click', () => overlay.classList.add('open'));
+    <script>
+        // Sistem Notificări
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
         }
-    });
 
-    // fallback direct
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('openPopup').addEventListener('click', () => {
-            overlay.classList.add('open');
+        // Logică Modal
+        const modal = document.getElementById('deptModal');
+        const openBtn = document.getElementById('openModalBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const continueBtn = document.getElementById('continueBtn');
+        const cards = document.querySelectorAll('.dept-card');
+        
+        let selectedLink = null;
+
+        const openModal = () => modal.classList.add('active');
+        const closeModal = () => {
+            modal.classList.remove('active');
+            // Resetare selecție la închidere
+            setTimeout(() => {
+                cards.forEach(c => c.classList.remove('active'));
+                continueBtn.disabled = true;
+                selectedLink = null;
+            }, 300);
+        };
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
         });
-    });
 
-    closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
-
-    overlay.addEventListener('click', e => {
-        if (e.target === overlay) overlay.classList.remove('open');
-    });
-
-    document.querySelectorAll('.opt').forEach(opt => {
-        opt.addEventListener('click', () => {
-            document.querySelectorAll('.opt').forEach(o => o.classList.remove('active'));
-            opt.classList.add('active');
-            selected = opt.dataset.val;
-            nextBtn.disabled = false;
+        // Selecție Card
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                cards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedLink = card.dataset.link;
+                continueBtn.disabled = false;
+            });
         });
-    });
 
-    const links = {
-    "ISULS":           "isuls_page.html",
-    "DSLS":            "dsls_page.html",
-    "Medicina Muncii": "mm_page.html",
-    "Securitatea":     "ssmls_page.html"
-};
+        // Acțiune Continuare
+        continueBtn.addEventListener('click', () => {
+            if (selectedLink) {
+                window.location.href = selectedLink;
+            } else {
+                showToast("Te rugăm să selectezi un departament.");
+            }
+        });
 
-nextBtn.addEventListener('click', () => {
-    if (!selected) {
-        showNotification("Te rog selectează departamentul dorit.");
-        return;
-    }
-
-    // Deschide în aceeași filă
-    window.location.href = links[selected];
-
-    overlay.classList.remove('open');
-});
-
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        overlay.classList.remove('open');
-    }
-});
-</script>
+        // Esc pentru a închide
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    </script>
 </body>
 </html>
