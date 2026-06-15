@@ -3,672 +3,1272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programări PCLS | Portal Oficial</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    
+    <title>Programări PCLS | Portal Los Santos</title>
     <style>
         :root {
-            --bg-base: #050507;
-            --bg-glow: #0a1929;
-            --accent-primary: #00e6a8;
-            --accent-secondary: #0088ff;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-hover: rgba(255, 255, 255, 0.06);
-            --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            --bg: #080a0d;
+            --bg-raised: #10141a;
+            --bg-soft: #161b22;
+            --line: #2b3440;
+            --line-strong: #425062;
+            --text: #f8f3ea;
+            --muted: #b3bac6;
+            --quiet: #7c8797;
+            --mint: #35f2ad;
+            --blue: #58b7ff;
+            --gold: #ffd166;
+            --coral: #ff6b6b;
+            --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+            --radius: 8px;
         }
 
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            letter-spacing: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
             min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background:
+                linear-gradient(115deg, rgba(255, 209, 102, 0.08), transparent 32%),
+                linear-gradient(245deg, rgba(88, 183, 255, 0.10), transparent 38%),
+                linear-gradient(180deg, #0d1016 0%, #0a0c10 46%, #060708 100%);
             overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            position: relative;
         }
 
-        /* Fundal cu gradient ambiental */
-        .ambient-light {
+        body::before {
+            content: "";
             position: fixed;
-            top: -20vh;
-            right: -10vw;
-            width: 80vw;
-            height: 80vh;
-            background: radial-gradient(circle, rgba(0, 230, 168, 0.15) 0%, transparent 60%);
-            filter: blur(80px);
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            background-size: 54px 54px;
+            mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.88), transparent 82%);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
             z-index: -1;
             pointer-events: none;
+            background: linear-gradient(180deg, rgba(8, 10, 13, 0.08), rgba(8, 10, 13, 0.96));
         }
 
-        .ambient-light-2 {
-            position: fixed;
-            bottom: -20vh;
-            left: -10vw;
-            width: 60vw;
-            height: 60vh;
-            background: radial-gradient(circle, rgba(0, 136, 255, 0.1) 0%, transparent 60%);
-            filter: blur(80px);
-            z-index: -1;
-            pointer-events: none;
+        a {
+            color: inherit;
+            text-decoration: none;
         }
 
-        .container {
-            flex: 1;
-            width: 100%;
-            max-width: 1400px;
+        button {
+            font: inherit;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        section[id] {
+            scroll-margin-top: 110px;
+        }
+
+        .page-shell {
+            width: min(1180px, calc(100% - 40px));
             margin: 0 auto;
-            padding: 80px 5%;
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 80px;
-            align-items: center;
         }
 
-        /* --- Secțiunea Hero --- */
-        .hero-content {
-            animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(3rem, 5vw, 4.5rem);
-            font-weight: 700;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #ffffff 30%, var(--accent-primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero-desc {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-            max-width: 600px;
-            margin-bottom: 48px;
-            font-weight: 300;
-        }
-
-        /* --- Butoane --- */
-        .btn-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-        }
-
-        .action-btn {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: var(--text-main);
-            padding: 20px 24px;
-            border-radius: 16px;
-            font-family: inherit;
-            font-size: 1.05rem;
-            font-weight: 500;
-            cursor: pointer;
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: var(--transition-smooth);
-            position: relative;
-            overflow: hidden;
+            gap: 20px;
+            padding: 18px 0;
+            backdrop-filter: blur(18px);
         }
 
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
-            transform: translateX(-100%);
-            transition: 0.6s;
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
         }
 
-        .action-btn:hover::before {
-            transform: translateX(100%);
+        .brand img {
+            width: 46px;
+            height: 46px;
+            border-radius: var(--radius);
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.16);
         }
 
-        .action-btn:hover {
-            background: var(--glass-hover);
-            border-color: rgba(0, 230, 168, 0.3);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 230, 168, 0.1);
+        .brand strong,
+        .brand span {
+            display: block;
+            white-space: nowrap;
         }
 
-        .action-btn svg {
+        .brand strong {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .brand span {
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-top: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px;
+            background: rgba(16, 20, 26, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius);
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            font-size: 0.92rem;
+            font-weight: 700;
+            padding: 10px 14px;
+            border-radius: 6px;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a:focus-visible {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .top-action,
+        .button-link,
+        .ghost-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 46px;
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+
+        .top-action,
+        .button-link {
+            color: #03100b;
+            background: var(--mint);
+            font-weight: 800;
+            padding: 0 18px;
+            box-shadow: 0 16px 36px rgba(53, 242, 173, 0.16);
+        }
+
+        .top-action:hover,
+        .button-link:hover,
+        .top-action:focus-visible,
+        .button-link:focus-visible {
+            transform: translateY(-2px);
+            background: #7cffcf;
+        }
+
+        .ghost-link {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+            font-weight: 800;
+            padding: 0 18px;
+        }
+
+        .ghost-link:hover,
+        .ghost-link:focus-visible {
+            transform: translateY(-2px);
+            border-color: var(--line-strong);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon {
             width: 20px;
             height: 20px;
+            flex: 0 0 20px;
             fill: none;
-            stroke: var(--accent-primary);
+            stroke: currentColor;
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
-            transition: transform 0.3s ease;
         }
 
-        .action-btn:hover svg {
-            transform: translateX(4px);
+        .portal-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 440px;
+            gap: 42px;
+            align-items: stretch;
+            min-height: calc(100vh - 94px);
+            padding: 46px 0 28px;
         }
 
-        .btn-primary {
-            background: rgba(0, 230, 168, 0.1);
-            border-color: rgba(0, 230, 168, 0.4);
-        }
-        .btn-primary:hover {
-            background: rgba(0, 230, 168, 0.15);
-        }
-
-        /* --- Card Statistici --- */
-        .hero-visual {
-            position: relative;
-            animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+        .hero-copy {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
         }
 
-        .status-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 40px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-            position: relative;
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            color: var(--gold);
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 28px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 999px;
+        }
+
+        h1 {
+            max-width: 760px;
+            font-size: 4.6rem;
+            line-height: 1.02;
+            font-weight: 800;
+        }
+
+        .hero-copy > p:not(.eyebrow) {
+            max-width: 660px;
+            color: var(--muted);
+            font-size: 1.18rem;
+            line-height: 1.75;
+            margin-top: 26px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 34px;
+        }
+
+        .hero-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 38px;
+            max-width: 680px;
+        }
+
+        .hero-meta div {
+            min-height: 92px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.045);
+        }
+
+        .hero-meta strong {
+            display: block;
+            font-size: 1.45rem;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .hero-meta span {
+            display: block;
+            color: var(--quiet);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .emblem-stage {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 640px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+                rgba(10, 13, 18, 0.82);
+            box-shadow: var(--shadow);
             overflow: hidden;
         }
 
-        .status-header {
+        .system-line {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 32px;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.2rem;
-            color: var(--text-main);
-        }
-
-        .status-indicator {
-            position: relative;
-            width: 12px; height: 12px;
-        }
-
-        .dot {
-            position: absolute;
-            inset: 0;
-            background: var(--accent-primary);
-            border-radius: 50%;
-        }
-
-        .ping {
-            position: absolute;
-            inset: -4px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-
-        .stat-row {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .stat-row:last-of-type { border-bottom: none; }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .stat-value {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.1rem;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 0.88rem;
             font-weight: 700;
         }
 
-        .text-green { color: var(--accent-primary); }
-
-        /* --- Footer Logos --- */
-        .logos-bar {
-            background: linear-gradient(to top, rgba(5,5,7,1) 0%, transparent 100%);
-            padding: 40px 0 30px;
-            display: flex;
-            justify-content: center;
+        .status-pill {
+            display: inline-flex;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 3rem;
-            z-index: 10;
+            gap: 8px;
+            color: #06120d;
+            background: var(--mint);
+            border-radius: 999px;
+            padding: 7px 11px;
+            white-space: nowrap;
         }
 
-        .logos-bar img {
-            height: 40px;
-            object-fit: contain;
-            opacity: 0.4;
-            filter: grayscale(100%);
-            transition: var(--transition-smooth);
-            cursor: pointer;
+        .status-pill::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #06120d;
         }
 
-        .logos-bar img:hover {
-            opacity: 1;
-            filter: grayscale(0%);
-            transform: scale(1.05);
+        .emblem-wrap {
+            display: grid;
+            place-items: center;
+            padding: 28px 16px;
         }
 
-        /* --- Notificare --- */
-        .notification {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            background: #111827;
-            border: 1px solid rgba(0, 230, 168, 0.3);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            color: var(--text-main);
-            padding: 16px 24px;
-            border-radius: 12px;
-            display: flex;
+        .emblem-wrap img {
+            width: min(100%, 330px);
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: var(--radius);
+            filter: drop-shadow(0 24px 34px rgba(88, 183, 255, 0.18));
+        }
+
+        .hero-board {
+            display: grid;
+            gap: 8px;
+        }
+
+        .board-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
             align-items: center;
+            min-height: 58px;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius);
+            background: rgba(0, 0, 0, 0.18);
+        }
+
+        .board-row span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .board-row strong {
+            font-size: 0.94rem;
+            color: var(--text);
+            text-align: right;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: var(--transition-smooth);
-            z-index: 9999;
-            pointer-events: none;
+            margin: 18px auto 86px;
         }
-        .notification.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .notif-icon { color: var(--accent-primary); }
 
-        /* --- Modal Nou --- */
+        .action-tile {
+            min-height: 156px;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 14px;
+            align-content: start;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            background: rgba(16, 20, 26, 0.72);
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .action-tile:hover,
+        .action-tile:focus-visible {
+            transform: translateY(-4px);
+            border-color: rgba(53, 242, 173, 0.42);
+            background: rgba(22, 27, 34, 0.95);
+        }
+
+        .tile-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: var(--radius);
+            color: #07100d;
+            background: var(--mint);
+        }
+
+        .action-tile:nth-child(2) .tile-icon {
+            background: var(--gold);
+        }
+
+        .action-tile:nth-child(3) .tile-icon {
+            background: var(--blue);
+        }
+
+        .action-tile:nth-child(4) .tile-icon {
+            background: var(--coral);
+        }
+
+        .tile-copy {
+            min-width: 0;
+        }
+
+        .tile-copy strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .tile-copy span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 22px;
+        }
+
+        .section-heading h2 {
+            font-size: 2.2rem;
+            line-height: 1.12;
+            font-weight: 800;
+        }
+
+        .section-heading p {
+            max-width: 520px;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 86px;
+        }
+
+        .service-card {
+            min-height: 276px;
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: 96px minmax(0, 1fr);
+            grid-template-rows: 1fr auto;
+            align-items: center;
+            gap: 18px;
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            background: var(--bg-raised);
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .service-card:hover,
+        .service-card:focus-visible {
+            transform: translateY(-4px);
+            border-color: var(--line-strong);
+            background: #141a22;
+        }
+
+        .service-card.featured {
+            grid-column: span 3;
+            background:
+                linear-gradient(135deg, rgba(53, 242, 173, 0.14), transparent 46%),
+                var(--bg-raised);
+        }
+
+        .service-card.wide {
+            grid-column: span 3;
+        }
+
+        .service-icon {
+            width: 88px;
+            height: 88px;
+            grid-column: 1;
+            grid-row: 1;
+            display: grid;
+            place-items: center;
+            justify-self: center;
+            border-radius: var(--radius);
+            color: #07100d;
+            background: var(--mint);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .service-card:nth-child(2) .service-icon {
+            background: var(--blue);
+        }
+
+        .service-card:nth-child(3) .service-icon {
+            background: var(--coral);
+        }
+
+        .service-card:nth-child(4) .service-icon {
+            background: var(--gold);
+        }
+
+        .service-card:nth-child(5) .service-icon {
+            color: var(--text);
+            background: rgba(88, 183, 255, 0.16);
+        }
+
+        .service-icon svg {
+            width: 38px;
+            height: 38px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .service-card > span:not(.service-icon):not(.service-footer) {
+            grid-column: 2;
+            grid-row: 1;
+            min-width: 0;
+        }
+
+        .service-card h3 {
+            font-size: 1.24rem;
+            margin-bottom: 8px;
+        }
+
+        .service-card p {
+            color: var(--muted);
+            font-size: 0.94rem;
+            line-height: 1.55;
+        }
+
+        .service-footer {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            color: var(--mint);
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+
+        .process-band {
+            display: grid;
+            grid-template-columns: 0.85fr 1.15fr;
+            gap: 30px;
+            align-items: start;
+            padding: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            background:
+                linear-gradient(90deg, rgba(255, 209, 102, 0.08), transparent 54%),
+                rgba(16, 20, 26, 0.78);
+            margin-bottom: 86px;
+        }
+
+        .process-band h2 {
+            font-size: 2rem;
+            line-height: 1.14;
+            margin-bottom: 14px;
+        }
+
+        .process-band p {
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .step-list {
+            display: grid;
+            gap: 10px;
+            counter-reset: steps;
+        }
+
+        .step {
+            counter-increment: steps;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 14px;
+            align-items: start;
+            min-height: 74px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius);
+            background: rgba(0, 0, 0, 0.16);
+        }
+
+        .step::before {
+            content: counter(steps, decimal-leading-zero);
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius);
+            color: #09100d;
+            background: var(--gold);
+            font-weight: 800;
+        }
+
+        .step strong {
+            display: block;
+            grid-column: 2;
+            margin-bottom: 4px;
+        }
+
+        .step span {
+            grid-column: 2;
+            color: var(--muted);
+            font-size: 0.94rem;
+            line-height: 1.5;
+        }
+
+        .site-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 28px 0 36px;
+            color: var(--quiet);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-links a,
+        .footer-links button {
+            color: var(--muted);
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .footer-links a:hover,
+        .footer-links button:hover,
+        .footer-links a:focus-visible,
+        .footer-links button:focus-visible {
+            color: var(--text);
+        }
+
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(5, 5, 7, 0.8);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            z-index: 1000;
+            display: none;
+            place-items: center;
+            padding: 24px;
+            background: rgba(4, 6, 9, 0.76);
+            backdrop-filter: blur(12px);
         }
 
         .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
+            display: grid;
         }
 
-        .modal-box {
-            background: #0f141e;
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 600px;
-            padding: 40px;
-            transform: translateY(20px) scale(0.95);
-            transition: var(--transition-smooth);
-            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
-        }
-
-        .modal-overlay.active .modal-box {
-            transform: translateY(0) scale(1);
+        .medical-modal {
+            width: min(720px, 100%);
+            max-height: min(760px, calc(100vh - 48px));
+            overflow: auto;
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius);
+            background: #10141a;
+            box-shadow: var(--shadow);
         }
 
         .modal-header {
-            margin-bottom: 30px;
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
-        .modal-subtitle {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--accent-primary);
+        .modal-header p {
+            color: var(--gold);
+            font-weight: 800;
             margin-bottom: 8px;
-            font-weight: 600;
         }
 
-        .modal-title {
-            font-family: 'Space Grotesk', sans-serif;
+        .modal-header h2 {
             font-size: 2rem;
-            color: var(--text-main);
+            line-height: 1.15;
+        }
+
+        .modal-close {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .modal-close:hover,
+        .modal-close:focus-visible {
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .dept-grid {
             display: grid;
-            gap: 12px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
         }
 
-        .dept-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
+        .dept-option {
+            min-height: 128px;
+            display: grid;
+            grid-template-columns: 58px 1fr;
+            gap: 14px;
             align-items: center;
-            gap: 20px;
-            cursor: pointer;
-            transition: var(--transition-smooth);
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.045);
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
         }
 
-        .dept-card:hover {
-            background: rgba(255,255,255,0.04);
-            border-color: rgba(255,255,255,0.15);
-        }
-
-        .dept-card.active {
-            background: rgba(0, 230, 168, 0.08);
-            border-color: var(--accent-primary);
-        }
-
-        .radio-circle {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--text-muted);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition-smooth);
-        }
-
-        .dept-card.active .radio-circle {
-            border-color: var(--accent-primary);
-        }
-
-        .radio-dot {
-            width: 12px;
-            height: 12px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            transform: scale(0);
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .dept-card.active .radio-dot {
-            transform: scale(1);
-        }
-
-        .dept-info h4 {
-            font-size: 1.1rem;
-            color: var(--text-main);
-            margin-bottom: 4px;
-        }
-
-        .dept-info p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 16px;
-        }
-
-        .btn-text {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-family: inherit;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 12px 24px;
-            border-radius: 12px;
-            transition: var(--transition-smooth);
-        }
-        .btn-text:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
-
-        .btn-solid {
-            background: var(--text-main);
-            color: var(--bg-base);
-            border: none;
-            font-family: inherit;
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 12px 32px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: var(--transition-smooth);
-        }
-        .btn-solid:hover:not(:disabled) {
+        .dept-option:hover,
+        .dept-option:focus-visible {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255,255,255,0.2);
-        }
-        .btn-solid:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: var(--text-muted);
+            border-color: rgba(88, 183, 255, 0.45);
+            background: rgba(255, 255, 255, 0.075);
         }
 
-        /* --- Animații --- */
-        @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes ping {
-            75%, 100% { transform: scale(2.5); opacity: 0; }
+        .dept-option img {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+            border-radius: var(--radius);
+            background: rgba(0, 0, 0, 0.18);
         }
 
-        /* --- Responsive --- */
-        @media (max-width: 992px) {
-            .container {
+        .dept-option strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .dept-option span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 1040px) {
+            .portal-hero {
                 grid-template-columns: 1fr;
-                text-align: center;
-                gap: 50px;
-                padding-top: 60px;
+                min-height: auto;
             }
-            .hero-desc { margin: 0 auto 40px; }
-            .status-card { max-width: 500px; margin: 0 auto; text-align: left; }
+
+            .emblem-stage {
+                min-height: 520px;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .service-card,
+            .service-card.featured,
+            .service-card.wide {
+                grid-column: span 3;
+            }
+
+            .process-band {
+                grid-template-columns: 1fr;
+            }
         }
 
-        @media (max-width: 600px) {
-            h1 { font-size: 2.5rem; }
-            .btn-grid { grid-template-columns: 1fr; }
-            .logos-bar { gap: 20px; padding: 20px; }
-            .logos-bar img { height: 30px; }
-            .modal-box { padding: 30px 20px; border-radius: 20px; }
+        @media (max-width: 760px) {
+            .page-shell {
+                width: min(100% - 28px, 1180px);
+            }
+
+            .topbar {
+                align-items: stretch;
+                flex-direction: column;
+                padding: 14px 0;
+            }
+
+            .nav-links {
+                order: 3;
+                overflow-x: auto;
+                justify-content: flex-start;
+            }
+
+            .top-action {
+                width: 100%;
+            }
+
+            .portal-hero {
+                padding-top: 28px;
+            }
+
+            h1 {
+                font-size: 2.75rem;
+                line-height: 1.06;
+            }
+
+            .hero-copy > p:not(.eyebrow) {
+                font-size: 1rem;
+            }
+
+            .hero-actions,
+            .hero-actions a {
+                width: 100%;
+            }
+
+            .hero-meta,
+            .quick-actions,
+            .dept-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .emblem-stage {
+                min-height: auto;
+            }
+
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .service-card,
+            .service-card.featured,
+            .service-card.wide {
+                grid-column: auto;
+                min-height: 246px;
+            }
+
+            .section-heading {
+                align-items: start;
+                flex-direction: column;
+            }
+
+            .section-heading h2,
+            .process-band h2,
+            .modal-header h2 {
+                font-size: 1.72rem;
+            }
+
+            .process-band {
+                padding: 22px;
+            }
+
+            .site-footer {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 460px) {
+            .brand strong,
+            .brand span {
+                white-space: normal;
+            }
+
+            h1 {
+                font-size: 2.3rem;
+            }
+
+            .button-link,
+            .ghost-link {
+                padding: 0 14px;
+            }
+
+            .service-card {
+                grid-template-columns: 1fr;
+            }
+
+            .service-icon {
+                width: 76px;
+                height: 76px;
+                grid-column: auto;
+                grid-row: auto;
+                justify-self: start;
+            }
+
+            .service-card > span:not(.service-icon):not(.service-footer),
+            .service-footer {
+                grid-column: auto;
+                grid-row: auto;
+            }
+
+            .board-row,
+            .dept-option,
+            .step {
+                grid-template-columns: 1fr;
+            }
+
+            .step strong,
+            .step span {
+                grid-column: auto;
+            }
+
+            .board-row strong {
+                text-align: left;
+            }
         }
     </style>
 </head>
 <body>
+    <header class="topbar page-shell">
+        <a class="brand" href="index.html" aria-label="Programări PCLS">
+            <img src="Logo Protecția Consumatorilor Los Santos.png" alt="Logo PCLS">
+            <span>
+                <strong>Programări PCLS</strong>
+                <span>Protecția Consumatorilor Los Santos</span>
+            </span>
+        </a>
 
-    <div class="ambient-light"></div>
-    <div class="ambient-light-2"></div>
+        <nav class="nav-links" aria-label="Navigare principală">
+            <a href="#servicii">Servicii</a>
+            <a href="#proces">Proces</a>
+            <a href="ghid_pcls.html">Ghid PCLS</a>
+        </nav>
 
-    <main class="container">
-        <div class="hero-content">
-            <h1>Programări PCLS</h1>
-            <p class="hero-desc">Portalul oficial pentru programări, depunere cereri și informații destinate siguranței și protecției în mediul de afaceri din Los Santos.</p>
-            
-            <div class="btn-grid">
-                <button class="action-btn" onclick="window.location.href='pcls_page.html'">
-                    Depune o Cerere
-                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-                <button class="action-btn" onclick="window.location.href='ghid_pcls.html'">
-                    Informații PCLS
-                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-                <button class="action-btn" onclick="window.location.href='inregistrare_page.html'">
-                    Înscrieți Afacerea
-                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-                <button class="action-btn btn-primary" id="openModalBtn">
-                    Cerere la Medici
-                    <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </button>
-            </div>
-        </div>
+        <a class="top-action" href="pcls_page.html">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-5"></path></svg>
+            Programare
+        </a>
+    </header>
 
-        <div class="hero-visual">
-            <div class="status-card">
-                <div class="status-header">
-                    <div class="status-indicator">
-                        <div class="ping"></div>
-                        <div class="dot"></div>
+    <main>
+        <section class="portal-hero page-shell" id="start">
+            <div class="hero-copy">
+                <p class="eyebrow">Portal unificat Los Santos</p>
+                <h1>Cererile PCLS, puse în ordine din primul click.</h1>
+                <p>Un index nou pentru programări, înscrieri și avize medicale, construit ca un tablou de control rapid pentru afaceri și departamente.</p>
+
+                <div class="hero-actions">
+                    <a class="button-link" href="pcls_page.html">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 15h6"></path><path d="M9 11h2"></path></svg>
+                        Depune cerere
+                    </a>
+                    <button class="ghost-link" type="button" data-open-medical>
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"></path><path d="M2 12h20"></path></svg>
+                        Cereri medicale
+                    </button>
+                </div>
+
+                <div class="hero-meta" aria-label="Rezumat portal">
+                    <div>
+                        <strong>4</strong>
+                        <span>direcții medicale conectate</span>
                     </div>
-                    Sistem PCLS Online
-                </div>
-                
-                <div class="stat-row">
-                    <span class="stat-label">Stare Servere</span>
-                    <span class="stat-value text-green">Operațional</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Cereri Procesate Azi</span>
-                    <span class="stat-value">2</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Timp Mediu Răspuns</span>
-                    <span class="stat-value">&lt; 5 Ore</span>
-                </div>
-                <div class="stat-row" style="margin-top: 10px;">
-                    <span class="stat-label" style="font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        Conexiune securizată end-to-end
-                    </span>
+                    <div>
+                        <strong>24/7</strong>
+                        <span>portal disponibil pentru depuneri</span>
+                    </div>
+                    <div>
+                        <strong>&lt; 5h</strong>
+                        <span>timp mediu afișat pentru răspuns</span>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <aside class="emblem-stage" aria-label="Status portal PCLS">
+                <div class="system-line">
+                    <span>Sistem PCLS Online</span>
+                    <span class="status-pill">Operațional</span>
+                </div>
+
+                <div class="emblem-wrap">
+                    <img src="Logo Protecția Consumatorilor Los Santos.png" alt="Emblemă Protecția Consumatorilor Los Santos">
+                </div>
+
+                <div class="hero-board">
+                    <div class="board-row">
+                        <span>Modul programări</span>
+                        <strong>Activ</strong>
+                    </div>
+                    <div class="board-row">
+                        <span>Înregistrare afacere</span>
+                        <strong>Disponibilă</strong>
+                    </div>
+                    <div class="board-row">
+                        <span>Departamente medicale</span>
+                        <strong>4 rute</strong>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <nav class="quick-actions page-shell" aria-label="Acțiuni rapide">
+            <a class="action-tile" href="pcls_page.html">
+                <span class="tile-icon">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                </span>
+                <span class="tile-copy">
+                    <strong>Depune cerere PCLS</strong>
+                    <span>Programare pentru verificări și solicitări comerciale.</span>
+                </span>
+            </a>
+
+            <a class="action-tile" href="ghid_pcls.html">
+                <span class="tile-icon">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path></svg>
+                </span>
+                <span class="tile-copy">
+                    <strong>Consultă ghidul</strong>
+                    <span>Reguli, pași și informații înainte de depunere.</span>
+                </span>
+            </a>
+
+            <a class="action-tile" href="inregistrare_page.html">
+                <span class="tile-icon">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path><path d="M9 9h1"></path><path d="M9 13h1"></path><path d="M9 17h1"></path></svg>
+                </span>
+                <span class="tile-copy">
+                    <strong>Înscrie afacerea</strong>
+                    <span>Trimite datele pentru baza de date PCLS.</span>
+                </span>
+            </a>
+
+            <button class="action-tile" type="button" data-open-medical>
+                <span class="tile-icon">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"></path><path d="M2 12h20"></path><path d="M7 7l10 10"></path><path d="M17 7 7 17"></path></svg>
+                </span>
+                <span class="tile-copy">
+                    <strong>Cerere la medici</strong>
+                    <span>Alege rapid ISULS, DSLS, MMLS sau SSMLS.</span>
+                </span>
+            </button>
+        </nav>
+
+        <section class="page-shell" id="servicii">
+            <div class="section-heading">
+                <h2>Zone de lucru</h2>
+                <p>Fiecare rută din index duce direct la formularul sau pagina potrivită, fără pași intermediari inutili.</p>
+            </div>
+
+            <div class="service-grid">
+                <a class="service-card featured" href="pcls_page.html">
+                    <span class="service-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-5"></path></svg>
+                    </span>
+                    <span>
+                        <h3>Programare PCLS</h3>
+                        <p>Solicitări pentru protecția consumatorilor, verificări și programări oficiale pentru unități economice.</p>
+                    </span>
+                    <span class="service-footer">
+                        Deschide formularul
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </span>
+                </a>
+
+                <a class="service-card wide" href="inregistrare_page.html">
+                    <span class="service-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path><path d="M9 9h1"></path><path d="M9 13h1"></path><path d="M9 17h1"></path></svg>
+                    </span>
+                    <span>
+                        <h3>Înregistrare afacere</h3>
+                        <p>Adaugă o afacere în baza de date și trimite informațiile necesare pentru procesare.</p>
+                    </span>
+                    <span class="service-footer">
+                        Începe înscrierea
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </span>
+                </a>
+
+                <button class="service-card" type="button" data-open-medical>
+                    <span class="service-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+                    </span>
+                    <span>
+                        <h3>Avize medicale</h3>
+                        <p>Intrare unică pentru cereri către ISULS, DSLS, MMLS și SSMLS.</p>
+                    </span>
+                    <span class="service-footer">
+                        Alege departamentul
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </span>
+                </button>
+
+                <a class="service-card" href="ghid_pcls.html">
+                    <span class="service-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path><path d="M8 7h8"></path><path d="M8 11h6"></path></svg>
+                    </span>
+                    <span>
+                        <h3>Informații PCLS</h3>
+                        <p>Pagina de ghid pentru cerințe, pași și clarificări înainte de depunerea cererilor.</p>
+                    </span>
+                    <span class="service-footer">
+                        Citește ghidul
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </span>
+                </a>
+
+                <button class="service-card" type="button" data-open-medical>
+                    <span class="service-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 3 4 7v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V7l-8-4z"></path><path d="M8 11h8"></path><path d="M8 15h8"></path><path d="M12 7v12"></path></svg>
+                    </span>
+                    <span>
+                        <h3>Departamente partenere</h3>
+                        <p>Acces rapid către instituțiile conectate cu fluxul de avize și verificări.</p>
+                    </span>
+                    <span class="service-footer">
+                        Vezi rutele
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </span>
+                </button>
+            </div>
+        </section>
+
+        <section class="process-band page-shell" id="proces">
+            <div>
+                <h2>Flux simplu pentru cereri curate.</h2>
+                <p>Indexul a fost gândit ca punct de pornire: alegi ruta corectă, completezi formularul și trimiți cererea către canalul deja configurat.</p>
+            </div>
+
+            <div class="step-list">
+                <div class="step">
+                    <strong>Alege formularul potrivit</strong>
+                    <span>PCLS, înregistrare afacere sau cerere medicală, în funcție de situație.</span>
+                </div>
+                <div class="step">
+                    <strong>Completează datele cerute</strong>
+                    <span>Formularele existente rămân conectate la fluxurile lor de trimitere.</span>
+                </div>
+                <div class="step">
+                    <strong>Urmărește răspunsul</strong>
+                    <span>Cererea ajunge către echipa responsabilă pentru verificare și procesare.</span>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <nav class="logos-bar">
-        <img src="Logo Protecția Consumatorilor Los Santos.png" alt="PCLS" title="Protecția Consumatorilor">
-        <img src="image.png" alt="Medici" title="Departamentul Medical">
-        <img src="pool.png" alt="Politia" title="Poliția Los Santos">
-        <img src="ISULS.png" alt="ISU" title="I.S.U.L.S">
-        <img src="DSLS.png" alt="DSP" title="D.S.L.S">
-        <img src="mmls.png" alt="MM" title="Medicina Muncii">
-        <img src="logossmls.png" alt="SSMLS" title="S.S.M.L.S">
-    </nav>
+    <footer class="site-footer page-shell">
+        <span>© 2026 PCLS Los Santos. Portal programări.</span>
+        <span class="footer-links">
+            <a href="pcls_page.html">Programare</a>
+            <a href="inregistrare_page.html">Înregistrare</a>
+            <button type="button" data-open-medical>Medici</button>
+        </span>
+    </footer>
 
-    <div id="toast" class="notification">
-        <svg class="notif-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        <span id="toastMsg">Acțiune realizată!</span>
-    </div>
-
-    <div class="modal-overlay" id="deptModal">
-        <div class="modal-box">
+    <div class="modal-overlay" id="medicalModal" aria-hidden="true">
+        <section class="medical-modal" role="dialog" aria-modal="true" aria-labelledby="medicalTitle">
             <div class="modal-header">
-                <div class="modal-subtitle">Departament Medical</div>
-                <h2 class="modal-title">Alege destinația cererii</h2>
+                <div>
+                    <p>Departament medical</p>
+                    <h2 id="medicalTitle">Alege destinația cererii</h2>
+                </div>
+                <button class="modal-close" type="button" data-close-medical aria-label="Închide" title="Închide">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
             </div>
 
             <div class="dept-grid">
-                <div class="dept-card" data-link="isuls_page.html">
-                    <div class="radio-circle"><div class="radio-dot"></div></div>
-                    <div class="dept-info">
-                        <h4>I.S.U.L.S.</h4>
-                        <p>Inspectoratul pentru Situații de Urgență Los Santos</p>
-                    </div>
-                </div>
-                <div class="dept-card" data-link="dsls_page.html">
-                    <div class="radio-circle"><div class="radio-dot"></div></div>
-                    <div class="dept-info">
-                        <h4>D.S.L.S.</h4>
-                        <p>Direcția de Sănătate Publică Los Santos</p>
-                    </div>
-                </div>
-                <div class="dept-card" data-link="mm_page.html">
-                    <div class="radio-circle"><div class="radio-dot"></div></div>
-                    <div class="dept-info">
-                        <h4>M.M.L.S.</h4>
-                        <p>Avize medicale și evaluări ocupaționale</p>
-                    </div>
-                </div>
-                <div class="dept-card" data-link="ssmls_page.html">
-                    <div class="radio-circle"><div class="radio-dot"></div></div>
-                    <div class="dept-info">
-                        <h4>S.S.M.L.S.</h4>
-                        <p>Securitatea și sănătatea la locul de muncă</p>
-                    </div>
-                </div>
+                <a class="dept-option" href="isuls_page.html">
+                    <img src="ISULS.png" alt="Logo ISULS">
+                    <span>
+                        <strong>I.S.U.L.S.</strong>
+                        <span>Inspectoratul pentru Situații de Urgență Los Santos</span>
+                    </span>
+                </a>
+                <a class="dept-option" href="dsls_page.html">
+                    <img src="DSLS.png" alt="Logo DSLS">
+                    <span>
+                        <strong>D.S.L.S.</strong>
+                        <span>Direcția de Sănătate Publică Los Santos</span>
+                    </span>
+                </a>
+                <a class="dept-option" href="mm_page.html">
+                    <img src="mmls.png" alt="Logo MMLS">
+                    <span>
+                        <strong>M.M.L.S.</strong>
+                        <span>Avize medicale și evaluări ocupaționale</span>
+                    </span>
+                </a>
+                <a class="dept-option" href="ssmls_page.html">
+                    <img src="logossmls.png" alt="Logo SSMLS">
+                    <span>
+                        <strong>S.S.M.L.S.</strong>
+                        <span>Securitatea și sănătatea la locul de muncă</span>
+                    </span>
+                </a>
             </div>
-
-            <div class="modal-actions">
-                <button class="btn-text" id="closeModalBtn">Anulează</button>
-                <button class="btn-solid" id="continueBtn" disabled>Continuă</button>
-            </div>
-        </div>
+        </section>
     </div>
 
     <script>
-        // Sistem Notificări
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3500);
+        const modal = document.getElementById("medicalModal");
+        const openButtons = document.querySelectorAll("[data-open-medical]");
+        const closeButton = document.querySelector("[data-close-medical]");
+
+        function openMedicalModal() {
+            modal.classList.add("active");
+            modal.setAttribute("aria-hidden", "false");
+            closeButton.focus();
         }
 
-        // Logică Modal
-        const modal = document.getElementById('deptModal');
-        const openBtn = document.getElementById('openModalBtn');
-        const closeBtn = document.getElementById('closeModalBtn');
-        const continueBtn = document.getElementById('continueBtn');
-        const cards = document.querySelectorAll('.dept-card');
-        
-        let selectedLink = null;
+        function closeMedicalModal() {
+            modal.classList.remove("active");
+            modal.setAttribute("aria-hidden", "true");
+        }
 
-        const openModal = () => modal.classList.add('active');
-        const closeModal = () => {
-            modal.classList.remove('active');
-            // Resetare selecție la închidere
-            setTimeout(() => {
-                cards.forEach(c => c.classList.remove('active'));
-                continueBtn.disabled = true;
-                selectedLink = null;
-            }, 300);
-        };
-
-        openBtn.addEventListener('click', openModal);
-        closeBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
+        openButtons.forEach((button) => {
+            button.addEventListener("click", openMedicalModal);
         });
 
-        // Selecție Card
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                cards.forEach(c => c.classList.remove('active'));
-                card.classList.add('active');
-                selectedLink = card.dataset.link;
-                continueBtn.disabled = false;
-            });
-        });
+        closeButton.addEventListener("click", closeMedicalModal);
 
-        // Acțiune Continuare
-        continueBtn.addEventListener('click', () => {
-            if (selectedLink) {
-                window.location.href = selectedLink;
-            } else {
-                showToast("Te rugăm să selectezi un departament.");
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                closeMedicalModal();
             }
         });
 
-        // Esc pentru a închide
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
-                closeModal();
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && modal.classList.contains("active")) {
+                closeMedicalModal();
             }
         });
     </script>
