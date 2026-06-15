@@ -16,10 +16,13 @@
             --quiet: #7c8797;
             --mint: #35f2ad;
             --blue: #58b7ff;
-            --gold: #ffd166;
+            --gold: #f84f31;
             --coral: #ff6b6b;
             --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
             --radius: 8px;
+            --accent: #35f2ad; /* Alege culoarea ta */
+            --accent-dim: rgba(53, 242, 173, 0.4);
+
         }
 
         * {
@@ -32,6 +35,28 @@
         html {
             scroll-behavior: smooth;
         }
+
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #008855, var(--accent));
+            width: 0%;
+            z-index: 9999;
+            box-shadow: 0 0 15px var(--accent-dim);
+            border-radius: 0 2px 2px 0;
+            transition: width 0.1s ease;
+        }
+
+        /* Scrollbar Premium */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--mint); 
+            border-radius: 10px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         body {
             min-height: 100vh;
@@ -97,7 +122,9 @@
             align-items: center;
             justify-content: space-between;
             gap: 20px;
-            padding: 18px 0;
+            padding: 17px 0;
+            padding-left: 10px;
+            padding-right: 10px;
             backdrop-filter: blur(18px);
         }
 
@@ -109,11 +136,9 @@
         }
 
         .brand img {
-            width: 46px;
-            height: 46px;
-            border-radius: var(--radius);
+            width: 50px;
+            height: 50px;
             object-fit: cover;
-            border: 1px solid rgba(255, 255, 255, 0.16);
         }
 
         .brand strong,
@@ -145,7 +170,7 @@
         }
 
         .nav-links a {
-            color: var(--muted);
+            color: var(--mint);
             font-size: 0.92rem;
             font-weight: 700;
             padding: 10px 14px;
@@ -159,6 +184,7 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        /* 1. Setările de bază ale butonului */
         .top-action,
         .button-link,
         .ghost-link {
@@ -170,7 +196,14 @@
             border-radius: var(--radius);
             border: 1px solid transparent;
             cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+            
+            /* Liniile noi pentru efectul Pro: */
+            position: relative; 
+            overflow: hidden; 
+            z-index: 1;
+            
+            /* Tranziție foarte fină */
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .top-action,
@@ -178,16 +211,51 @@
             color: #03100b;
             background: var(--mint);
             font-weight: 800;
-            padding: 0 18px;
-            box-shadow: 0 16px 36px rgba(53, 242, 173, 0.16);
+            padding: 0 24px;
+            box-shadow: 0 4px 15px rgba(53, 242, 173, 0.15);
         }
 
+        /* 2. Creăm unda de lumină (invizibilă inițial, așezată în stânga) */
+        .top-action::after,
+        .button-link::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.5) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+            transition: left 0.6s ease;
+            z-index: -1;
+        }
+
+        /* 3. Efectul la Hover (plutire + trece lumina) */
         .top-action:hover,
         .button-link:hover,
         .top-action:focus-visible,
         .button-link:focus-visible {
-            transform: translateY(-2px);
-            background: #7cffcf;
+            background: #68ffd2;
+            box-shadow: 0 14px 28px rgba(53, 242, 173, 0.35), 0 0 12px rgba(53, 242, 173, 0.2);
+        }
+
+        /* Declansăm mutarea luminii de la stânga la dreapta */
+        .top-action:hover::after,
+        .button-link:hover::after {
+            left: 150%;
+        }
+
+        /* 4. Efectul la Click (se strânge fizic ca un buton real) */
+        .top-action:active,
+        .button-link:active {
+            transform: scale(0.95); /* Se micșorează 5% */
+            box-shadow: 0 2px 8px rgba(53, 242, 173, 0.1);
+            transition: all 0.1s ease; /* Reacționează instant la click */
         }
 
         .ghost-link {
@@ -341,10 +409,23 @@
 
         .status-pill::before {
             content: "";
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: #06120d;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% {
+                box-shadow: 0 0 0 0 rgba(6, 18, 13, 5); 
+            }
+            70% {
+                box-shadow: 0 0 0 6px rgba(1, 18, 13, 0); /* Unda se extinde în exterior */
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(6, 18, 13, 0);
+            }
         }
 
         .emblem-wrap {
@@ -398,17 +479,18 @@
 
         .action-tile {
             min-height: 156px;
-            display: grid;
-            grid-template-columns: auto 1fr;
+            display: flex; /* Am schimbat din grid in flex */
+            flex-direction: column; /* Așază iconița deasupra textului */
+            justify-content: center; /* Centrează perfect pe verticală */
+            align-items: center; /* Centrează perfect pe orizontală */
             gap: 14px;
-            align-content: start;
             padding: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: var(--radius);
             background: rgba(16, 20, 26, 0.72);
             color: var(--text);
             cursor: pointer;
-            text-align: left;
+            text-align: center; /* Aliniază textul pe centru, nu la stânga */
             transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
         }
 
@@ -420,8 +502,8 @@
         }
 
         .tile-icon {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             display: grid;
             place-items: center;
             border-radius: var(--radius);
@@ -532,16 +614,17 @@
             justify-self: center;
             border-radius: var(--radius);
             
-            /* MODIFICĂ AICI: */
+
             background: transparent; 
-            border: none; /* Pune 'none' dacă vrei să scoți și linia aia fină de contur */
+            border: none; 
         }
 
 
         .service-icon img {
-            width: 95px; /* Păstrează lățimea setată inițial pentru iconițe */
-            height: 75px; /* Păstrează înălțimea setată inițial */
-            object-fit: contain; /* Foarte important: previne deformarea sau turtirea logo-ului */
+            width: 65px; /* Ajustează această valoare dacă vrei logo-urile mai mari sau mai mici */
+            height: 65px;
+            object-fit: contain; /* Această regulă este vitală: previne deformarea imaginilor */
+            display: block;
         }
         .service-card > span:not(.service-icon):not(.service-footer) {
             grid-column: 2;
@@ -572,17 +655,16 @@
         }
 
         .process-band {
-            display: grid;
-            grid-template-columns: 0.85fr 1.15fr;
+            display: flex; /* Schimbat din grid în flex */
+            flex-direction: column; /* Așază titlul sus și cardurile jos, pe toată lățimea */
             gap: 30px;
-            align-items: start;
             padding: 34px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,.1);
             border-radius: var(--radius);
             background:
-                linear-gradient(90deg, rgba(255, 209, 102, 0.08), transparent 54%),
-                rgba(16, 20, 26, 0.78);
-            margin-bottom: 86px;
+                linear-gradient(90deg, rgba(92, 223, 4, 0.041), transparent 54%),
+                rgba(16,20,26,.78);
+            margin-bottom: 70px
         }
 
         .process-band h2 {
@@ -591,28 +673,31 @@
             margin-bottom: 14px;
         }
 
-        .process-band p {
-            color: var(--muted);
-            line-height: 1.65;
-        }
-
         .step-list {
             display: grid;
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
             counter-reset: steps;
         }
 
         .step {
             counter-increment: steps;
             display: grid;
-            grid-template-columns: auto 1fr;
+            grid-template-columns: 42px 1fr;
             gap: 14px;
             align-items: start;
-            min-height: 74px;
-            padding: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            width: 100%;
+            min-height: auto; /* Scoate înălțimea minimă forțată de 180px */
+            padding: 14px; /* Redu padding-ul (spațiul interior) de la 20px la 16px sau chiar 12px */
+            gap: 8px; /* Poți micșora și distanța dintre iconiță și text */
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
             border-radius: var(--radius);
             background: rgba(0, 0, 0, 0.16);
+
+            box-sizing: border-box;
         }
 
         .step::before {
@@ -622,21 +707,31 @@
             width: 42px;
             height: 42px;
             border-radius: var(--radius);
-            color: #09100d;
             background: var(--gold);
-            font-weight: 800;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            background-color: #008855;
+        }
+
+        .step-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .step strong {
-            display: block;
-            grid-column: 2;
-            margin-bottom: 4px;
+            grid-column: 2; /* Obligă titlul să stea în dreapta iconiței */
+            align-self: center; /* Centrează titlul perfect pe mijlocul iconiței */
+            font-size: 1.15rem;
+            margin: 0;
         }
 
         .step span {
-            grid-column: 2;
+            grid-column: 1 / span 2; /* Întinde textul pe toată lățimea sub iconiță și titlu */
+            margin-top: 10px; /* Lasă spațiu între titlu și descriere */
             color: var(--muted);
-            font-size: 0.94rem;
+            font-size: 0.95rem;
             line-height: 1.5;
         }
 
@@ -856,14 +951,17 @@
             }
 
             .service-grid {
-                grid-template-columns: 1fr;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr); /* Creează exact 2 coloane egale */
+                gap: 24px; /* Spațiul dintre carduri, ajustează-l cum dorești */
             }
 
-            .service-card,
-            .service-card.featured,
+            /* Această regulă anulează lățimile inegale ale primelor carduri */
+            .service-card, 
+            .service-card.featured, 
             .service-card.wide {
-                grid-column: auto;
-                min-height: 246px;
+                grid-column: span 1 !important; /* Forțează fiecare card să ocupe fix o singură celulă din grilă */
+                width: 100%;
             }
 
             .section-heading {
@@ -874,7 +972,7 @@
             .section-heading h2,
             .process-band h2,
             .modal-header h2 {
-                font-size: 1.72rem;
+                font-size: 1.82rem;
             }
 
             .process-band {
@@ -935,12 +1033,57 @@
                 text-align: left;
             }
         }
+
+        .btn-top {
+            bottom: 30px; right: 30px;
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            opacity: 0; visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .btn-top.show {
+            opacity: 1; visibility: visible;
+            transform: translateY(0);
+        }
+        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
+        .floating-btn {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 17, 16, 0.85);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            text-decoration: none;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .floating-btn svg {
+            width: 20px; height: 20px;
+            fill: none; stroke: currentColor; stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .floating-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 10px 25px var(--accent-dim);
+            transform: translateY(-3px);
+        }
     </style>
 </head>
 <body>
+
+    <div id="progress-bar"></div>
+    <a href="#" id="scrollTopBtn" class="floating-btn btn-top">
+        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </a>
+
     <header class="topbar page-shell">
         <a class="brand" href="index.html" aria-label="Programări PCLS">
-            <img src="Logo Protecția Consumatorilor Los Santos.png" alt="Logo PCLS">
+            <img src="politia.png" alt="Logo PCLS">
             <span>
                 <strong>Programări PCLS</strong>
                 <span>Protecția Consumatorilor Los Santos</span>
@@ -963,18 +1106,23 @@
         <section class="portal-hero page-shell" id="start">
             <div class="hero-copy">
                 <p class="eyebrow">Portal unificat Los Santos</p>
-                <h1>Cererile PCLS, puse în ordine din primul click.</h1>
-                <p>Pagina oficiala pentru Protectia Consumatorului Los Santos.</p>
+                <h1>Programari PCLS.</h1>
+                <p>Portalul oficial pentru programări, depunere cereri și informații destinate siguranței și protecției în mediul de afaceri din Los Santos.</p>
 
                 <div class="hero-actions">
                     <a class="button-link" href="pcls_page.html">
                         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 15h6"></path><path d="M9 11h2"></path></svg>
                         Depune cerere
                     </a>
+                    <a class="button-link" href="inregistrare_page.html">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"></path><path d="M2 12h20"></path></svg>
+                    Inregistrare Afacere
+                    </a>
                     <button class="ghost-link" type="button" data-open-medical>
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"></path><path d="M2 12h20"></path></svg>
-                        Cereri medicale
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v20"></path><path d="M3.4 11h17"></path></svg>
+                    Cereri medicale
                     </button>
+
                 </div>
 
                 <div class="hero-meta" aria-label="Rezumat portal">
@@ -1096,69 +1244,38 @@
                         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
                     </span>
                 </a>
-
-                <button class="service-card" type="button" data-open-medical>
-                    <span class="service-icon" aria-hidden="true">
-                        <img src="ISULS.png" alt="Logo Avize Medicale">
-                    </span>
-                    <span>
-                        <h3>Avize medicale</h3>
-                        <p>Intrare unică pentru cereri către ISULS, DSLS, MMLS și SSMLS.</p>
-                    </span>
-                    <span class="service-footer">
-                        Alege departamentul
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-                    </span>
-                </button>
-
-                <a class="service-card" href="ghid_pcls.html">
-                    <span class="service-icon" aria-hidden="true">
-                        <img src="info.png" alt="Logo Informatii">
-                    </span>
-                    <span>
-                        <h3>Informații PCLS</h3>
-                        <p>Pagina de ghid pentru cerințe, pași și clarificări înainte de depunerea cererilor.</p>
-                    </span>
-                    <span class="service-footer">
-                        Citește ghidul
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-                    </span>
-                </a>
-
-                <button class="service-card" type="button" data-open-medical>
-                    <span class="service-icon" aria-hidden="true">
-                        <img src="image.png" alt="Logo Departamente">
-                    </span>
-                    <span>
-                        <h3>Departamente partenere</h3>
-                        <p>Acces rapid către instituțiile conectate cu fluxul de avize și verificări.</p>
-                    </span>
-                    <span class="service-footer">
-                        Vezi rutele
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-                    </span>
-                </button>
             </div>
         </section>
 
         <section class="process-band page-shell" id="proces">
+            <h2>Ordinea Controalelor PCLS</h2>
             <div>
-                <h2>Flux simplu pentru cereri curate.</h2>
-                <p>Indexul a fost gândit ca punct de pornire: alegi ruta corectă, completezi formularul și trimiți cererea către canalul deja configurat.</p>
             </div>
 
             <div class="step-list">
                 <div class="step">
-                    <strong>Alege formularul potrivit</strong>
-                    <span>PCLS, înregistrare afacere sau cerere medicală, în funcție de situație.</span>
+                    <strong>Inregistrarea Afacerii</strong>
+                    <span>Inregistrearea propriei afacere este primul pas.</span>
                 </div>
                 <div class="step">
-                    <strong>Completează datele cerute</strong>
-                    <span>Formularele existente rămân conectate la fluxurile lor de trimitere.</span>
+                    <strong>M.M.L.S.</strong>
+                    <span>Medicina Muncii Los Santos este al-2 lea pas.</span>
                 </div>
                 <div class="step">
-                    <strong>Urmărește răspunsul</strong>
-                    <span>Cererea ajunge către echipa responsabilă pentru verificare și procesare.</span>
+                    <strong>D.S.L.S.</strong>
+                    <span>Directia Sanatatii Publice Los Santos este al-3 lea pas.</span>
+                </div>
+                <div class="step">
+                    <strong>I.S.U.L.S.</strong>
+                    <span>Inspectoratul pentru Situatii de Urgenta Los Santos este al-4 lea pas.</span>
+                </div>
+                <div class="step">
+                    <strong>S.S.M.L.S.</strong>
+                    <span>Sanatate si Securitate in Munca Los Santos este penultimul pas.</span>
+                </div>
+                <div class="step">
+                    <strong>P.C.L.S.</strong>
+                    <span>Protectia Consumatorilor Los Santos este ultimul pas.</span>
                 </div>
             </div>
         </section>
@@ -1216,6 +1333,7 @@
                 </a>
             </div>
         </section>
+
     </div>
 
     <script>
@@ -1251,6 +1369,49 @@
                 closeMedicalModal();
             }
         });
+
+        // 1. Progress Bar pe Scroll
+        window.addEventListener('scroll', () => {
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const progress = (scrollTop / scrollHeight) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        });
+        
+        const scrollBtn = document.getElementById("scrollTopBtn");
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 500) {
+                scrollBtn.classList.add("show");
+            } else {
+                scrollBtn.classList.remove("show");
+            }
+        });
+
+        scrollBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        // 3. Reveal Animations (Intersection Observer)
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target); 
+                }
+            });
+        };
+
+        const revealOptions = {
+            threshold: 0.1, 
+            rootMargin: "0px 0px -50px 0px" 
+        };
+
+        const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
+        
+        revealElements.forEach(el => revealObserver.observe(el));
     </script>
 </body>
 </html>
