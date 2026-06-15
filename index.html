@@ -237,7 +237,7 @@
             align-items: center;
             gap: 10px;
             width: fit-content;
-            color: var(--gold);
+            color: var(--mint);
             font-size: 0.95rem;
             font-weight: 800;
             margin-bottom: 20px;
@@ -247,7 +247,7 @@
             content: "";
             width: 28px;
             height: 2px;
-            background: var(--gold);
+            background: var(--mint);
             border-radius: 999px;
         }
 
@@ -531,38 +531,18 @@
             place-items: center;
             justify-self: center;
             border-radius: var(--radius);
-            color: #07100d;
-            background: var(--mint);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            
+            /* MODIFICĂ AICI: */
+            background: transparent; 
+            border: none; /* Pune 'none' dacă vrei să scoți și linia aia fină de contur */
         }
 
-        .service-card:nth-child(2) .service-icon {
-            background: var(--blue);
-        }
 
-        .service-card:nth-child(3) .service-icon {
-            background: var(--coral);
+        .service-icon img {
+            width: 38px; /* Păstrează lățimea setată inițial pentru iconițe */
+            height: 38px; /* Păstrează înălțimea setată inițial */
+            object-fit: contain; /* Foarte important: previne deformarea sau turtirea logo-ului */
         }
-
-        .service-card:nth-child(4) .service-icon {
-            background: var(--gold);
-        }
-
-        .service-card:nth-child(5) .service-icon {
-            color: var(--text);
-            background: rgba(88, 183, 255, 0.16);
-        }
-
-        .service-icon svg {
-            width: 38px;
-            height: 38px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
         .service-card > span:not(.service-icon):not(.service-footer) {
             grid-column: 2;
             grid-row: 1;
@@ -984,7 +964,7 @@
             <div class="hero-copy">
                 <p class="eyebrow">Portal unificat Los Santos</p>
                 <h1>Cererile PCLS, puse în ordine din primul click.</h1>
-                <p>Un index nou pentru programări, înscrieri și avize medicale, construit ca un tablou de control rapid pentru afaceri și departamente.</p>
+                <p>Pagina oficiala pentru Protectia Consumatorului Los Santos.</p>
 
                 <div class="hero-actions">
                     <a class="button-link" href="pcls_page.html">
@@ -1085,17 +1065,17 @@
         <section class="page-shell" id="servicii">
             <div class="section-heading">
                 <h2>Zone de lucru</h2>
-                <p>Fiecare rută din index duce direct la formularul sau pagina potrivită, fără pași intermediari inutili.</p>
+                <p>Selecteaza pagina dorita.</p>
             </div>
 
             <div class="service-grid">
                 <a class="service-card featured" href="pcls_page.html">
                     <span class="service-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-5"></path></svg>
+                        <img src="imagini/logo-pcls.png" alt="Logo PCLS">
                     </span>
                     <span>
                         <h3>Programare PCLS</h3>
-                        <p>Solicitări pentru protecția consumatorilor, verificări și programări oficiale pentru unități economice.</p>
+                        <p>Solicitări pentru protecția consumatorilor los santos, verificări și programări oficiale pentru unități economice.</p>
                     </span>
                     <span class="service-footer">
                         Deschide formularul
@@ -1105,7 +1085,7 @@
 
                 <a class="service-card wide" href="inregistrare_page.html">
                     <span class="service-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path><path d="M9 9h1"></path><path d="M9 13h1"></path><path d="M9 17h1"></path></svg>
+                         <img src="imagini/logo-inregistrare.png" alt="Logo Inregistrare">
                     </span>
                     <span>
                         <h3>Înregistrare afacere</h3>
@@ -1119,7 +1099,7 @@
 
                 <button class="service-card" type="button" data-open-medical>
                     <span class="service-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+                        <img src="imagini/logo-medical.png" alt="Logo Avize Medicale">
                     </span>
                     <span>
                         <h3>Avize medicale</h3>
@@ -1133,7 +1113,7 @@
 
                 <a class="service-card" href="ghid_pcls.html">
                     <span class="service-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path><path d="M8 7h8"></path><path d="M8 11h6"></path></svg>
+                        <img src="imagini/logo-info.png" alt="Logo Informatii">
                     </span>
                     <span>
                         <h3>Informații PCLS</h3>
@@ -1147,7 +1127,7 @@
 
                 <button class="service-card" type="button" data-open-medical>
                     <span class="service-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M12 3 4 7v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V7l-8-4z"></path><path d="M8 11h8"></path><path d="M8 15h8"></path><path d="M12 7v12"></path></svg>
+                        <img src="imagini/logo-departamente.png" alt="Logo Departamente">
                     </span>
                     <span>
                         <h3>Departamente partenere</h3>
