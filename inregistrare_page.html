@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inregistreaza-ti afacerea in baza de date P.C.L.S</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #050505;
+            --accent: #00ffa3;
+            --error: #ff3c64;
+            --text-primary: #ffffff;
+            --text-secondary: #88928c;
+            --surface-bg: rgba(255, 255, 255, 0.02);
+            --surface-border: rgba(255, 255, 255, 0.06);
+            --input-bg: rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.05) 0%, transparent 60%);
+        }
+
+                                    /* Controale Flotante */
+        .floating-btn {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 17, 16, 0.85);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            text-decoration: none;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-back {
+            top: 30px; left: 30px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-top {
+            bottom: 30px; right: 30px;
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            opacity: 0; visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .btn-top.show {
+            opacity: 1; visibility: visible;
+            transform: translateY(0);
+        }
+
+        .floating-btn svg {
+            width: 20px; height: 20px;
+            fill: none; stroke: currentColor; stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .floating-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 10px 25px var(--accent-dim);
+            transform: translateY(-3px);
+        }
+
+        .btn-back:hover svg { transform: translateX(-4px); transition: transform 0.3s; }
+        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.8s ease-out;
+            padding: 60px 20px;
+        }
+
+        h4 {
+            font-weight: 400;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        form {
+            width: 100%;
+            background: var(--surface-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 40px 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        form input[name="NUME"],
+        form input[name="NAME"],
+        form input[name="ID"],
+        form input[name="NUME RECLAMAT"],
+        form input[name="CALL-SIGN UL RECLAMATULUI"],
+        form input[name="DATA"],
+        form input[name="EMAIL"],
+        form input[name="NUMAR DE TEL"] {
+            grid-column: span 1;
+        }
+
+        form input[name="DISC"],
+        form input[name="EMA"],
+        .custom-checkbox,
+        #submit {
+            grid-column: span 2;
+        }
+
+        form input[type="text"] {
+            width: 100%;
+            padding: 16px 20px;
+            background-color: var(--input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: 300;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        form input::placeholder {
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        form input:focus {
+            border-color: var(--accent);
+            background-color: rgba(0, 255, 163, 0.02);
+        }
+
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            transition: color 0.3s;
+            margin-top: 5px;
+        }
+
+        .custom-checkbox:hover {
+            color: var(--text-primary);
+        }
+
+        .custom-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .custom-checkbox .checkmark {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            margin-right: 16px;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox input[type="checkbox"]:checked + .checkmark {
+            border-color: var(--accent);
+            background-color: var(--accent);
+        }
+
+        .custom-checkbox .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            width: 5px;
+            height: 10px;
+            border: solid #000;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-top: -2px;
+        }
+
+        .custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
+            display: block;
+        }
+
+        #submit {
+            margin-top: 10px;
+            opacity: 0.8;
+            width: 100%;
+            padding: 18px;
+            background-color: var(--accent);
+            color: #000000;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 163, 0.25);
+            background-color: #00e592;
+            opacity: 1;
+        }
+
+        small {
+            display: block;
+            margin-top: 25px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        /* --- STILURI NOTIFICĂRI --- */
+        #alert-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: none;
+        }
+
+        #alert-box, #error-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 100%;
+            max-width: 400px;
+            padding: 50px 40px;
+            border-radius: 24px;
+            background: #0a0a0a;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #alert-box {
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        #error-box {
+            border: 1px solid rgba(255, 60, 100, 0.3);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 60, 100, 0.05);
+        }
+
+        #alert-box.show, #error-box.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #alert-box h2, #error-box h2 {
+            margin: 24px 0 12px;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        #alert-box p, #error-box p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        #alert-box button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--surface-bg);
+            border: 1px solid var(--surface-border);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #alert-box button:hover {
+            background: var(--text-primary);
+            color: #000;
+        }
+
+        #error-box button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 60, 100, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #error-box button:hover {
+            background: var(--error);
+            color: #000;
+            box-shadow: 0 8px 25px rgba(255, 60, 100, 0.3);
+        }
+
+        .alert-icon { width: 64px; height: 64px; margin: 0 auto; }
+        .alert-icon svg { width: 100%; height: 100%; display: block; }
+        .circle { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
+        .check { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
+        
+        /* Animatii Eroare */
+        .circle-error { fill: none; stroke: var(--error); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
+        .x-mark { fill: none; stroke: var(--error); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
+
+        @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        @media (max-width: 768px) {
+            form { grid-template-columns: 1fr; padding: 30px 24px; }
+            form input[type="text"], form input[name="DISC"], form input[name="EMA"], .custom-checkbox, #submit { grid-column: span 1; }
+            .container { padding: 80px 24px 40px; }
+        }
+    </style>
+</head>
+
+<body>
+  <a href="index.html" class="floating-btn btn-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Înapoi
+    </a> 
+
+    <div class="container">
+        <h4>Inregistreaza-ti afacerea in baza de date P.C.L.S</h4>
+        <form method="post" action="https://discord.com/api/webhooks/1300591874138177618/crigVzf7hYfmkyzWYWuEP00FyDAuz2Fqwg7c2lPdaupx-hUdMECExKjhUPDGvf0xS-ON" name="contact-form" id="contact-form">
+            <input type="text" name="NUME" placeholder="Ataseaza un link cu poza buletinului" required>
+            <input type="text" name="NAME" placeholder="Ataseaza un link cu poza locatiei dvs" required>
+            <input type="text" name="ID" placeholder="Nume prenume al prorprietarului" required>
+            <input type="text" name="NUME RECLAMAT" placeholder="Nume prenume administrator" required>
+            <input type="text" name="CALL-SIGN UL RECLAMATULUI" placeholder="denumirea unitatii economice" required>
+            <input type="text" name="DATA" placeholder="adresa" required minlength="10">
+            <input type="text" name="EMAIL" placeholder="tipul spatiului comercial" required>
+            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Numar de telefon (ex. 123-4567)" required maxlength="8">
+            <input type="text" name="DISC" placeholder="Discord ID (ex: 123456789012345678)" required>
+            <input type="text" name="EMA" placeholder="nume prenume solicitant (cel care completeaza formularul)" required>
+            
+            <label class="custom-checkbox">
+                <input type="checkbox" required>
+                <span class="checkmark"></span>
+                Sunteti constient ca falsul in declaratii este o actiune cu consectine penale? 
+            </label>
+            <label class="custom-checkbox">
+                <input type="checkbox" required>
+                <span class="checkmark"></span>
+                Proprietarul declarat este cel real, in caz contrar puteti fi amendati cu 400.000 ron!
+            </label>
+            
+            <input type="submit" value="Trimite Formularul" id="submit">
+        </form>
+        <small>Copyright © 2025 Tristan</small>
+    </div>
+    
+<div id="alert-overlay"></div>
+
+<div id="alert-box">
+  <div class="alert-icon">
+    <svg viewBox="0 0 52 52">
+      <circle class="circle" cx="26" cy="26" r="25" />
+      <path class="check" d="M14 27 L22 35 L38 18" />
+    </svg>
+  </div>
+  <h2>Cerere Înregistrată</h2>
+  <p>Informațiile au fost transmise cu succes către sistemul nostru. Veți fi contactat în scurt timp.</p>
+  <button id="close-alert">OK</button>
+</div>
+
+<div id="error-box">
+  <div class="alert-icon">
+    <svg viewBox="0 0 52 52">
+      <circle class="circle-error" cx="26" cy="26" r="25" />
+      <path class="x-mark" d="M16 16 L36 36 M36 16 L16 36" />
+    </svg>
+  </div>
+  <h2>Eroare!</h2>
+  <p id="error-message">A apărut o problemă.</p>
+  <button id="close-error">Încearcă din nou</button>
+</div>
+
+    <script>
+        // Prevenire dev tools
+        document.addEventListener("contextmenu", e => e.preventDefault());
+        document.addEventListener("keydown", function (e) {
+            if (
+                e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && e.key === "I") ||
+                (e.ctrlKey && e.shiftKey && e.key === "J") ||
+                (e.ctrlKey && e.key === "U")
+            ) {
+                e.preventDefault();
+            }
+        });
+
+        // Formatare Telefon
+        const phoneInput = document.getElementById('NUMAR_TEL');
+        phoneInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); 
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7); 
+            }
+            e.target.value = value;
+        });
+
+        // Notificari Logica
+        const form = document.getElementById('contact-form');
+        const alertBox = document.getElementById("alert-box");
+        const errorBox = document.getElementById("error-box");
+        const overlay = document.getElementById("alert-overlay");
+        const closeBtn = document.getElementById("close-alert");
+        const closeErrorBtn = document.getElementById("close-error");
+        const errorMessage = document.getElementById("error-message");
+
+        function showSuccess() {
+            overlay.style.display = "block";
+            alertBox.classList.add("show");
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            overlay.style.display = "block";
+            errorBox.classList.add("show");
+        }
+
+        function hideAlerts() {
+            overlay.style.display = "none";
+            alertBox.classList.remove("show");
+            errorBox.classList.remove("show");
+        }
+
+        closeBtn.addEventListener("click", () => {
+            hideAlerts();
+            form.reset(); // resetam formularul doar cand are succes
+            window.location.reload();
+        });
+        closeErrorBtn.addEventListener("click", hideAlerts);
+        overlay.addEventListener("click", hideAlerts);
+
+        const webhookUrl = "https://discord.com/api/webhooks/1300591874138177618/crigVzf7hYfmkyzWYWuEP00FyDAuz2Fqwg7c2lPdaupx-hUdMECExKjhUPDGvf0xS-ON";
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            
+            // Validare ID Discord - Am adaugat .trim() pentru a elimina spatii accidentale
+            const discordId = formData.get("DISC").trim();
+
+            if (!/^\d{17,20}$/.test(discordId)) {
+                showError("ID-ul de Discord introdus este invalid. Asigură-te că folosești doar cifre (ex: 123456789012345678).");
+                return;
+            }
+
+            const data = {
+                content: `:date:  *O noua cerere de Inregistrare a fost facuta:  :date: <@&1266069081413386332>*\n-------------------------------------\n**1) Poza Buletin:** ${formData.get("NUME")}\n\n**2) Poza cu afacerea:** ${formData.get("NAME")}\n\n**3) Numele Proprietarului:** ${formData.get("ID")}\n\n**4) Numele Administratorului:** ${formData.get("NUME RECLAMAT")}\n\n**5) Denumirea unitatii:** ${formData.get("CALL-SIGN UL RECLAMATULUI")}\n\n**6) Adresa completa:** ${formData.get("DATA")}\n\n**7) Tipul de afacere:** ${formData.get("EMAIL")}\n\n**8) Numar de telfon:** ${formData.get("NUMAR DE TEL")}\n\n**9) Discord:** <@${discordId}>\n\n**10) Persoana care completeaza formularul:** ${formData.get("EMA")}`
+            };
+
+            try {
+                // Schimbam butonul vizual pentru a arata incarcarea
+                const submitBtn = document.getElementById('submit');
+                const originalText = submitBtn.value;
+                submitBtn.value = "Se trimite...";
+                submitBtn.style.opacity = "0.5";
+                submitBtn.disabled = true;
+
+                const response = await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                submitBtn.value = originalText;
+                submitBtn.style.opacity = "1";
+                submitBtn.disabled = false;
+
+                if (response.ok) {
+                    showSuccess();
+                } else {
+                    showError("Eroare la trimiterea mesajului. Te rugăm să încerci din nou.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                showError("A apărut o eroare de conexiune.");
+                
+                // Resetam butonul si aici in caz de eroare
+                const submitBtn = document.getElementById('submit');
+                submitBtn.value = "Trimite Formularul";
+                submitBtn.style.opacity = "1";
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
