@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panou Administrare PCLS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+        --bg-main: #050505;
+        --accent-green: #00ffa3;
+        --accent-blue: #0096ff;
+        --accent-purple: #a855f7;
+        --error: #ff3c64;
+        --warning: #ffb703;
+        --text-primary: #ffffff;
+        --text-secondary: #88928c;
+        --surface-bg: rgba(255, 255, 255, 0.02);
+        --surface-border: rgba(255, 255, 255, 0.08);
+        --card-bg: #0a0c0b;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 24px 40px;
+        background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.03) 0%, transparent 60%);
+    }
+
+    .admin-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Header & Navigation */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+        width: 100%;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface-bg);
+        border: 1px solid var(--surface-border);
+        color: var(--text-secondary);
+        padding: 8px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-primary);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    h1 {
+        font-weight: 600;
+        font-size: 2rem;
+        letter-spacing: -0.5px;
+    }
+
+    h1 span {
+        color: var(--accent-green);
+    }
+
+    .stats-bar {
+        display: flex;
+        gap: 15px;
+    }
+
+    .stat-card {
+        background: var(--surface-bg);
+        border: 1px solid var(--surface-border);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .stat-card strong {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        margin-left: 6px;
+    }
+
+    /* Controls & Filters */
+    .controls {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        width: 100%;
+        align-items: center;
+    }
+
+    .filter-btn {
+        background: var(--surface-bg);
+        border: 1px solid var(--surface-border);
+        color: var(--text-secondary);
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-primary);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .filter-btn.archive-btn {
+        margin-left: auto;
+        color: var(--accent-purple);
+        border-color: rgba(168, 85, 247, 0.25);
+    }
+
+    .filter-btn.archive-btn.active, .filter-btn.archive-btn:hover {
+        background: rgba(168, 85, 247, 0.15);
+        color: #fff;
+        border-color: rgba(168, 85, 247, 0.4);
+    }
+
+    .filter-btn.trash-btn {
+        color: var(--error);
+        border-color: rgba(255, 60, 100, 0.2);
+    }
+
+    .filter-btn.trash-btn.active, .filter-btn.trash-btn:hover {
+        background: rgba(255, 60, 100, 0.15);
+        color: #fff;
+        border-color: rgba(255, 60, 100, 0.4);
+    }
+
+    /* Listă de cereri pe lung */
+    .cereri-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    /* Card Cerere */
+    .card {
+        background: var(--card-bg);
+        border: 1px solid var(--surface-border);
+        border-radius: 14px;
+        padding: 16px 24px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        width: 100%;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .card:hover {
+        border-color: rgba(0, 255, 163, 0.35);
+        background: #0e110f;
+        transform: translateX(4px);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        min-width: 220px;
+    }
+
+    /* Badges */
+    .type-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+    }
+
+    .type-badge.programare {
+        background: rgba(0, 150, 255, 0.12);
+        color: var(--accent-blue);
+        border: 1px solid rgba(0, 150, 255, 0.3);
+    }
+
+    .type-badge.inregistrare {
+        background: rgba(0, 255, 163, 0.12);
+        color: var(--accent-green);
+        border: 1px solid rgba(0, 255, 163, 0.3);
+    }
+
+    .status-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 8px;
+        text-transform: capitalize;
+    }
+
+    .status-badge.in_asteptare { background: rgba(255, 183, 3, 0.15); color: var(--warning); }
+    .status-badge.aprobat { background: rgba(0, 255, 163, 0.15); color: var(--accent-green); }
+    .status-badge.respins { background: rgba(255, 60, 100, 0.15); color: var(--error); }
+    .status-badge.in_cos { background: rgba(255, 255, 255, 0.1); color: var(--text-secondary); }
+
+    .card-body {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 32px;
+        font-size: 0.9rem;
+        flex: 1;
+        flex-wrap: wrap;
+    }
+
+    .card-body p {
+        color: var(--text-secondary);
+        line-height: 1.3;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .card-body p strong {
+        color: var(--text-secondary);
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .card-body p span {
+        color: var(--text-primary);
+        font-size: 0.92rem;
+        font-weight: 600;
+    }
+
+    /* Actions */
+    .card-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .btn-action {
+        padding: 8px 14px;
+        border: none;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: opacity 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-action:hover { opacity: 0.85; }
+    .btn-action:active { transform: scale(0.98); }
+
+    .btn-details { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); border: 1px solid var(--surface-border); }
+    .btn-approve { background: var(--accent-green); color: #000; }
+    .btn-reject { background: rgba(255, 183, 3, 0.15); color: var(--warning); border: 1px solid rgba(255, 183, 3, 0.3); }
+    .btn-archive { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); border: 1px solid rgba(168, 85, 247, 0.3); }
+    .btn-unarchive { background: rgba(0, 150, 255, 0.15); color: var(--accent-blue); border: 1px solid rgba(0, 150, 255, 0.3); }
+    .btn-trash { background: rgba(255, 60, 100, 0.15); color: var(--error); border: 1px solid rgba(255, 60, 100, 0.3); }
+    .btn-restore { background: rgba(0, 150, 255, 0.15); color: var(--accent-blue); border: 1px solid rgba(0, 150, 255, 0.3); }
+
+    .empty-state {
+        width: 100%;
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+        background: var(--surface-bg);
+        border: 1px dashed var(--surface-border);
+        border-radius: 16px;
+    }
+
+    /* MODALE & TOAST */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 1000; opacity: 0; visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+
+    .modal-box {
+        background: #0d0f0e; border: 1px solid var(--surface-border);
+        border-radius: 18px; width: 90%; max-width: 580px; padding: 28px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        transform: scale(0.92); transition: transform 0.25s ease;
+    }
+
+    .modal-overlay.active .modal-box { transform: scale(1); }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .modal-close { background: transparent; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; }
+
+    .modal-body { margin-bottom: 24px; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; }
+
+    .details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .details-item { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 10px; }
+    .details-item.full-width { grid-column: span 2; }
+    .details-item label { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; }
+    .details-item span { color: var(--text-primary); font-weight: 500; word-break: break-all; }
+    .details-item.highlight-user span { color: var(--accent-green); font-weight: 600; }
+
+    .modal-footer { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+
+    .btn-modal { padding: 10px 20px; border-radius: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; }
+    .btn-modal-cancel { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
+    .btn-modal-danger { background: var(--error); color: #fff; }
+
+    /* NOTIFICĂRI TOAST MODERN */
+    #toast-container {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 2500;
+        pointer-events: none;
+    }
+
+    .toast {
+        pointer-events: auto;
+        min-width: 320px;
+        max-width: 400px;
+        background: rgba(13, 15, 14, 0.88);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--surface-border);
+        border-radius: 14px;
+        padding: 14px 18px;
+        color: var(--text-primary);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        position: relative;
+        overflow: hidden;
+        animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes toastSlideIn {
+        from { opacity: 0; transform: translateX(80px) scale(0.92); }
+        to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    .toast-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .toast.success .toast-icon { background: rgba(0, 255, 163, 0.12); color: var(--accent-green); border: 1px solid rgba(0, 255, 163, 0.25); }
+    .toast.warning .toast-icon { background: rgba(255, 183, 3, 0.12); color: var(--warning); border: 1px solid rgba(255, 183, 3, 0.25); }
+    .toast.error .toast-icon { background: rgba(255, 60, 100, 0.12); color: var(--error); border: 1px solid rgba(255, 60, 100, 0.25); }
+
+    .toast-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .toast-title { font-size: 0.88rem; font-weight: 600; letter-spacing: 0.3px; }
+    .toast.success .toast-title { color: var(--accent-green); }
+    .toast.warning .toast-title { color: var(--warning); }
+    .toast.error .toast-title { color: var(--error); }
+
+    .toast-message { font-size: 0.83rem; color: var(--text-secondary); line-height: 1.35; }
+
+    .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 100%;
+        transform-origin: left;
+        animation: toastProgress 3.5s linear forwards;
+    }
+
+    .toast.success .toast-progress { background: var(--accent-green); }
+    .toast.warning .toast-progress { background: var(--warning); }
+    .toast.error .toast-progress { background: var(--error); }
+
+    @keyframes toastProgress {
+        from { transform: scaleX(1); }
+        to { transform: scaleX(0); }
+    }
+
+    /* Adaptare ecran mic */
+    @media (max-width: 860px) {
+        .card { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .card-header { width: 100%; justify-content: space-between; }
+        .card-body { width: 100%; gap: 16px; }
+        .card-actions { width: 100%; justify-content: flex-end; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    }
+
+    /* Stilizare principala pentru dropdown */
+#invite-role-select {
+  background: var(--surface-bg);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  
+  /* Forțează browserul să folosească tema întunecată pentru meniul derulant */
+  color-scheme: dark; 
+}
+
+#invite-role-select:focus {
+  border-color: var(--accent-green);
+}
+
+/* Stilizare pentru opțiunile din listă */
+#invite-role-select option {
+  background-color: #0a0c0b; /* Fundal închis la culoare */
+  color: #ffffff;             /* Text alb */
+  padding: 10px;
+}
+  </style>
+</head>
+
+<body>
+  <div class="admin-container">
+    <header>
+      <div class="header-left">
+        <a href="index.html" class="btn-back" title="Înapoi la Pagina Principală">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Înapoi
+        </a>
+        <h1>Panou Administrare <span>P.C.L.S</span></h1>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-card">Total Cereri: <strong id="total-count">0</strong></div>
+      </div>
+    </header>
+
+    <div class="controls">
+      <button class="filter-btn active" data-filter="all">Toate</button>
+      <button class="filter-btn" data-filter="isuls">ISULS</button>
+      <button class="filter-btn" data-filter="dsls">DSLS</button>
+      <button class="filter-btn" data-filter="mmls">MMLS</button>
+      <button class="filter-btn" data-filter="ssmls">SSMLS</button>
+      <button class="filter-btn" data-filter="in_asteptare">În Așteptare</button>
+      <button class="filter-btn archive-btn" data-filter="arhivat">Arhivă</button>
+      <button class="filter-btn trash-btn" data-filter="in_cos">Coș de Gunoi</button>
+
+    </div>
+
+    <div class="cereri-grid" id="cereri-container">
+      <div class="empty-state">Se încarcă cererile...</div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: var(--error);">Ștergere Definitivă</h3>
+        <button class="modal-close" id="confirm-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        Ești sigur că dorești să ștergi definitiv această cerere din baza de date? Această acțiune nu mai poate fi reversată.
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" id="confirm-cancel-btn">Anulează</button>
+        <button class="btn-modal btn-modal-danger" id="confirm-ok-btn">Șterge Definitiv</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="details-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h3 class="modal-title">Detalii Cerere</h3>
+            <span style="background: rgba(0, 255, 163, 0.15); color: var(--accent-green); font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: 700;">PCLS</span>
+            <span id="details-code-tag" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(0, 255, 163, 0.3); color: var(--accent-green); font-family: monospace; font-size: 0.85rem; font-weight: 600; padding: 3px 10px; border-radius: 6px;">PCLS-XXXXXX</span>
+        </div>
+        <button class="modal-close" id="details-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="details-grid" id="details-container"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-danger" id="details-trash-btn">Mută în Coș</button>
+        <button class="btn-modal btn-modal-cancel" id="details-close-btn">Închide</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: var(--card-bg); border: 1px solid var(--surface-border); padding: 24px; border-radius: 14px; margin-top: 30px;">
+  <h2 style="font-size: 1.2rem; margin-bottom: 16px;">Generare Cod Acces Admin Nou</h2>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <select id="invite-role-select" style="background: var(--surface-bg); border: 1px solid var(--surface-border); color: #fff; padding: 10px 14px; border-radius: 8px; color-scheme: dark; cursor: pointer; outline: none;">
+  <option value="isuls" style="background: #0a0c0b; color: #fff;">Rol: ISULS</option>
+  <option value="dsls" style="background: #0a0c0b; color: #fff;">Rol: DSLS</option>
+  <option value="mmls" style="background: #0a0c0b; color: #fff;">Rol: MMLS</option>
+  <option value="ssmls" style="background: #0a0c0b; color: #fff;">Rol: SSMLS</option>
+  <option value="superadmin" style="background: #0a0c0b; color: #fff;">Rol: Superadmin (Acces Total)</option>
+</select>
+    <button id="btn-generate-code" style="background: var(--accent-green); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Generează Cod</button>
+  </div>
+  <div id="generated-code-display" style="margin-top: 16px; font-size: 1.1rem; color: var(--accent-green); font-weight: bold;"></div>
+</div>
+
+  <div id="toast-container"></div>
+
+<script type="module">
+  // --- 1. IMPORTURI UNIFICATE ȘI STABILE ---
+  import { db, auth } from "./firebase-config.js";
+  import { 
+    collection, 
+    onSnapshot, 
+    query, 
+    orderBy,
+    doc,
+    updateDoc,
+    deleteDoc,
+    getDoc,
+    addDoc
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  // --- 2. REGULI PERMISIUNI STRICTE PE DEPARTAMENTE ---
+  const ROLE_PERMISSIONS = {
+    superadmin: ["all"],
+    admin: ["all"],
+    isuls: ["isuls"],
+    dsls: ["dsls"],
+    mmls: ["mmls", "mm"],
+    ssmls: ["ssmls", "ssmmls"]
+  };
+
+  // --- 3. VARIABILE GLOBALE ȘI ELEMENȚI DOM ---
+  let currentUserRole = null; 
+  let allCereri = [];
+  let currentFilter = "all";
+  let pendingDeleteId = null;
+  let currentOpenItem = null;
+
+  const btnGenerateCode = document.getElementById("btn-generate-code");
+  const inviteRoleSelect = document.getElementById("invite-role-select");
+  const generatedCodeDisplay = document.getElementById("generated-code-display");
+
+  const cereriContainer = document.getElementById("cereri-container");
+  const totalCountEl = document.getElementById("total-count");
+  const filterButtons = document.querySelectorAll(".filter-btn");
+
+  const confirmModal = document.getElementById("confirm-modal");
+  const confirmOkBtn = document.getElementById("confirm-ok-btn");
+  const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
+  const confirmCloseBtn = document.getElementById("confirm-close");
+
+  const detailsModal = document.getElementById("details-modal");
+  const detailsContainer = document.getElementById("details-container");
+  const detailsClose = document.getElementById("details-close");
+  const detailsCloseBtn = document.getElementById("details-close-btn");
+  const detailsTrashBtn = document.getElementById("details-trash-btn");
+  const detailsCodeTag = document.getElementById("details-code-tag");
+
+  function getCurrentAdminName() {
+    if (auth && auth.currentUser) {
+      return auth.currentUser.email || auth.currentUser.displayName || "Admin PCLS";
+    }
+    return "Admin PCLS";
+  }
+
+  // Normalizare denumire rol (tratăm 'ssmmls' ca 'ssmls')
+  function normalizeRole(roleStr) {
+    let r = (roleStr || "").toString().toLowerCase().trim();
+    if (r === "ssmmls") return "ssmls";
+    if (r === "mm") return "mmls";
+    return r;
+  }
+
+  // --- 4. VERIFICARE AUTENTIFICARE ȘI PRELUARE ROL REAL DIN DB ---
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const validRoles = ["superadmin", "admin", "isuls", "dsls", "mmls", "ssmls", "ssmmls"];
+
+        // Citim rolul REAL din Firestore
+        const userDocRef = doc(db, "utilizatori", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          const rawRole = (data.role || data.rol || "").toString().toLowerCase().trim();
+          const role = normalizeRole(rawRole);
+
+          if (validRoles.includes(rawRole) || validRoles.includes(role)) {
+            currentUserRole = role;
+            console.log(`[AUTH] Conectat ca ${user.email} cu gradul: ${currentUserRole}`);
+            
+            // Ascundem tab-urile celorlalte departamente
+            adjustFilterButtonsForRole(currentUserRole);
+
+            initFirestoreListener();
+          } else {
+            alert(`Acces interzis! Contul tău are rolul '${rawRole}' și nu are permisiuni de administrare.`);
+            window.location.href = "index.html"; 
+          }
+        } else {
+          alert("Contul tău nu a fost găsit în baza de date a administratorilor!");
+          window.location.href = "index.html";
+        }
+
+      } catch (error) {
+        console.error("Eroare la verificarea permisiunilor:", error);
+        alert("A apărut o eroare la verificarea contului: " + error.message);
+        window.location.href = "index.html";
+      }
+
+    } else {
+      window.location.href = "auth.html";
+    }
+  });
+
+  // Ascundem butoanele de filtrare pentru departamentele neautorizate
+  function adjustFilterButtonsForRole(role) {
+    if (role === "superadmin" || role === "admin") return;
+
+    filterButtons.forEach(btn => {
+      const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
+      const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls"];
+
+      if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
+        btn.style.display = "none";
+      }
+    });
+  }
+
+  // --- 5. LOGICĂ GENERARE COD ACCES ADMIN ---
+  if (btnGenerateCode) {
+    btnGenerateCode.addEventListener("click", async () => {
+      const selectedRole = inviteRoleSelect ? inviteRoleSelect.value : "isuls";
+      const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const newCode = `${selectedRole.toUpperCase()}-${randomStr}`;
+      
+      try {
+        const originalText = btnGenerateCode.textContent;
+        btnGenerateCode.textContent = "Se generează...";
+        btnGenerateCode.disabled = true;
+
+        await addDoc(collection(db, "invite_codes"), {
+          code: newCode,
+          role: selectedRole,
+          used: false,
+          created_at: new Date().toISOString(),
+          created_by: getCurrentAdminName()
+        });
+
+        if (generatedCodeDisplay) {
+          generatedCodeDisplay.style.color = "var(--accent-green)";
+          generatedCodeDisplay.innerHTML = `Cod generat: <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 6px; user-select: all;">${newCode}</span> <br><span style="font-size: 0.8rem; color: var(--text-secondary);">(Copiază-l și oferă-l adminului nou)</span>`;
+        }
+        
+        showToast("Cod generat și salvat cu succes!", "success");
+
+        btnGenerateCode.textContent = originalText;
+        btnGenerateCode.disabled = false;
+
+      } catch (error) {
+        console.error("Eroare la generarea codului: ", error);
+        if (generatedCodeDisplay) {
+          generatedCodeDisplay.textContent = "A apărut o eroare la salvarea codului.";
+          generatedCodeDisplay.style.color = "var(--error)";
+        }
+        showToast("Eroare la generarea codului.", "error");
+        btnGenerateCode.textContent = "Generează Cod";
+        btnGenerateCode.disabled = false;
+      }
+    });
+  }
+
+  // --- 6. ASCOLTĂTOR FIRESTORE PENTRU CERERI ---
+  function initFirestoreListener() {
+    const q = query(collection(db, "cereri"), orderBy("data_creare", "desc"));
+
+    onSnapshot(q, (snapshot) => {
+      allCereri = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+
+      renderCereri();
+    }, (error) => {
+      console.error("Eroare Firebase:", error);
+      if (cereriContainer) {
+        cereriContainer.innerHTML = `<div class="empty-state" style="color: var(--error);">Eroare la încărcarea datelor: ${error.message}</div>`;
+      }
+    });
+  }
+
+  // --- 7. ASCULTĂTORI BUTOANE FILTRARE ---
+  filterButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      filterButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentFilter = btn.getAttribute("data-filter") || btn.textContent.trim();
+      renderCereri();
+    });
+  });
+
+  // --- 8. RANDARE ȘI FILTRARE STRICTĂ PE ROL ȘI DEPARTAMENT ---
+  function renderCereri() {
+    if (!cereriContainer) return;
+    cereriContainer.innerHTML = "";
+
+    // 1. Filtrare strictă în funcție de rolul utilizatorului conectat
+    const roleAllowedCereri = allCereri.filter(item => {
+      if (currentUserRole === "superadmin" || currentUserRole === "admin") return true;
+
+      const allowedKeywords = ROLE_PERMISSIONS[currentUserRole] || [currentUserRole];
+      
+      const itemText = [
+        item.tip_cerere,
+        item.tip,
+        item.departament,
+        item.subdepartament,
+        item.categorie,
+        item.unitate,
+        item.numeAfacere
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
+    });
+
+    const activeCount = roleAllowedCereri.filter(c => c.status !== "in_cos" && !c.arhivat).length;
+    if (totalCountEl) totalCountEl.textContent = activeCount;
+
+    // 2. Filtrare secundară după tab-urile active (Așteptare, Arhivă, Coș etc.)
+    const filtered = roleAllowedCereri.filter(item => {
+      const status = (item.status || "in_asteptare").toString().toLowerCase();
+      const isArhivat = item.arhivat === true;
+
+      const filterRaw = (currentFilter || "all").toString().trim();
+      const filterNorm = filterRaw.toLowerCase();
+
+      if (filterNorm === "in_cos" || filterNorm.includes("cos") || filterNorm.includes("coș")) {
+        return status === "in_cos";
+      }
+      if (status === "in_cos") return false;
+
+      if (filterNorm === "arhivat" || filterNorm.includes("arhiva") || filterNorm.includes("arhivă")) {
+        return isArhivat;
+      }
+      if (isArhivat) return false;
+
+      if (filterNorm === "all" || filterNorm === "toate") return true;
+
+      if (filterNorm === "in_asteptare" || filterNorm.includes("asteptare") || filterNorm.includes("așteptare")) {
+        return status === "in_asteptare";
+      }
+
+      const itemText = [item.tip_cerere, item.tip, item.departament, item.subdepartament].filter(Boolean).join(" ").toLowerCase();
+      return itemText.includes(filterNorm);
+    });
+
+    if (filtered.length === 0) {
+      cereriContainer.innerHTML = `<div class="empty-state">Nu există cereri vizibile pentru filtrul selectat (${currentFilter.toUpperCase()}).</div>`;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const tip = item.tip_cerere || item.tip || "Cerere";
+      const status = item.status || "in_asteptare";
+
+      const tipNorm = tip.toLowerCase();
+      const isProgramare = tipNorm.includes("programar");
+      const isEveniment = tipNorm.includes("eveniment");
+
+      let badgeClass = "inregistrare";
+      if (isProgramare) badgeClass = "programare";
+      if (isEveniment) badgeClass = "eveniment";
+
+      let previewHTML = "";
+
+      if (isProgramare) {
+        previewHTML = `
+          <p><strong>Nume Proprietar</strong><span>${escapeHtml(item.proprietar || item.nume || '-')}</span></p>
+          <p><strong>Nume Afacere</strong><span>${escapeHtml(item.unitate || item.numeAfacere || '-')}</span></p>
+          <p><strong>Data & Ora</strong><span>${escapeHtml(item.dataProgramare || '-')} la ${escapeHtml(item.oraProgramare || '-')}</span></p>
+        `;
+      } else if (isEveniment) {
+        previewHTML = `
+          <p><strong>Cod Eveniment</strong><span>${escapeHtml(item.codEveniment || item.cod_eveniment || item.cod || '-')}</span></p>
+          <p><strong>Reprezentant</strong><span>${escapeHtml(item.proprietar || item.reprezentant || item.nume || '-')}</span></p>
+          <p><strong>Afacere / Tip</strong><span>${escapeHtml(item.unitate || item.numeAfacere || '-')} (${escapeHtml(item.tipSpatiu || item.tipBusiness || '-')})</span></p>
+          <p><strong>Data & Ora</strong><span>${escapeHtml(item.dataDorita || item.dataProgramare || '-')} la ${escapeHtml(item.oraDorita || item.oraProgramare || '-')}</span></p>
+        `;
+      } else {
+        previewHTML = `
+          <p><strong>Proprietar</strong><span>${escapeHtml(item.proprietar || item.nume || '-')}</span></p>
+          <p><strong>Unitate</strong><span>${escapeHtml(item.unitate || item.numeAfacere || '-')}</span></p>
+          <p><strong>Tip Spațiu</strong><span>${escapeHtml(item.tipSpatiu || item.tipBusiness || '-')}</span></p>
+        `;
+      }
+
+      const isTrashView = status === "in_cos";
+      const isArchiveView = item.arhivat === true;
+
+      let actionsHTML = "";
+      if (isTrashView) {
+        actionsHTML = `
+          <button class="btn-action btn-details" data-id="${item.id}">Detalii</button>
+          <button class="btn-action btn-restore" data-id="${item.id}">Restaurează</button>
+          <button class="btn-action btn-trash" data-id="${item.id}">Șterge Definitiv</button>
+        `;
+      } else if (isArchiveView) {
+        actionsHTML = `
+          <button class="btn-action btn-details" data-id="${item.id}">Detalii</button>
+          <button class="btn-action btn-unarchive" data-id="${item.id}">Desarhivează</button>
+          <button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>
+        `;
+      } else {
+        actionsHTML = `
+          <button class="btn-action btn-details" data-id="${item.id}">Detalii</button>
+          <button class="btn-action btn-approve" data-id="${item.id}">Acceptă</button>
+          <button class="btn-action btn-reject" data-id="${item.id}">Respinge</button>
+          <button class="btn-action btn-archive" data-id="${item.id}">Arhivează</button>
+          <button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>
+        `;
+      }
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="type-badge ${badgeClass}">${escapeHtml(tip)}</span>
+          <span class="status-badge ${status}">${formatStatus(status)}</span>
+        </div>
+        <div class="card-body">
+          ${previewHTML}
+        </div>
+        <div class="card-actions">
+          ${actionsHTML}
+        </div>
+      `;
+
+      cereriContainer.appendChild(card);
+    });
+
+    attachActionListeners();
+  }
+
+  function attachActionListeners() {
+    document.querySelectorAll(".btn-details").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-id");
+        const item = allCereri.find(c => c.id === id);
+        if (item) openDetailsModal(item);
+      });
+    });
+
+    document.querySelectorAll(".btn-approve").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await updateStatus(id, "aprobat", "Aprobat cererea");
+      });
+    });
+
+    document.querySelectorAll(".btn-reject").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await updateStatus(id, "respins", "Respins cererea");
+      });
+    });
+
+    document.querySelectorAll(".btn-archive").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await toggleArchive(id, true);
+      });
+    });
+
+    document.querySelectorAll(".btn-unarchive").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await toggleArchive(id, false);
+      });
+    });
+
+    document.querySelectorAll(".btn-trash").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const item = allCereri.find(c => c.id === id);
+
+        if (item && item.status === "in_cos") {
+          pendingDeleteId = id;
+          if (confirmModal) confirmModal.classList.add("active");
+        } else {
+          await updateStatus(id, "in_cos", "Mutat în Coș");
+          showToast("Cererea a fost mutată în Coșul de Gunoi.", "warning");
+        }
+      });
+    });
+
+    document.querySelectorAll(".btn-restore").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        await updateStatus(id, "in_asteptare", "Restaurat cererea");
+        showToast("Cererea a fost restaurată cu succes!", "success");
+      });
+    });
+  }
+
+  async function toggleArchive(id, shouldArchive) {
+    const adminName = getCurrentAdminName();
+    const timestamp = new Date().toLocaleString("ro-RO");
+
+    try {
+      await updateDoc(doc(db, "cereri", id), {
+        arhivat: shouldArchive,
+        procesat_de: `${adminName} (${shouldArchive ? 'Arhivat' : 'Desarhivat'})`,
+        data_procesare: timestamp
+      });
+      showToast(shouldArchive ? "Cererea a fost mutată în Arhivă." : "Cererea a fost desarhivată.", "success");
+    } catch (e) {
+      console.error(e);
+      showToast("Eroare la salvarea modificării.", "error");
+    }
+  }
+
+  async function updateStatus(id, newStatus, actionName) {
+    const adminName = getCurrentAdminName();
+    const timestamp = new Date().toLocaleString("ro-RO");
+
+    try {
+      await updateDoc(doc(db, "cereri", id), {
+        status: newStatus,
+        procesat_de: `${adminName} (${actionName})`,
+        data_procesare: timestamp
+      });
+      if (newStatus !== "in_cos") {
+        showToast(`Status actualizat: ${formatStatus(newStatus)}`, "success");
+      }
+    } catch (e) {
+      console.error(e);
+      showToast("Eroare la salvarea modificării.", "error");
+    }
+  }
+
+  function closeConfirmModal() {
+    if (confirmModal) confirmModal.classList.remove("active");
+    pendingDeleteId = null;
+  }
+
+  if (confirmCancelBtn) confirmCancelBtn.addEventListener("click", closeConfirmModal);
+  if (confirmCloseBtn) confirmCloseBtn.addEventListener("click", closeConfirmModal);
+
+  if (confirmOkBtn) {
+    confirmOkBtn.addEventListener("click", async () => {
+      if (pendingDeleteId) {
+        try {
+          await deleteDoc(doc(db, "cereri", pendingDeleteId));
+          showToast("Cererea a fost ștearsă definitiv.", "error");
+        } catch (e) {
+          showToast("Eroare la ștergerea definitivă.", "error");
+        }
+        closeConfirmModal();
+      }
+    });
+  }
+
+  // --- 9. MODAL DETALII ---
+  function openDetailsModal(item) {
+    currentOpenItem = item;
+    const tipNorm = (item.tip_cerere || item.tip || "Înregistrare").toLowerCase();
+    const isProgramare = tipNorm.includes("programar");
+    const isEveniment = tipNorm.includes("eveniment");
+
+    const codUnic = item.codEveniment || item.cod_eveniment || item.cod || "PCLS-000000";
+    if (detailsCodeTag) {
+      detailsCodeTag.textContent = codUnic;
+    }
+
+    const userAction = item.procesat_de 
+      ? `${item.procesat_de} pe ${item.data_procesare || '-'}` 
+      : "Nicio acțiune";
+
+    let fields = [
+      { label: "Status Curent", value: formatStatus(item.status || "in_asteptare") },
+      { label: "Procesată de User", value: userAction, highlight: true },
+      { label: "Proprietar / Reprezentant", value: item.proprietar || item.reprezentant || item.nume, full: true }
+    ];
+
+    if (isEveniment) {
+      fields.push(
+        { label: "Cod Eveniment", value: item.codEveniment || item.cod_eveniment || item.cod },
+        { label: "CNP (ID)", value: item.cnp || item.idJucator || item.cnp_id },
+        { label: "Nume Afacere", value: item.unitate || item.numeAfacere },
+        { label: "Tip Business", value: item.tipSpatiu || item.tipBusiness },
+        { label: "Data & Ora", value: `${item.dataDorita || item.dataProgramare || '-'} la ${item.oraDorita || item.oraProgramare || '-'}` },
+        { label: "Telefon Contact", value: item.tel || item.telefon },
+        { label: "Nume / ID Discord", value: item.discord || item.numeDiscord },
+        { label: "Locație / Adresă", value: item.adresa || item.locatie || item.detalii, full: true }
+      );
+    } else if (isProgramare) {
+      fields.push(
+        { label: "Nume Afacere", value: item.unitate || item.numeAfacere },
+        { label: "Tip Business", value: item.tipSpatiu || item.tipBusiness },
+        { label: "Data & Ora", value: `${item.dataProgramare || '-'} la ${item.oraProgramare || '-'}` },
+        { label: "Telefon Contact", value: item.tel || item.telefon },
+        { label: "Nume / ID Discord", value: item.discord || item.numeDiscord },
+        { label: "Detalii Extra", value: item.detalii, full: true }
+      );
+    } else {
+      fields.push(
+        { label: "Unitate / Afacere", value: item.unitate || item.numeAfacere },
+        { label: "Tip Spațiu", value: item.tipSpatiu || item.tipBusiness },
+        { label: "Adresă Locație", value: item.adresa || item.detalii || item.locatie, full: true },
+        { label: "Telefon Contact", value: item.tel || item.telefon },
+        { label: "Nume / ID Discord", value: item.discord || item.numeDiscord }
+      );
+    }
+
+    if (detailsContainer) {
+      detailsContainer.innerHTML = fields.map(f => {
+        return `
+          <div class="details-item ${f.full ? 'full-width' : ''} ${f.highlight ? 'highlight-user' : ''}">
+            <label>${f.label}</label>
+            <span>${escapeHtml(f.value || '-')}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    if (detailsTrashBtn) {
+      if (item.status === "in_cos") {
+        detailsTrashBtn.textContent = "Șterge Definitiv";
+      } else {
+        detailsTrashBtn.textContent = "🗑️ Mută în Coș";
+      }
+    }
+
+    if (detailsModal) detailsModal.classList.add("active");
+  }
+
+  function closeDetailsModal() {
+    if (detailsModal) detailsModal.classList.remove("active");
+    currentOpenItem = null;
+  }
+
+  if (detailsClose) detailsClose.addEventListener("click", closeDetailsModal);
+  if (detailsCloseBtn) detailsCloseBtn.addEventListener("click", closeDetailsModal);
+
+  if (detailsTrashBtn) {
+    detailsTrashBtn.addEventListener("click", async () => {
+      if (!currentOpenItem) return;
+      const id = currentOpenItem.id;
+
+      if (currentOpenItem.status === "in_cos") {
+        pendingDeleteId = id;
+        closeDetailsModal();
+        if (confirmModal) confirmModal.classList.add("active");
+      } else {
+        await updateStatus(id, "in_cos", "Mutat în Coș din Detalii");
+        closeDetailsModal();
+        showToast("Cererea a fost mutată în Coșul de Gunoi.", "warning");
+      }
+    });
+  }
+
+  // --- 10. FUNCȚII AJUTĂTOARE ---
+  function formatStatus(status) {
+    switch (status) {
+      case "aprobat": return "Aprobat";
+      case "respins": return "Respins";
+      case "in_cos": return "Coș de Gunoi";
+      case "in_asteptare": default: return "În Așteptare";
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function showToast(message, type = "success") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    
+    let title = "Notificare";
+    if (type === "success") title = "Succes";
+    if (type === "warning") title = "Atenție";
+    if (type === "error") title = "Eroare";
+
+    toast.innerHTML = `
+      <div class="toast-icon">
+        ${type === 'success' ? '✓' : type === 'error' ? '✕' : '!'}
+      </div>
+      <div class="toast-content">
+        <div class="toast-title">${title}</div>
+        <div class="toast-message">${escapeHtml(message)}</div>
+      </div>
+      <div class="toast-progress"></div>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 3500);
+  }
+</script>
+</body>
+</html>

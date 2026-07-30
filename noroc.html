@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programare S.S.M.L.S</title>
+    <title>Cerere Eveniment PCLS</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -16,6 +16,7 @@
             --surface-bg: rgba(255, 255, 255, 0.02);
             --surface-border: rgba(255, 255, 255, 0.06);
             --input-bg: rgba(0, 0, 0, 0.2);
+            --glass-blur: blur(10px);
         }
 
         * {
@@ -38,7 +39,6 @@
             background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.05) 0%, transparent 60%);
         }
 
-                                /* Controale Flotante */
         .floating-btn {
             position: fixed;
             display: flex;
@@ -46,8 +46,8 @@
             justify-content: center;
             background: rgba(15, 17, 16, 0.85);
             backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--border-light);
-            color: var(--text-main);
+            border: 1px solid var(--surface-border);
+            color: var(--text-primary);
             text-decoration: none;
             z-index: 2000;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -64,19 +64,6 @@
             letter-spacing: 1px;
         }
 
-        .btn-top {
-            bottom: 30px; right: 30px;
-            width: 54px; height: 54px;
-            border-radius: 50%;
-            opacity: 0; visibility: hidden;
-            transform: translateY(20px);
-        }
-
-        .btn-top.show {
-            opacity: 1; visibility: visible;
-            transform: translateY(0);
-        }
-
         .floating-btn svg {
             width: 20px; height: 20px;
             fill: none; stroke: currentColor; stroke-width: 2;
@@ -86,12 +73,11 @@
         .floating-btn:hover {
             border-color: var(--accent);
             color: var(--accent);
-            box-shadow: 0 10px 25px var(--accent-dim);
+            box-shadow: 0 10px 25px rgba(0, 255, 163, 0.2);
             transform: translateY(-3px);
         }
 
         .btn-back:hover svg { transform: translateX(-4px); transition: transform 0.3s; }
-        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
 
         .container {
             width: 100%;
@@ -113,6 +99,11 @@
             text-align: center;
         }
 
+        h4 span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
         form {
             width: 100%;
             background: var(--surface-bg);
@@ -126,17 +117,12 @@
             gap: 20px;
         }
 
-        /* Aliniere Grid Simetrică pentru S.S.M.L.S */
         form input[name="NUME"],
         form input[name="ID"],
         form input[name="NUME AFACERE"],
         form input[name="TIP BUSSINES"],
         form input[name="NUMAR DE TEL"],
         form input[name="DAY"],
-        form input[name="NAME"],
-        form input[name="NUMBER"],
-        form input[name="NAME2"],
-        form input[name="NUMBER2"],
         .date-container {
             grid-column: span 1;
         }
@@ -285,14 +271,13 @@
             width: 100%;
         }
 
-        /* --- Scurtătură Calendar Webkit --- */
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
             opacity: 0.4;
             cursor: pointer;
         }
 
-        /* --- STILURI MODALE (POP-UP) --- */
+        /* MODAL ALERTE */
         #alert-overlay {
             position: fixed;
             inset: 0;
@@ -309,8 +294,8 @@
             left: 50%;
             transform: translate(-50%, -50%) scale(0.95);
             width: 100%;
-            max-width: 400px;
-            padding: 50px 40px;
+            max-width: 440px;
+            padding: 40px 30px;
             border-radius: 24px;
             background: #0a0a0a;
             text-align: center;
@@ -320,15 +305,8 @@
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        #alert-box {
-            border: 1px solid var(--surface-border);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-        }
-
-        #error-box {
-            border: 1px solid rgba(255, 60, 100, 0.3);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 60, 100, 0.05);
-        }
+        #alert-box { border: 1px solid var(--surface-border); box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+        #error-box { border: 1px solid rgba(255, 60, 100, 0.3); box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
 
         #alert-box.show, #error-box.show {
             opacity: 1;
@@ -347,48 +325,97 @@
             font-size: 0.95rem;
             color: var(--text-secondary);
             font-weight: 300;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
             line-height: 1.5;
         }
 
-        #alert-box button {
+        .code-generator-section {
+            background: rgba(0, 255, 163, 0.05);
+            border: 1px dashed rgba(0, 255, 163, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .code-generator-section p {
+            margin-bottom: 15px !important;
+            color: var(--text-primary) !important;
+            font-size: 0.9rem !important;
+            font-weight: 400 !important;
+        }
+
+        .code-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--surface-border);
+            padding: 12px 20px;
+            border-radius: 8px;
+        }
+
+        #generated-code {
+            font-family: monospace;
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        #copy-code-btn {
+            background: transparent !important;
+            border: none !important;
+            color: var(--text-secondary) !important;
+            padding: 5px !important;
+            width: auto !important;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #copy-code-btn:hover {
+            color: var(--accent) !important;
+            transform: scale(1.1);
+        }
+
+        .copy-feedback {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .copy-feedback.show { opacity: 1; }
+
+        #alert-box > button, #error-box button {
             width: 100%;
             padding: 16px;
             border-radius: 12px;
-            border: none;
-            background: var(--surface-bg);
-            border: 1px solid var(--surface-border);
-            color: var(--text-primary);
             font-size: 0.95rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        #alert-box button:hover {
-            background: var(--text-primary);
-            color: #000;
+        #alert-box > button {
+            border: 1px solid var(--surface-border);
+            background: var(--surface-bg);
+            color: var(--text-primary);
         }
+
+        #alert-box > button:hover { background: var(--text-primary); color: #000; }
 
         #error-box button {
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            border: none;
-            background: rgba(255, 60, 100, 0.1);
             border: 1px solid var(--error);
+            background: rgba(255, 60, 100, 0.1);
             color: var(--error);
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        #error-box button:hover {
-            background: var(--error);
-            color: #000;
-            box-shadow: 0 8px 25px rgba(255, 60, 100, 0.3);
-        }
+        #error-box button:hover { background: var(--error); color: #000; }
 
         .date-hint {
             display: block;
@@ -400,7 +427,7 @@
 
         .alert-icon { width: 64px; height: 64px; margin: 0 auto; }
         .alert-icon svg { width: 100%; height: 100%; display: block; }
-        
+
         .circle { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
         .check { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
         
@@ -410,11 +437,6 @@
         @keyframes drawCircle { to { stroke-dashoffset: 0; } }
         @keyframes drawCheck { to { stroke-dashoffset: 0; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-main); }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         @media (max-width: 768px) {
             form { grid-template-columns: 1fr; padding: 30px 24px; }
@@ -431,44 +453,35 @@
     </a>
     
     <div class="container">
-        <h4>Programare S.S.M.L.S.</h4>
+        <h4>Organizare <span>Eveniment</span></h4>
         <form name="contact-form" id="contact-form">
             <input type="text" name="NUME" placeholder="Numele reprezentantului" required>
             <input type="number" name="ID" placeholder="CNP (ID)" required>
-            
             <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
-            <input type="text" name="TIP BUSSINES" placeholder="Menționează tipul de Business" required>
-            
-            <input type="text" name="NUMAR DE TEL" placeholder="Număr de telefon (ex. 123-4567)" required maxlength="8">
-            <input type="text" name="DAY" placeholder="Menționează ora dorită pentru programare">
-            
+            <input type="text" name="TIP BUSSINES" placeholder="Tip Business (ex. Bar, Club, Restaurant)" required>
+            <input type="text" name="NUMAR DE TEL" placeholder="Număr de telefon organizator (ex. 123-4567)" required maxlength="8">
+            <input type="text" name="DAY" placeholder="Menționează ora eventului (ex. 14:00)" required>
             <div class="date-container">
                 <input type="date" name="DATA" id="dataProgramare" required>
             </div>
-            
-            <input type="text" name="NAME" placeholder="Numele Primului Reprezentant" required>
-            <input type="text" name="NUMBER" placeholder="Numărul de telefon al Primului Reprezentant" required maxlength="8">
-            <input type="text" name="NAME2" placeholder="Numele și Prenumele la al 2-lea Reprezentant" required>
-            <input type="text" name="NUMBER2" placeholder="Numărul de telefon la al 2-lea Reprezentant" required maxlength="8">
-
-            <input type="text" name="EMAIL" placeholder="Discord ID -> click dreapta pe poza de discord -> copy ID" required>
-            <textarea name="DETALII" rows="5" placeholder="Puteți atașa un link cu poza locației de pe hartă"></textarea>
+            <input type="text" name="EMAIL" placeholder="Discord ID (Copy User ID)" required>
+            <textarea name="DETALII" rows="5" placeholder="Locația unde se va desfășura eventul" required></textarea>
             
             <label class="custom-checkbox">
                 <input type="checkbox" required>
                 <span class="checkmark"></span>
-                Am primit confirmarea de înregistrare a afacerii din partea unui Secretar PCLS prin email!
+                Sunt conștient că evenimentul trebuie să fie aprobat de către PCLS înainte de a fi promovat!
             </label>
             <label class="custom-checkbox">
                 <input type="checkbox" required>
                 <span class="checkmark"></span>
-                Sunt conștient că Instructajul va avea loc la spitalul din Roxwood!
+                Sunt conștient că trebuie să achit suma de 100.000$ pentru a putea organiza evenimentul!
             </label>
 
-            <span class="date-hint">* Programarea nu se poate face în aceeași zi.</span>
+            <span class="date-hint">* Sunt de acord cu cele de mai sus.</span>
             <input type="submit" value="Trimite Formularul" id="submit">
         </form>
-        <small>Copyright © 2025 Tristan</small>
+        <small>Copyright © 2026 Tristan</small>
     </div>
     
     <div id="alert-overlay"></div>
@@ -480,8 +493,23 @@
                 <path class="check" d="M14 27 L22 35 L38 18" />
             </svg>
         </div>
-        <h2>Cerere Înregistrată</h2>
-        <p>Informațiile au fost transmise cu succes către sistemul nostru. Veți fi contactat în scurt timp.</p>
+        <h2>Cerere Trimisă</h2>
+        <p>Verificați statusul cererii înainte de a face pasul următor către PR.</p>
+        
+        <div class="code-generator-section">
+            <p>Acesta este codul eventului tău, trimite acest cod către echipa PR:</p>
+            <div class="code-display">
+                <span id="generated-code">---</span>
+                <button type="button" id="copy-code-btn" title="Copiază codul">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </div>
+            <span id="copy-feedback" class="copy-feedback">Cod copiat în clipboard!</span>
+        </div>
+
         <button id="close-alert">Finalizare</button>
     </div>
 
@@ -497,101 +525,178 @@
         <button id="close-error">OK</button>
     </div>
 
-    <script>
-        // Securitate bază
-        document.addEventListener("contextmenu", e => e.preventDefault());
-        document.addEventListener("keydown", function (e) {
-            if (
-                e.key === "F12" ||
-                (e.ctrlKey && e.shiftKey && e.key === "I") ||
-                (e.ctrlKey && e.shiftKey && e.key === "J") ||
-                (e.ctrlKey && e.key === "U")
-            ) {
-                e.preventDefault();
+    <script type="module">
+    import { db } from "./firebase-config.js";
+    // CORECTAT: Versiunea SDK aliniată la 10.7.1
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Securitate bază
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", function (e) {
+        if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && e.key === "I") ||
+            (e.ctrlKey && e.shiftKey && e.key === "J") ||
+            (e.ctrlKey && e.key === "U")
+        ) {
+            e.preventDefault();
+        }
+    });
+
+    // Formatează telefonul
+    const phoneInputs = document.querySelectorAll('input[name="NUMAR DE TEL"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7);
             }
+            e.target.value = value;
         });
+    });
 
-        // Formatează telefonul ca xxx-xxxx pentru TOATE câmpurile de telefon
-        const phoneInputs = document.querySelectorAll('input[name="NUMAR DE TEL"], input[name="NUMBER"], input[name="NUMBER2"]');
-        phoneInputs.forEach(input => {
-            input.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 3) {
-                    value = value.slice(0, 3) + '-' + value.slice(3, 7);
-                }
-                e.target.value = value;
-            });
-        });
+    const form = document.getElementById('contact-form') || document.querySelector('form');
+    const dateInput = document.getElementById('dataProgramare');
+    const webhookUrl = "https://discord.com/api/webhooks/1532120388652236870/Q0nGwcaFVKthjL9rXYXerkBLh8_u45cydn0eiucziMkWuyyv8o0rMzrpu4nCbo2W12Kf";
 
-        const form = document.getElementById('contact-form');
-        const dateInput = document.getElementById('dataProgramare');
-        // Webhook-ul pentru S.S.M.L.S
-        const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD";
-
-        // Configurare dată minimă: doar de mâine încolo
+    if (dateInput) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         dateInput.min = tomorrow.toISOString().split('T')[0];
+    }
 
-        // Management Modale Premium
-        const overlay = document.getElementById("alert-overlay");
-        const alertBox = document.getElementById("alert-box");
-        const errorBox = document.getElementById("error-box");
-        const errorText = document.getElementById("error-text");
+    const overlay = document.getElementById("alert-overlay");
+    const alertBox = document.getElementById("alert-box");
+    const errorBox = document.getElementById("error-box");
+    const errorText = document.getElementById("error-text") || document.getElementById("error-message");
 
-        function showSuccess() {
-            overlay.style.display = "block";
-            alertBox.classList.add("show");
+    function generateRandomCode() {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = 'PCLS-';
+        for (let i = 0; i < 6; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
+        return result;
+    }
 
-        function showError(message) {
-            errorText.innerText = message;
-            overlay.style.display = "block";
-            errorBox.classList.add("show");
-        }
+    function showSuccess(eventCode) {
+        const codeEl = document.getElementById("generated-code");
+        if (codeEl) codeEl.innerText = eventCode;
+        if (overlay) overlay.style.display = "block";
+        if (alertBox) alertBox.classList.add("show");
+    }
 
-        function closeModals() {
-            overlay.style.display = "none";
-            alertBox.classList.remove("show");
-            errorBox.classList.remove("show");
-        }
+    function showError(message) {
+        if (errorText) errorText.innerText = message;
+        if (overlay) overlay.style.display = "block";
+        if (errorBox) errorBox.classList.add("show");
+    }
 
-        document.getElementById("close-alert").addEventListener("click", closeModals);
-        document.getElementById("close-error").addEventListener("click", closeModals);
-        overlay.addEventListener("click", closeModals);
+    function closeModals() {
+        if (overlay) overlay.style.display = "none";
+        if (alertBox) alertBox.classList.remove("show");
+        if (errorBox) errorBox.classList.remove("show");
+    }
 
-        // Submit Formular + Validări Corecte
+    const closeAlertBtn = document.getElementById("close-alert");
+    if (closeAlertBtn) {
+        closeAlertBtn.addEventListener("click", () => {
+            closeModals();
+            window.location.reload();
+        });
+    }
+
+    const closeErrorBtn = document.getElementById("close-error");
+    if (closeErrorBtn) closeErrorBtn.addEventListener("click", closeModals);
+    if (overlay) overlay.addEventListener("click", closeModals);
+
+    const copyBtn = document.getElementById("copy-code-btn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", async () => {
+            const codeEl = document.getElementById("generated-code");
+            const codeToCopy = codeEl ? codeEl.innerText : "";
+            try {
+                await navigator.clipboard.writeText(codeToCopy);
+                const feedback = document.getElementById("copy-feedback");
+                if (feedback) {
+                    feedback.classList.add("show");
+                    setTimeout(() => { feedback.classList.remove("show"); }, 2500);
+                }
+            } catch (err) {
+                console.error("Eroare la copiere: ", err);
+            }
+        });
+    }
+
+    if (form) {
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const formData = new FormData(form);
 
-            // Validare dată selectată
-            const selectedDate = new Date(formData.get("DATA"));
-            selectedDate.setHours(0, 0, 0, 0);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const dataVal = formData.get("DATA");
+            if (dataVal) {
+                const selectedDate = new Date(dataVal);
+                selectedDate.setHours(0, 0, 0, 0);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-            if (selectedDate <= today) {
-                showError("Nu poți selecta ziua de azi. Alege o dată viitoare.");
-                return;
+                if (selectedDate <= today) {
+                    showError("Nu poți selecta ziua de azi. Alege o dată viitoare.");
+                    return;
+                }
             }
 
-            // Validare strictă ID Discord
-            const discordId = formData.get("EMAIL").trim();
+            const discordId = (formData.get("EMAIL") || "").trim();
             if (!/^\d{17,20}$/.test(discordId)) {
-                showError("ID Discord invalid");
+                showError("ID Discord invalid. Introdu un ID format doar din cifre.");
                 return;
             }
 
-            // Pregătire Payload Discord Embed pentru S.S.M.L.S
-            const embedData = {
-                username: "SSMLS Bot",
-                content: "<@&1461105499276574911>", // Pune ping-ul de rol corect aici dacă diferă
-                embeds: [
-                    {
-                        title: ":pushpin: O nouă programare S.S.M.L.S a fost înregistrată!",
-                        color: 65443, // Culoarea accentului (00ffa3 transformat in int)
+            const uniqueEventCode = generateRandomCode();
+            const submitBtn = document.getElementById("submit") || form.querySelector("input[type='submit'], button[type='submit']");
+            const originalText = submitBtn ? submitBtn.value : "";
+
+            try {
+                if (submitBtn) {
+                    submitBtn.value = "Se trimite...";
+                    submitBtn.disabled = true;
+                }
+
+                // SALVARE ÎN FIREBASE (Populează Meniul de Admin)
+                await addDoc(collection(db, "cereri"), {
+                    tip_cerere: "Eveniment",
+                    cod_eveniment: uniqueEventCode,
+                    cod: uniqueEventCode,
+                    nume: formData.get("NUME") || "-",
+                    proprietar: formData.get("NUME") || "-",
+                    cnp_id: formData.get("ID") || "-",
+                    unitate: formData.get("NUME AFACERE") || "-",
+                    numeAfacere: formData.get("NUME AFACERE") || "-",
+                    tipSpatiu: formData.get("TIP BUSSINES") || "Eveniment",
+                    tel: formData.get("NUMAR DE TEL") || "-",
+                    telefon: formData.get("NUMAR DE TEL") || "-",
+                    discord: discordId,
+                    numeDiscord: discordId,
+                    detalii: formData.get("DETALII") || "-",
+                    adresa: formData.get("DETALII") || "-",
+                    locatie: formData.get("DETALII") || "-",
+                    dataProgramare: formData.get("DATA") || "-",
+                    oraProgramare: formData.get("DAY") || "-",
+                    status: "in_asteptare",
+                    arhivat: false,
+                    created_at: new Date().toISOString(),
+                    data_creare: serverTimestamp()
+                });
+
+                // DISCORD WEBHOOK
+                const embedData = {
+                    username: "PCLS Bot",
+                    content: "<@&1178785139472474164>",
+                    embeds: [{
+                        title: ":pushpin: O nouă cerere a fost trimisă!",
+                        color: 65443,
                         fields: [
+                            { name: "Cod Eveniment", value: `\`${uniqueEventCode}\``, inline: false },
                             { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
                             { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
                             { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
@@ -599,37 +704,34 @@
                             { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
                             { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
                             { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
-                            { name: "Nume Primul Reprezentant", value: formData.get("NAME") || "N/A", inline: false },
-                            { name: "Telefon Primul Reprezentant", value: formData.get("NUMBER") || "N/A", inline: false },
-                            { name: "Nume al 2-lea Reprezentant", value: formData.get("NAME2") || "N/A", inline: false },
-                            { name: "Telefon al 2-lea Reprezentant", value: formData.get("NUMBER2") || "N/A", inline: false },
                             { name: "Discord ID", value: `<@${discordId}>`, inline: false },
-                            { name: "Detalii extra / Locație", value: formData.get("DETALII") || "N/A", inline: false }
+                            { name: "Locație", value: formData.get("DETALII") || "N/A", inline: false }
                         ],
-                        footer: { text: "Programare S.S.M.L.S" },
+                        footer: { text: "" + new Date().toLocaleDateString() },
                         timestamp: new Date().toISOString()
-                    }
-                ]
-            };
+                    }]
+                };
 
-            try {
-                const response = await fetch(webhookUrl, {
+                await fetch(webhookUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(embedData)
                 });
 
-                if (response.ok) {
-                    showSuccess();
-                    form.reset();
-                } else {
-                    showError("Eroare la trimiterea către Discord.");
-                }
+                showSuccess(uniqueEventCode);
+                form.reset();
+
             } catch (error) {
-                console.error(error);
-                showError("A apărut o eroare la trimiterea mesajului.");
+                console.error("Eroare:", error);
+                showError("A apărut o eroare la salvarea cererii: " + error.message);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.value = originalText;
+                    submitBtn.disabled = false;
+                }
             }
         });
-    </script>
+    }
+</script>
 </body>
 </html>

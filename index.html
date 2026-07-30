@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Programări PCLS | Portal Oficial</title>
     <style>
-        :root {
+:root {
             --bg: #080a0d;
             --bg-raised: #10141a;
             --bg-soft: #161b22;
@@ -20,9 +20,8 @@
             --coral: #ff6b6b;
             --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
             --radius: 8px;
-            --accent: #35f2ad; /* Alege culoarea ta */
+            --accent: #35f2ad;
             --accent-dim: rgba(53, 242, 173, 0.4);
-
         }
 
         * {
@@ -49,7 +48,6 @@
             transition: width 0.1s ease;
         }
 
-        /* Scrollbar Premium */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { 
@@ -114,78 +112,223 @@
             margin: 0 auto;
         }
 
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            padding: 17px 0;
-            padding-left: 10px;
-            padding-right: 10px;
-            backdrop-filter: blur(18px);
+       /* =========================================
+   HEADER STYLING & PERFECT ALIGNMENT
+   ========================================= */
+.topbar-modern {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    background: rgba(8, 10, 13, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.topbar-container {
+    width: min(1200px, calc(100% - 40px));
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 76px;
+    gap: 20px;
+}
+
+.brand-premium {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.brand-logo-wrapper {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+}
+
+.brand-logo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.brand-text strong {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.1;
+}
+
+.brand-text span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--mint);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.nav-premium {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.nav-item {
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+    color: var(--text);
+}
+
+.header-actions-premium {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+/* User Profile Component */
+.user-profile-premium {
+    position: relative;
+}
+
+.profile-btn-premium {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.profile-btn-premium:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--mint);
+    color: #040806;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+/* Dropdown Menu */
+.profile-dropdown-premium {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 250px;
+    background: #10141a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1100;
+}
+
+.profile-dropdown-premium.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-user-info {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.dropdown-user-info span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.dropdown-user-info strong {
+    display: block;
+    font-size: 0.88rem;
+    color: var(--text);
+    word-break: break-all;
+    margin-top: 2px;
+}
+
+.dropdown-item-premium {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.dropdown-item-premium:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+}
+
+.dropdown-item-premium svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 6px 0;
+}
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
-        .brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
-        }
-
-        .brand img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-        }
-
-        .brand strong,
-        .brand span {
-            display: block;
-            white-space: nowrap;
-        }
-
-        .brand strong {
-            font-size: 1rem;
-            font-weight: 800;
-        }
-
-        .brand span {
-            color: var(--muted);
-            font-size: 0.82rem;
-            margin-top: 2px;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 6px;
-            background: rgba(16, 20, 26, 0.72);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--radius);
-        }
-
-        .nav-links a {
-            color: var(--mint);
-            font-size: 0.92rem;
-            font-weight: 700;
-            padding: 10px 14px;
-            border-radius: 6px;
-            transition: color 0.2s ease, background 0.2s ease;
-        }
-
-        .nav-links a:hover,
-        .nav-links a:focus-visible {
-            color: var(--text);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        /* 1. Setările de bază ale butonului */
-        .top-action,
+        /* =========================================
+           BUTOANE GENERICE (PAGINĂ)
+           ========================================= */
         .button-link,
         .ghost-link {
             display: inline-flex;
@@ -196,17 +339,12 @@
             border-radius: var(--radius);
             border: 1px solid transparent;
             cursor: pointer;
-            
-            /* Liniile noi pentru efectul Pro: */
             position: relative; 
             overflow: hidden; 
             z-index: 1;
-            
-            /* Tranziție foarte fină */
             transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        .top-action,
         .button-link {
             color: #03100b;
             background: var(--mint);
@@ -215,8 +353,6 @@
             box-shadow: 0 4px 15px rgba(53, 242, 173, 0.15);
         }
 
-        /* 2. Creăm unda de lumină (invizibilă inițial, așezată în stânga) */
-        .top-action::after,
         .button-link::after {
             content: '';
             position: absolute;
@@ -235,27 +371,20 @@
             z-index: -1;
         }
 
-        /* 3. Efectul la Hover (plutire + trece lumina) */
-        .top-action:hover,
         .button-link:hover,
-        .top-action:focus-visible,
         .button-link:focus-visible {
             background: #68ffd2;
             box-shadow: 0 14px 28px rgba(53, 242, 173, 0.35), 0 0 12px rgba(53, 242, 173, 0.2);
         }
 
-        /* Declansăm mutarea luminii de la stânga la dreapta */
-        .top-action:hover::after,
         .button-link:hover::after {
             left: 150%;
         }
 
-        /* 4. Efectul la Click (se strânge fizic ca un buton real) */
-        .top-action:active,
         .button-link:active {
-            transform: scale(0.95); /* Se micșorează 5% */
+            transform: scale(0.95);
             box-shadow: 0 2px 8px rgba(53, 242, 173, 0.1);
-            transition: all 0.1s ease; /* Reacționează instant la click */
+            transition: all 0.1s ease;
         }
 
         .ghost-link {
@@ -273,17 +402,9 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .icon {
-            width: 20px;
-            height: 20px;
-            flex: 0 0 20px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
+        /* =========================================
+           SECTIUNEA HERO
+           ========================================= */
         .portal-hero {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 440px;
@@ -371,6 +492,9 @@
             line-height: 1.45;
         }
 
+        /* =========================================
+           STATUS SI TABLOU (DREAPTA HERO)
+           ========================================= */
         .emblem-stage {
             display: flex;
             flex-direction: column;
@@ -417,15 +541,9 @@
         }
 
         @keyframes pulse-dot {
-            0% {
-                box-shadow: 0 0 0 0 rgba(6, 18, 13, 5); 
-            }
-            70% {
-                box-shadow: 0 0 0 6px rgba(1, 18, 13, 0); /* Unda se extinde în exterior */
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(6, 18, 13, 0);
-            }
+            0% { box-shadow: 0 0 0 0 rgba(6, 18, 13, 5); }
+            70% { box-shadow: 0 0 0 6px rgba(1, 18, 13, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(6, 18, 13, 0); }
         }
 
         .emblem-wrap {
@@ -470,6 +588,9 @@
             text-align: right;
         }
 
+        /* =========================================
+           ACTIUNI RAPIDE
+           ========================================= */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -479,10 +600,10 @@
 
         .action-tile {
             min-height: 156px;
-            display: flex; /* Am schimbat din grid in flex */
-            flex-direction: column; /* Așază iconița deasupra textului */
-            justify-content: center; /* Centrează perfect pe verticală */
-            align-items: center; /* Centrează perfect pe orizontală */
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
             gap: 14px;
             padding: 18px;
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -490,7 +611,7 @@
             background: rgba(16, 20, 26, 0.72);
             color: var(--text);
             cursor: pointer;
-            text-align: center; /* Aliniază textul pe centru, nu la stânga */
+            text-align: center; 
             transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
         }
 
@@ -511,17 +632,9 @@
             background: var(--mint);
         }
 
-        .action-tile:nth-child(2) .tile-icon {
-            background: var(--gold);
-        }
-
-        .action-tile:nth-child(3) .tile-icon {
-            background: var(--blue);
-        }
-
-        .action-tile:nth-child(4) .tile-icon {
-            background: var(--coral);
-        }
+        .action-tile:nth-child(2) .tile-icon { background: var(--gold); }
+        .action-tile:nth-child(3) .tile-icon { background: var(--blue); }
+        .action-tile:nth-child(4) .tile-icon { background: var(--coral); }
 
         .tile-copy {
             min-width: 0;
@@ -540,6 +653,9 @@
             line-height: 1.45;
         }
 
+        /* =========================================
+           SERVICII SI GRID
+           ========================================= */
         .section-heading {
             display: flex;
             align-items: end;
@@ -613,19 +729,17 @@
             place-items: center;
             justify-self: center;
             border-radius: var(--radius);
-            
-
             background: transparent; 
             border: none; 
         }
 
-
         .service-icon img {
-            width: 65px; /* Ajustează această valoare dacă vrei logo-urile mai mari sau mai mici */
+            width: 65px; 
             height: 65px;
-            object-fit: contain; /* Această regulă este vitală: previne deformarea imaginilor */
+            object-fit: contain; 
             display: block;
         }
+
         .service-card > span:not(.service-icon):not(.service-footer) {
             grid-column: 2;
             grid-row: 1;
@@ -654,9 +768,12 @@
             font-size: 0.92rem;
         }
 
+        /* =========================================
+           PROCES SI PASI
+           ========================================= */
         .process-band {
-            display: flex; /* Schimbat din grid în flex */
-            flex-direction: column; /* Așază titlul sus și cardurile jos, pe toată lățimea */
+            display: flex; 
+            flex-direction: column; 
             gap: 30px;
             padding: 34px;
             border: 1px solid rgba(255,255,255,.1);
@@ -687,16 +804,13 @@
             grid-template-columns: 42px 1fr;
             gap: 14px;
             align-items: start;
-
             width: 100%;
-            min-height: auto; /* Scoate înălțimea minimă forțată de 180px */
-            padding: 14px; /* Redu padding-ul (spațiul interior) de la 20px la 16px sau chiar 12px */
-            gap: 8px; /* Poți micșora și distanța dintre iconiță și text */
-
+            min-height: auto; 
+            padding: 14px; 
+            gap: 8px; 
             border: 1px solid rgba(255, 255, 255, 0.09);
             border-radius: var(--radius);
             background: rgba(0, 0, 0, 0.16);
-
             box-sizing: border-box;
         }
 
@@ -721,20 +835,23 @@
         }
 
         .step strong {
-            grid-column: 2; /* Obligă titlul să stea în dreapta iconiței */
-            align-self: center; /* Centrează titlul perfect pe mijlocul iconiței */
+            grid-column: 2; 
+            align-self: center; 
             font-size: 1.15rem;
             margin: 0;
         }
 
         .step span {
-            grid-column: 1 / span 2; /* Întinde textul pe toată lățimea sub iconiță și titlu */
-            margin-top: 10px; /* Lasă spațiu între titlu și descriere */
+            grid-column: 1 / span 2; 
+            margin-top: 10px; 
             color: var(--muted);
             font-size: 0.95rem;
             line-height: 1.5;
         }
 
+        /* =========================================
+           FOOTER
+           ========================================= */
         .site-footer {
             display: flex;
             align-items: center;
@@ -767,6 +884,9 @@
             color: var(--text);
         }
 
+        /* =========================================
+           MODAL SI DEPARTAMENTE
+           ========================================= */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -875,7 +995,54 @@
             font-size: 0.88rem;
             line-height: 1.45;
         }
+        
+        /* =========================================
+           BUTON FLOATING SCROLL
+           ========================================= */
+        .btn-top {
+            bottom: 30px; right: 30px;
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            opacity: 0; visibility: hidden;
+            transform: translateY(20px);
+        }
 
+        .btn-top.show {
+            opacity: 1; visibility: visible;
+            transform: translateY(0);
+        }
+        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
+        
+        .floating-btn {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 17, 16, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--line);
+            color: var(--text);
+            text-decoration: none;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .floating-btn svg {
+            width: 20px; height: 20px;
+            fill: none; stroke: currentColor; stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .floating-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 10px 25px var(--accent-dim);
+            transform: translateY(-3px);
+        }
+
+        /* =========================================
+           MEDIA QUERIES (ADAPTABILITATE)
+           ========================================= */
         @media (max-width: 1040px) {
             .portal-hero {
                 grid-template-columns: 1fr;
@@ -901,25 +1068,27 @@
             }
         }
 
+        @media (max-width: 900px) {
+            .nav-premium {
+                display: none; 
+            }
+            
+            .topbar-container {
+                height: auto;
+                padding: 16px 0;
+                flex-wrap: wrap;
+            }
+            
+            .header-actions-premium {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 10px;
+            }
+        }
+
         @media (max-width: 760px) {
             .page-shell {
                 width: min(100% - 28px, 1180px);
-            }
-
-            .topbar {
-                align-items: stretch;
-                flex-direction: column;
-                padding: 14px 0;
-            }
-
-            .nav-links {
-                order: 3;
-                overflow-x: auto;
-                justify-content: flex-start;
-            }
-
-            .top-action {
-                width: 100%;
             }
 
             .portal-hero {
@@ -952,15 +1121,14 @@
 
             .service-grid {
                 display: grid;
-                grid-template-columns: repeat(2, 1fr); /* Creează exact 2 coloane egale */
-                gap: 24px; /* Spațiul dintre carduri, ajustează-l cum dorești */
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 24px; 
             }
 
-            /* Această regulă anulează lățimile inegale ale primelor carduri */
             .service-card, 
             .service-card.featured, 
             .service-card.wide {
-                grid-column: span 1 !important; /* Forțează fiecare card să ocupe fix o singură celulă din grilă */
+                grid-column: span 1 !important; 
                 width: 100%;
             }
 
@@ -986,8 +1154,8 @@
         }
 
         @media (max-width: 460px) {
-            .brand strong,
-            .brand span {
+            .brand-text strong,
+            .brand-text span {
                 white-space: normal;
             }
 
@@ -1033,74 +1201,38 @@
                 text-align: left;
             }
         }
-
-        .btn-top {
-            bottom: 30px; right: 30px;
-            width: 54px; height: 54px;
-            border-radius: 50%;
-            opacity: 0; visibility: hidden;
-            transform: translateY(20px);
-        }
-
-        .btn-top.show {
-            opacity: 1; visibility: visible;
-            transform: translateY(0);
-        }
-        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
-        .floating-btn {
-            position: fixed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(15, 17, 16, 0.85);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--border-light);
-            color: var(--text-main);
-            text-decoration: none;
-            z-index: 2000;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .floating-btn svg {
-            width: 20px; height: 20px;
-            fill: none; stroke: currentColor; stroke-width: 2;
-            stroke-linecap: round; stroke-linejoin: round;
-        }
-
-        .floating-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 10px 25px var(--accent-dim);
-            transform: translateY(-3px);
-        }
     </style>
 </head>
 <body>
-
     <div id="progress-bar"></div>
     <a href="#" id="scrollTopBtn" class="floating-btn btn-top">
         <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
     </a>
 
-    <header class="topbar page-shell">
-        <a class="brand" href="index.html" aria-label="Programări PCLS">
-            <img src="politia.png" alt="Logo PCLS">
-            <span>
+    <header class="topbar-modern">
+    <div class="topbar-container">
+        <a class="brand-premium" href="index.html">
+            <div class="brand-logo-wrapper">
+                <img src="politia.png" alt="PCLS Logo">
+            </div>
+            <div class="brand-text">
                 <strong>Programări PCLS</strong>
-                <span>Protecția Consumatorilor Los Santos</span>
-            </span>
+                <span>Protecția Consumatorilor</span>
+            </div>
         </a>
 
-        <nav class="nav-links" aria-label="Navigare principală">
-            <a href="#servicii">Servicii</a>
-            <a href="#proces">Proces</a>
-            <a href="ghid_pcls.html">Ghid PCLS</a>
+        <nav class="nav-premium">
+            <a href="#servicii" class="nav-item">Servicii</a>
+            <a href="#proces" class="nav-item">Proces</a>
+            <a href="ghid_pcls.html" class="nav-item">Ghid PCLS</a>
         </nav>
 
-        <a class="top-action" href="pcls_page.html">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-5"></path></svg>
-            Programare
-        </a>
-    </header>
+        <div class="header-actions-premium">
+            <div id="auth-section-premium"></div>
+
+        </div>
+    </div>
+</header>
 
     <main>
         <section class="portal-hero page-shell" id="start">
@@ -1122,7 +1254,9 @@
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v20"></path><path d="M3.4 11h17"></path></svg>
                     Cereri medicale
                     </button>
-
+                    <a class="ghost-link" href="noroc.html">
+                    <span>Cerere Jocuri De Noroc</span>
+                </a>
                 </div>
 
                 <div class="hero-meta" aria-label="Rezumat portal">
@@ -1335,83 +1469,183 @@
         </section>
 
     </div>
+<script type="module">
+    import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <script>
-        const modal = document.getElementById("medicalModal");
-        const openButtons = document.querySelectorAll("[data-open-medical]");
-        const closeButton = document.querySelector("[data-close-medical]");
+const authSection = document.getElementById("auth-section-premium");
 
-        function openMedicalModal() {
-            modal.classList.add("active");
-            modal.setAttribute("aria-hidden", "false");
-            closeButton.focus();
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const emailPart = user.email ? user.email.split('@')[0] : "User";
+        const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
+        const initial = displayName.charAt(0).toUpperCase();
+        
+        let isAdmin = false;
+
+        try {
+            const userDocRef = doc(db, "utilizatori", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            const validRoles = ["superadmin", "admin", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
+
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                const userRole = (data.role || data.rol || "").toString().toLowerCase().trim();
+
+                if (validRoles.includes(userRole)) {
+                    isAdmin = true;
+                }
+            }
+        } catch (error) {
+            console.error("Eroare la citirea rolului:", error);
+            isAdmin = false;
         }
 
-        function closeMedicalModal() {
+        if (authSection) {
+            authSection.innerHTML = `
+                <div class="user-profile-premium">
+                    <button class="profile-btn-premium" id="profileToggle">
+                        <span>Salut, ${displayName}</span>
+                        <div class="profile-avatar">${initial}</div>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    
+                    <div class="profile-dropdown-premium" id="profileDropdown">
+                        <div class="dropdown-user-info">
+                            <span>Conectat cu adresa</span>
+                            <strong>${user.email}</strong>
+                        </div>
+                        
+                        <div class="dropdown-divider"></div>
+
+                        ${isAdmin ? `
+                        <a href="admin.html" class="dropdown-item-premium">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                            Cereri Admin / Panou
+                        </a>` : ''}
+                        
+                        <a href="setari.html" class="dropdown-item-premium">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            Setări cont
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <button id="btnLogout" class="dropdown-item-premium" style="color: #ff6b6b;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                            Deconectare
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const profileToggle = document.getElementById("profileToggle");
+            const profileDropdown = document.getElementById("profileDropdown");
+
+            profileToggle.addEventListener("click", (e) => {
+                e.stopPropagation(); 
+                profileDropdown.classList.toggle("show");
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!profileToggle.contains(e.target) && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.remove("show");
+                }
+            });
+
+            document.getElementById("btnLogout").addEventListener("click", () => {
+                signOut(auth).then(() => window.location.reload());
+            });
+        }
+    } else {
+        if (authSection) {
+            authSection.innerHTML = `
+                <a href="auth.html" class="btn-login-premium" style="color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 8px 18px; border-radius: 99px; background: rgba(255,255,255,0.05);">
+                    Autentificare
+                </a>
+            `;
+        }
+    }
+});
+
+    // --- 3. LOGICA PENTRU MODAL, BARA DE SCROLL, BUTON SUS ȘI REVEAL ---
+    
+    // Modal
+    const modal = document.getElementById("medicalModal");
+    const openButtons = document.querySelectorAll("[data-open-medical]");
+    const closeButton = document.querySelector("[data-close-medical]");
+
+    function openMedicalModal() {
+        if(modal) {
+            modal.classList.add("active");
+            modal.setAttribute("aria-hidden", "false");
+            if(closeButton) closeButton.focus();
+        }
+    }
+
+    function closeMedicalModal() {
+        if(modal) {
             modal.classList.remove("active");
             modal.setAttribute("aria-hidden", "true");
         }
+    }
 
-        openButtons.forEach((button) => {
-            button.addEventListener("click", openMedicalModal);
-        });
-
+    if(openButtons) {
+        openButtons.forEach((button) => button.addEventListener("click", openMedicalModal));
+    }
+    if(closeButton) {
         closeButton.addEventListener("click", closeMedicalModal);
-
+    }
+    if(modal) {
         modal.addEventListener("click", (event) => {
-            if (event.target === modal) {
-                closeMedicalModal();
-            }
+            if (event.target === modal) closeMedicalModal();
         });
+    }
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal && modal.classList.contains("active")) {
+            closeMedicalModal();
+        }
+    });
 
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape" && modal.classList.contains("active")) {
-                closeMedicalModal();
-            }
-        });
+    // Bară progres scroll
+    window.addEventListener('scroll', () => {
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = (scrollTop / scrollHeight) * 100;
+        const progressBar = document.getElementById('progress-bar');
+        if(progressBar) progressBar.style.width = progress + '%';
+    });
+    
+    // Buton Back-to-Top
+    const scrollBtn = document.getElementById("scrollTopBtn");
+    window.addEventListener("scroll", () => {
+        if(scrollBtn) {
+            if (window.scrollY > 500) scrollBtn.classList.add("show");
+            else scrollBtn.classList.remove("show");
+        }
+    });
 
-        // 1. Progress Bar pe Scroll
-        window.addEventListener('scroll', () => {
-            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const progress = (scrollTop / scrollHeight) * 100;
-            document.getElementById('progress-bar').style.width = progress + '%';
-        });
-        
-        const scrollBtn = document.getElementById("scrollTopBtn");
-        window.addEventListener("scroll", () => {
-            if (window.scrollY > 500) {
-                scrollBtn.classList.add("show");
-            } else {
-                scrollBtn.classList.remove("show");
-            }
-        });
-
+    if(scrollBtn) {
         scrollBtn.addEventListener("click", (e) => {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
+    }
 
-        // 3. Reveal Animations (Intersection Observer)
-        const revealElements = document.querySelectorAll('.reveal');
-        
-        const revealCallback = (entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                    observer.unobserve(entry.target); 
-                }
-            });
-        };
-
-        const revealOptions = {
-            threshold: 0.1, 
-            rootMargin: "0px 0px -50px 0px" 
-        };
-
-        const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
-        
-        revealElements.forEach(el => revealObserver.observe(el));
-    </script>
+    // Animații Reveal la scroll
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealCallback = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+                observer.unobserve(entry.target); 
+            }
+        });
+    };
+    const revealOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+    const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
+    revealElements.forEach(el => revealObserver.observe(el));
+</script>
 </body>
 </html>

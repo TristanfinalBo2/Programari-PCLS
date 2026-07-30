@@ -27,9 +27,9 @@
         font-family: 'Outfit', sans-serif;
         background-color: var(--bg-main);
         color: var(--text-primary);
-        height: 100vh;
+        min-height: 100vh;
         width: 100vw;
-        overflow: hidden !important; /* Fără scroll pe body */
+        overflow-x: hidden;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -37,60 +37,42 @@
         background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.05) 0%, transparent 60%);
     }
 
-                            /* Controale Flotante */
-        .floating-btn {
-            position: fixed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(15, 17, 16, 0.85);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--border-light);
-            color: var(--text-main);
-            text-decoration: none;
-            z-index: 2000;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    /* Controale Flotante */
+    .floating-btn {
+        position: fixed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 17, 16, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        text-decoration: none;
+        z-index: 2000;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-        .btn-back {
-            top: 30px; left: 30px;
-            padding: 12px 24px;
-            border-radius: 30px;
-            gap: 10px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .btn-back {
+        top: 30px; left: 30px;
+        padding: 12px 24px;
+        border-radius: 30px;
+        gap: 10px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 
-        .btn-top {
-            bottom: 30px; right: 30px;
-            width: 54px; height: 54px;
-            border-radius: 50%;
-            opacity: 0; visibility: hidden;
-            transform: translateY(20px);
-        }
+    .floating-btn svg {
+        width: 20px; height: 20px;
+        fill: none; stroke: currentColor; stroke-width: 2;
+        stroke-linecap: round; stroke-linejoin: round;
+    }
 
-        .btn-top.show {
-            opacity: 1; visibility: visible;
-            transform: translateY(0);
-        }
-
-        .floating-btn svg {
-            width: 20px; height: 20px;
-            fill: none; stroke: currentColor; stroke-width: 2;
-            stroke-linecap: round; stroke-linejoin: round;
-        }
-
-        .floating-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 10px 25px var(--accent-dim);
-            transform: translateY(-3px);
-        }
-
-        .btn-back:hover svg { transform: translateX(-4px); transition: transform 0.3s; }
-        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
+    .floating-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-3px);
+    }
 
     .container {
         width: 100%;
@@ -100,12 +82,13 @@
         align-items: center;
         justify-content: center;
         animation: fadeIn 0.8s ease-out;
+        padding: 60px 20px;
     }
 
     h4 {
         font-weight: 400;
         font-size: 2.2rem;
-        margin-bottom: 30px; /* Redus pentru a face loc formularului */
+        margin-bottom: 30px;
         color: var(--text-primary);
         letter-spacing: -0.5px;
         text-align: center;
@@ -123,20 +106,13 @@
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--surface-border);
         border-radius: 20px;
-        padding: 40px 50px; /* Spații ajustate */
-        /* Ascundem scrollbar-ul complet */
-        -ms-overflow-style: none;  
-        scrollbar-width: none;  
-    }
-
-    .form-wrapper::-webkit-scrollbar {
-        display: none; /* Ascunde scrollbar-ul pe Chrome/Safari */
+        padding: 40px 50px;
     }
 
     form {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px; /* Gap puțin mai mic pentru potrivire perfectă */
+        gap: 20px;
         width: 100%;
     }
 
@@ -185,7 +161,7 @@
     }
 
     textarea {
-        resize: none; /* Fără posibilitatea de a trage de el pentru a nu strica layout-ul */
+        resize: none;
         height: 100px;
     }
 
@@ -250,7 +226,6 @@
         display: block;
     }
 
-    /* Noul Buton Submit - Solid, Premium, Clean */
     #submit {
         margin-top: 10px;
         opacity: 0.8;
@@ -272,11 +247,7 @@
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(0, 255, 163, 0.25);
         background-color: #00e592;
-    }
-
-    #submit:active {
-        transform: translateY(0);
-        box-shadow: 0 4px 10px rgba(0, 255, 163, 0.15);
+        opacity: 1;
     }
 
     small {
@@ -289,13 +260,11 @@
         text-align: center;
     }
 
-    /* Overlays și Alerte (neschimbate) */
     #alert-overlay {
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
         z-index: 9998;
         display: none;
     }
@@ -317,15 +286,8 @@
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    #alert-box {
-        border: 1px solid var(--surface-border);
-        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-    }
-
-    #error-box {
-        border: 1px solid rgba(255, 60, 100, 0.3);
-        box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 60, 100, 0.05);
-    }
+    #alert-box { border: 1px solid var(--surface-border); box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+    #error-box { border: 1px solid rgba(255, 60, 100, 0.3); box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
 
     #alert-box.show, #error-box.show {
         opacity: 1;
@@ -333,59 +295,17 @@
         transform: translate(-50%, -50%) scale(1);
     }
 
-    #alert-box h2, #error-box h2 {
-        margin: 24px 0 12px;
-        color: var(--text-primary);
-        font-size: 1.5rem;
-        font-weight: 500;
-    }
+    #alert-box h2, #error-box h2 { margin: 24px 0 12px; color: var(--text-primary); font-size: 1.5rem; font-weight: 500; }
+    #alert-box p, #error-box p { font-size: 0.95rem; color: var(--text-secondary); font-weight: 300; margin-bottom: 32px; line-height: 1.5; }
 
-    #alert-box p, #error-box p {
-        font-size: 0.95rem;
-        color: var(--text-secondary);
-        font-weight: 300;
-        margin-bottom: 32px;
-        line-height: 1.5;
+    #alert-box button, #error-box button {
+        width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease;
     }
+    #alert-box button { background: var(--surface-bg); border: 1px solid var(--surface-border); color: var(--text-primary); }
+    #alert-box button:hover { background: var(--text-primary); color: #000; }
 
-    #alert-box button {
-        width: 100%;
-        padding: 16px;
-        border-radius: 12px;
-        border: none;
-        background: var(--surface-bg);
-        border: 1px solid var(--surface-border);
-        color: var(--text-primary);
-        font-size: 0.95rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    #alert-box button:hover {
-        background: var(--text-primary);
-        color: #000;
-    }
-
-    #error-box button {
-        width: 100%;
-        padding: 16px;
-        border-radius: 12px;
-        border: none;
-        background: rgba(255, 60, 100, 0.1);
-        border: 1px solid var(--error);
-        color: var(--error);
-        font-size: 0.95rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    #error-box button:hover {
-        background: var(--error);
-        color: #000;
-        box-shadow: 0 8px 25px rgba(255, 60, 100, 0.3);
-    }
+    #error-box button { background: rgba(255, 60, 100, 0.1); border: 1px solid var(--error); color: var(--error); }
+    #error-box button:hover { background: var(--error); color: #000; }
 
     .alert-icon { width: 64px; height: 64px; margin: 0 auto; }
     .circle { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
@@ -398,12 +318,11 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     @media (max-width: 768px) {
-        .container { padding: 0 24px; }
+        .container { padding: 80px 24px 40px; }
         form input[name="NUME"], form input[name="NUME AFACERE"], form input[name="TIP BUSSINES"], form input[name="NUMAR DE TEL"], form input[name="DATA"], form input[name="DATE"] {
             grid-column: span 2;
         }
-        .back-arrow { top: 20px; left: 20px; font-size: 0.8rem; }
-        h4 { font-size: 1.8rem; margin-top: 40px; }
+        h4 { font-size: 1.8rem; }
         .form-wrapper { padding: 30px 24px; }
     }
   </style>
@@ -411,15 +330,15 @@
 
 <body>
   <a href="index.html" class="floating-btn btn-back">
-        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Înapoi
-    </a>
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Înapoi
+  </a>
   
   <div class="container">
     <h4>Programare <span>P.C.L.S</span></h4>
 
     <div class="form-wrapper">
-        <form method="post" id="contact-form" action="javascript:void(0);">
+        <form id="contact-form">
           <input type="text" name="NUME" placeholder="Nume Proprietar (Obligatoriu)" required>
           <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
           
@@ -429,7 +348,7 @@
           <input type="text" name="DATE" placeholder="Data programării" required>
           <input type="text" name="DATA" placeholder="Ora programării (până în 20:00)" required>
           
-          <input type="number" name="EMAIL" placeholder="Discord ID (Copy User ID)" required>
+          <input type="text" name="EMAIL" placeholder="Discord ID (Copy User ID)" required>
           
           <textarea name="DETALII" placeholder="Detalii adiționale (opțional)"></textarea>
 
@@ -474,113 +393,145 @@
     <button id="close-error">Încearcă din nou</button>
   </div>
 
-<script>
-document.addEventListener("contextmenu", e => e.preventDefault());
+  <script type="module">
+import { db } from "./firebase-config.js";
+    // CORECTAT: Versiunea SDK aliniată la 10.7.1
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-document.addEventListener("keydown", function (e) {
-    if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && e.key === "I") ||
-        (e.ctrlKey && e.shiftKey && e.key === "J") ||
-        (e.ctrlKey && e.key === "U")
-    ) {
-        e.preventDefault();
-    }
-});
-
-const phoneInput = document.getElementById('NUMAR_TEL');
-phoneInput.addEventListener('input', function (e) {
-    let value = e.target.value.replace(/\D/g, ''); 
-    if (value.length > 3) {
-        value = value.slice(0, 3) + '-' + value.slice(3, 7); 
-    }
-    e.target.value = value;
-});
-
-const form = document.getElementById('contact-form');
-
-const alertBox = document.getElementById("alert-box");
-const errorBox = document.getElementById("error-box");
-const overlay = document.getElementById("alert-overlay");
-const closeBtn = document.getElementById("close-alert");
-const closeErrorBtn = document.getElementById("close-error");
-const errorMessage = document.getElementById("error-message");
-
-function showAlert(){
-  overlay.style.display = "block";
-  alertBox.classList.add("show");
-}
-
-function showErrorAlert(msg){
-  errorMessage.textContent = msg; 
-  overlay.style.display = "block";
-  errorBox.classList.add("show");
-}
-
-function hideAlert(){
-  overlay.style.display = "none";
-  alertBox.classList.remove("show");
-  errorBox.classList.remove("show");
-}
-
-closeBtn.addEventListener("click", hideAlert);
-closeErrorBtn.addEventListener("click", hideAlert);
-overlay.addEventListener("click", hideAlert);
-
-const webhookUrl = "https://discord.com/api/webhooks/1300582034913235124/3X146f6kbTxl8jMonlRQePqR5UPYBKoGMLxRmzqLvZ-QAxWif2e0T6OBZ1ZetHEQaaBT"; 
-
-form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const formData = new FormData(event.target);
-    const data = {
-        content: `:date:  *O noua cere de Programare a fost facuta:  :date: <@&1266069081413386332>*
--------------------------------------
-**1) Nume Prenume: ${formData.get("NUME")}
-
- 2) Numele afacerii: ${formData.get("NUME AFACERE")}
-
- 3) Tipul de bussines: ${formData.get("TIP BUSSINES")}
-
- 4) Numar de telefon: ${formData.get("NUMAR DE TEL")}
-
- 5) Discord: <@${formData.get("EMAIL")}>
-
- 6) Data dorita: ${formData.get("DATE")}
-
- 7) Ora Dorita: ${formData.get("DATA")}
-
- 8) Detalii Extra: ${formData.get("DETALII")}**`
-    };
-
-    const discordId = formData.get("EMAIL");
-
-    if (!/^\d{17,20}$/.test(discordId)) {
-        showErrorAlert("ID Discord invalid. Te rugăm să introduci un ID corect și să încerci din nou.");
-        return;
-    }
-
-    try {
-        const response = await fetch(webhookUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-            showAlert();
-        } else {
-            showErrorAlert("A apărut o eroare la trimiterea mesajului către server.");
+    // Prevenire dev tools
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", function (e) {
+        if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && e.key === "I") ||
+            (e.ctrlKey && e.shiftKey && e.key === "J") ||
+            (e.ctrlKey && e.key === "U")
+        ) {
+            e.preventDefault();
         }
-    } catch (error) {
-        console.error("Error:", error);
-        showErrorAlert("A apărut o eroare neașteptată. Vă rugăm să verificați conexiunea.");
-    }
-});
+    });
 
-closeBtn.addEventListener('click', () => {
-    window.location.reload();
-});
-</script>
+    // Formatare Telefon cu verificare
+    const phoneInput = document.getElementById('NUMAR_TEL');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); 
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7); 
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Elemente Notificări UI
+    const form = document.getElementById('contact-form');
+    const alertBox = document.getElementById("alert-box");
+    const errorBox = document.getElementById("error-box");
+    const overlay = document.getElementById("alert-overlay");
+    const closeBtn = document.getElementById("close-alert");
+    const closeErrorBtn = document.getElementById("close-error");
+    const errorMessage = document.getElementById("error-message");
+
+    function showAlert(){
+      if (overlay) overlay.style.display = "block";
+      if (alertBox) alertBox.classList.add("show");
+    }
+
+    function showErrorAlert(msg){
+      if (errorMessage) errorMessage.textContent = msg; 
+      if (overlay) overlay.style.display = "block";
+      if (errorBox) errorBox.classList.add("show");
+    }
+
+    function hideAlert(){
+      if (overlay) overlay.style.display = "none";
+      if (alertBox) alertBox.classList.remove("show");
+      if (errorBox) errorBox.classList.remove("show");
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            hideAlert();
+            if (form) form.reset();
+            window.location.reload();
+        });
+    }
+    if (closeErrorBtn) closeErrorBtn.addEventListener("click", hideAlert);
+    if (overlay) overlay.addEventListener("click", hideAlert);
+
+    const webhookUrl = "https://discord.com/api/webhooks/1300582034913235124/3X146f6kbTxl8jMonlRQePqR5UPYBKoGMLxRmzqLvZ-QAxWif2e0T6OBZ1ZetHEQaaBT"; 
+
+    if (form) {
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const discordId = (formData.get("EMAIL") || "").trim();
+
+            if (!/^\d{17,20}$/.test(discordId)) {
+                showErrorAlert("ID Discord invalid. Te rugăm să introduci un ID format doar din cifre (ex: 123456789012345678).");
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit');
+            const originalText = submitBtn ? submitBtn.value : "";
+            if (submitBtn) {
+                submitBtn.value = "Se trimite...";
+                submitBtn.style.opacity = "0.5";
+                submitBtn.disabled = true;
+            }
+
+            try {
+                // 1. Salvare structurată în Firebase Firestore cu tipul "Programare"
+                await addDoc(collection(db, "cereri"), {
+                    tip_cerere: "Programare",
+                    nume: formData.get("NUME") || "-",
+                    proprietar: formData.get("NUME") || "-",
+                    unitate: formData.get("NUME AFACERE") || "-",
+                    numeAfacere: formData.get("NUME AFACERE") || "-",
+                    tipSpatiu: formData.get("TIP BUSSINES") || "-",
+                    tel: formData.get("NUMAR DE TEL") || "-",
+                    dataProgramare: formData.get("DATE") || "-",
+                    oraProgramare: formData.get("DATA") || "-",
+                    discord: discordId,
+                    detalii: formData.get("DETALII") || "Fără detalii",
+                    status: "in_asteptare",
+                    arhivat: false,
+                    created_at: new Date().toISOString(),
+                    data_creare: serverTimestamp()
+                });
+
+                // 2. Trimitere pe Discord Webhook
+                const dataDiscord = {
+                    content: `:date:  *O noua cerere de Programare a fost facuta:  :date: <@&1266069081413386332>*\n-------------------------------------\n**1) Nume Prenume:** ${formData.get("NUME")}\n\n**2) Numele afacerii:** ${formData.get("NUME AFACERE")}\n\n**3) Tipul de business:** ${formData.get("TIP BUSSINES")}\n\n**4) Numar de telefon:** ${formData.get("NUMAR DE TEL")}\n\n**5) Discord:** <@${discordId}>\n\n**6) Data dorita:** ${formData.get("DATE")}\n\n**7) Ora Dorita:** ${formData.get("DATA")}\n\n**8) Detalii Extra:** ${formData.get("DETALII")}`
+                };
+
+                await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dataDiscord)
+                });
+
+                if (submitBtn) {
+                    submitBtn.value = originalText;
+                    submitBtn.style.opacity = "1";
+                    submitBtn.disabled = false;
+                }
+
+                showAlert();
+
+            } catch (error) {
+                console.error("Eroare trimitere programare:", error);
+                showErrorAlert("A apărut o eroare la trimitere: " + error.message);
+                
+                if (submitBtn) {
+                    submitBtn.value = originalText;
+                    submitBtn.style.opacity = "1";
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+    }
+  </script>
 </body>
 </html>
