@@ -38,20 +38,18 @@
                 radial-gradient(circle at 80% 80%, rgba(0, 150, 255, 0.03) 0%, transparent 40%);
         }
 
-        /* CARD MAI LAT */
         .auth-box {
             background: var(--card-bg);
             border: 1px solid var(--surface-border);
             border-radius: 20px;
             padding: 44px 40px;
             width: 100%;
-            max-width: 480px; /* Mărit de la 420px la 480px */
+            max-width: 480px;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
             position: relative;
         }
 
-        /* Top Header */
         .auth-header {
             text-align: center;
             margin-bottom: 32px;
@@ -82,7 +80,6 @@
             color: var(--accent-green);
         }
 
-        /* Mesaj Status */
         #mesaj {
             text-align: center;
             margin-bottom: 22px;
@@ -93,7 +90,6 @@
             transition: all 0.2s ease;
         }
 
-        /* Form Controls */
         .form-group {
             margin-bottom: 22px;
         }
@@ -106,6 +102,14 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--text-secondary);
+        }
+
+        .label-optional {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: none;
+            font-weight: 400;
+            margin-left: 5px;
         }
 
         .input-wrapper {
@@ -149,9 +153,8 @@
             background: #0f1210;
         }
 
-        /* REZOLVARE BUG OCHIȘOR PAROLĂ */
         .password-container input {
-            padding-right: 50px; /* Spațiu dedicat pentru ochișor */
+            padding-right: 50px;
         }
 
         .toggle-password {
@@ -177,7 +180,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* Buttons */
         .actions {
             margin-top: 30px;
             display: flex;
@@ -220,11 +222,6 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        button:active {
-            transform: scale(0.98);
-        }
-
-        /* Back Link */
         a.back-link {
             color: var(--text-secondary);
             text-decoration: none;
@@ -286,6 +283,18 @@
                 </button>
             </div>
         </div>
+
+        <div class="form-group">
+            <label for="codAcces">Cheiță Acces <span class="label-optional">(Doar pt. creare cont / Lăsați gol pt. grad Membru)</span></label>
+            <div class="input-wrapper">
+                <div class="input-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                    </svg>
+                </div>
+                <input type="text" id="codAcces" placeholder="Ex: ADMIN-123XYZ (Generat din panou)" autocomplete="off">
+            </div>
+        </div>
         
         <div class="actions">
             <button id="btnLogin" class="btn-main">Autentificare</button>
@@ -302,16 +311,17 @@
     </div>
 
     <script type="module">
-        import { auth } from "./firebase-config.js";
-        import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+       import { auth, db } from "./firebase-config.js";
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, setDoc, getDocs, updateDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const emailInput = document.getElementById('email');
         const parolaInput = document.getElementById('parola');
+        const codInput = document.getElementById('codAcces');
         const mesajDiv = document.getElementById('mesaj');
         const togglePassword = document.getElementById('togglePassword');
         const eyeIcon = document.getElementById('eyeIcon');
 
-        // SVG Icon Toggle
         const eyeOpenSVG = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
         const eyeClosedSVG = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
 
@@ -321,22 +331,80 @@
             eyeIcon.innerHTML = isPassword ? eyeClosedSVG : eyeOpenSVG;
         });
 
-        // Înregistrare
+        // ==========================================
+        // LOGICA DE ÎNREGISTRARE CU VERIFICARE COD
+        // ==========================================
         document.getElementById('btnRegister').addEventListener('click', async () => {
             try {
+                if(!emailInput.value || !parolaInput.value) {
+                    throw new Error("Te rog completează email-ul și parola.");
+                }
+
                 mesajDiv.style.color = "var(--accent-green)";
+                mesajDiv.textContent = "Se validează datele...";
+
+                let rolAtribuit = "user"; // Rolul standard dacă nu bagă cod
+                let codId = null;
+                const codIntrodus = codInput.value.trim();
+
+                // 1. Verificăm codul dacă a fost introdus ceva în câmp
+                if (codIntrodus !== "") {
+                    // Căutăm în colecția "invite_codes" (Așa cum e în baza ta de date)
+                    const q = query(
+                        collection(db, "invite_codes"), 
+                        where("code", "==", codIntrodus), 
+                        where("used", "==", false)
+                    );
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        throw new Error("Codul de acces este invalid sau a fost deja folosit!");
+                    }
+
+                    // Dacă codul e bun, preluăm datele
+                    const documentCod = querySnapshot.docs[0];
+                    rolAtribuit = documentCod.data().role; // Preluăm "role" (nu "rol")
+                    codId = documentCod.id; 
+                }
+
+                // 2. Creăm contul în Firebase Auth
                 mesajDiv.textContent = "Se creează contul...";
-                await createUserWithEmailAndPassword(auth, emailInput.value, parolaInput.value);
+                const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value, parolaInput.value);
+                const user = userCredential.user;
+
+                // 3. Salvăm profilul în baza de date cu rolul aferent
+                await setDoc(doc(db, "utilizatori", user.uid), {
+                    email: user.email,
+                    role: rolAtribuit, // Aici îi dă gradul corect (ex: isuls, admin)
+                    stare: "Activ",
+                    createdAt: new Date().toISOString()
+                });
+
+                // 4. Invalidăm codul în baza de date (dacă a fost folosit unul)
+                if (codId) {
+                    await updateDoc(doc(db, "invite_codes", codId), {
+                        used: true,
+                        used_by: user.email // Opțional: ca să vezi cine l-a folosit în consolă
+                    });
+                }
+
                 window.location.href = "index.html";
             } catch (error) {
                 mesajDiv.style.color = "var(--error)";
                 mesajDiv.textContent = error.message.replace("Firebase: ", "");
             }
         });
+        
 
-        // Conectare
+        // ==========================================
+        // LOGICA DE CONECTARE
+        // ==========================================
         document.getElementById('btnLogin').addEventListener('click', async () => {
             try {
+                if(!emailInput.value || !parolaInput.value) {
+                    throw new Error("Te rog completează email-ul și parola.");
+                }
+
                 mesajDiv.style.color = "var(--accent-green)";
                 mesajDiv.textContent = "Se conectează...";
                 await signInWithEmailAndPassword(auth, emailInput.value, parolaInput.value);

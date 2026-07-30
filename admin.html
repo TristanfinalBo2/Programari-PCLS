@@ -538,16 +538,16 @@
     </div>
   </div>
 
-  <div style="background: var(--card-bg); border: 1px solid var(--surface-border); padding: 24px; border-radius: 14px; margin-top: 30px;">
+<div id="admin-generator-section" style="background: var(--card-bg); border: 1px solid var(--surface-border); padding: 24px; border-radius: 14px; margin-top: 30px; display: none;">
   <h2 style="font-size: 1.2rem; margin-bottom: 16px;">Generare Cod Acces Admin Nou</h2>
   <div style="display: flex; gap: 12px; flex-wrap: wrap;">
     <select id="invite-role-select" style="background: var(--surface-bg); border: 1px solid var(--surface-border); color: #fff; padding: 10px 14px; border-radius: 8px; color-scheme: dark; cursor: pointer; outline: none;">
-  <option value="isuls" style="background: #0a0c0b; color: #fff;">Rol: ISULS</option>
-  <option value="dsls" style="background: #0a0c0b; color: #fff;">Rol: DSLS</option>
-  <option value="mmls" style="background: #0a0c0b; color: #fff;">Rol: MMLS</option>
-  <option value="ssmls" style="background: #0a0c0b; color: #fff;">Rol: SSMLS</option>
-  <option value="superadmin" style="background: #0a0c0b; color: #fff;">Rol: Superadmin (Acces Total)</option>
-</select>
+      <option value="isuls" style="background: #0a0c0b; color: #fff;">Rol: ISULS</option>
+      <option value="dsls" style="background: #0a0c0b; color: #fff;">Rol: DSLS</option>
+      <option value="mmls" style="background: #0a0c0b; color: #fff;">Rol: MMLS</option>
+      <option value="ssmls" style="background: #0a0c0b; color: #fff;">Rol: SSMLS</option>
+      <option value="superadmin" style="background: #0a0c0b; color: #fff;">Rol: Superadmin (Acces Total)</option>
+    </select>
     <button id="btn-generate-code" style="background: var(--accent-green); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Generează Cod</button>
   </div>
   <div id="generated-code-display" style="margin-top: 16px; font-size: 1.1rem; color: var(--accent-green); font-weight: bold;"></div>
@@ -642,6 +642,19 @@
             currentUserRole = role;
             console.log(`[AUTH] Conectat ca ${user.email} cu gradul: ${currentUserRole}`);
             
+            // ------------------------------------------------------------
+            // NOU: AFIȘĂM GENERATORUL DOAR PENTRU ADMIN SAU SUPERADMIN
+            // ------------------------------------------------------------
+            const generatorSection = document.getElementById("admin-generator-section");
+            if (generatorSection) {
+              if (currentUserRole === "superadmin" || currentUserRole === "admin") {
+                generatorSection.style.display = "block"; // Îl facem vizibil
+              } else {
+                generatorSection.style.display = "none"; // Rămâne ascuns
+              }
+            }
+            // ------------------------------------------------------------
+
             // Ascundem tab-urile celorlalte departamente
             adjustFilterButtonsForRole(currentUserRole);
 
@@ -679,6 +692,7 @@
       }
     });
   }
+  
 
   // --- 5. LOGICĂ GENERARE COD ACCES ADMIN ---
   if (btnGenerateCode) {
