@@ -565,10 +565,7 @@
     updateDoc,
     deleteDoc,
     getDoc,
-    addDoc,
-    query,
-    where,
-    getDocs
+    addDoc
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -576,7 +573,7 @@
   const ROLE_PERMISSIONS = {
     superadmin: ["all"],
     admin: ["all"],
-    conducere: ["all"], // Conducerea are acces de vizualizare la toate cererile
+    conducere: ["isuls", "dsls", "mmls", "ssmls"],
     isuls: ["isuls"],
     dsls: ["dsls"],
     mmls: ["mmls", "mm"],
@@ -630,31 +627,13 @@
     if (user) {
       try {
         const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "ssmls", "ssmmls"];
-        let userData = null;
 
-        // Pasul 1: Căutare după ID utilizator (UID)
         const userDocRef = doc(db, "utilizatori", user.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-          userData = userDoc.data();
-        } else {
-          // Pasul 2: Căutare de rezervă după EMAIL
-          try {
-            const usersRef = collection(db, "utilizatori");
-            const q = query(usersRef, where("email", "==", user.email.toLowerCase().trim()));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-              userData = querySnapshot.docs[0].data();
-            }
-          } catch (qErr) {
-            console.error("Eroare la interogarea după email:", qErr);
-          }
-        }
-
-        if (userData) {
-          const rawRole = (userData.role || userData.grad || userData.rol || userData.functie || "").toString().toLowerCase().trim();
+          const data = userDoc.data();
+          const rawRole = (data.role || data.rol || "").toString().toLowerCase().trim();
           const role = normalizeRole(rawRole);
 
           if (validRoles.includes(rawRole) || validRoles.includes(role)) {
@@ -690,14 +669,23 @@
 
   // Ascundem butoanele de filtrare necorespunzătoare pentru fiecare rol
   function adjustFilterButtonsForRole(role) {
-    if (["superadmin", "admin", "conducere"].includes(role)) return;
+    if (["superadmin", "admin"].includes(role)) return; // Admin și Superadmin văd toate butoanele, inclusiv PCLS
 
     filterButtons.forEach(btn => {
       const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
 
-      const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls", "pcls"];
-      if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
-        btn.style.display = "none";
+      if (role === "conducere") {
+        // Conducere vede doar tab-urile specifice departamentelor lor (fără tab-ul PCLS)
+        const conducereAllowedTabs = ["all", "toate", "in_asteptare", "în așteptare", "arhivat", "arhivă", "in_cos", "coș de gunoi", "isuls", "dsls", "mmls", "ssmls"];
+        if (!conducereAllowedTabs.includes(filterVal)) {
+          btn.style.display = "none";
+        }
+      } else {
+        // Pentru rolurile individuale (isuls, dsls, mmls, ssmls)
+        const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls", "pcls"];
+        if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
+          btn.style.display = "none";
+        }
       }
     });
   }
@@ -793,8 +781,39 @@
 
     // 1. Filtrare pe nivel de permisiune rol
     const roleAllowedCereri = allCereri.filter(item => {
-      // Superadmin, Admin și Conducere au acces la toate cererile
-      if (["superadmin", "admin", "conducere"].includes(currentUserRole)) return true;
+      // Superadmin și Admin au acces la tot
+      if (["superadmin", "admin"].includes(currentUserRole)) return true;
+
+      const dep = (item.departament || "").toString().toLowerCase().trim();
+      const subdep = (item.subdepartament || "").toString().toLowerCase().trim();
+      const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
+      const tip = (item.tip || "").toString().toLowerCase().trim();
+      const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
+
+      // ROLUL CONDUCERE: vede EXCLUSIV ISULS, DSLS, MMLS, SSMLS
+      // Se blochează cererile generale PCLS (event, înregistrare, programare simplă)
+      if (currentUserRole === "conducere") {
+        const allowedDepts = ["isuls", "dsls", "mmls", "ssmls", "mm", "ssmmls"];
+        const hasValidDept = allowedDepts.includes(dep) || allowedDepts.includes(subdep);
+
+        const isGenericType = 
+          tipCerere.includes("programare") || 
+          tipCerere.includes("inregistrare") || 
+          eveniment.includes("eveniment") || 
+          eveniment.includes("event") || 
+          tip.includes("programare") || 
+          tip.includes("inregistrare") || 
+          tip.includes("eveniment") ||
+          dep === "pcls" || 
+          dep === "general" ||
+          dep === "";
+
+        if (!hasValidDept || isGenericType) {
+          return false;
+        }
+
+        return true;
+      }
 
       // Roluri individuale (ISULS, DSLS, MMLS, SSMLS)
       const allowedKeywords = ROLE_PERMISSIONS[currentUserRole] || [currentUserRole];
@@ -849,23 +868,26 @@
         return rawStatus.includes("așteptare") || rawStatus.includes("asteptare") || rawStatus === "in_asteptare";
       }
 
-      // Tab: PCLS
+      // Tab: PCLS (Cereri generale: Event, Înregistrare, Programare fără sub-departament)
       if (filterNorm === "pcls") {
         const dep = (item.departament || "").toString().toLowerCase().trim();
         const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
         const tip = (item.tip || "").toString().toLowerCase().trim();
         const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
 
-        return tipCerere.includes("programare") || 
-               tipCerere.includes("inregistrare") || 
-               eveniment.includes("eveniment") || 
-               eveniment.includes("event") || 
-               tip.includes("programare") || 
-               tip.includes("inregistrare") || 
-               tip.includes("eveniment") ||
-               dep === "pcls" || 
-               dep === "general" ||
-               dep === "";
+        const isGenericType = 
+          tipCerere.includes("programare") || 
+          tipCerere.includes("inregistrare") || 
+          eveniment.includes("eveniment") || 
+          eveniment.includes("event") || 
+          tip.includes("programare") || 
+          tip.includes("inregistrare") || 
+          tip.includes("eveniment") ||
+          dep === "pcls" || 
+          dep === "general" ||
+          dep === "";
+
+        return isGenericType;
       }
 
       // Tab-uri pe departamente (ISULS, DSLS, MMLS, SSMLS)
