@@ -1472,7 +1472,8 @@
 <script type="module">
     import { auth, db } from "./firebase-config.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // Am adăugat funcțiile necesare pentru a căuta utilizatorul direct după EMAIL
+    import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const authSection = document.getElementById("auth-section-premium");
 
@@ -1485,41 +1486,40 @@
             let isAdmin = false;
 
             try {
-                const userDocRef = doc(db, "utilizatori", user.uid);
-                const userDoc = await getDoc(userDocRef);
-                
                 const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
+                let userData = null;
 
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    
-                    // Căutăm rolul în mai multe câmpuri posibile din DB
-                    let userRoleRaw = data.role || data.rol || data.grad || data.functie || data.departament || "";
-                    
-                    // Dacă cumva ai salvat rolul sub formă de array, luăm primul element
+                // 1. Căutăm documentul utilizatorului folosind adresa lui de EMAIL
+                const usersRef = collection(db, "utilizatori");
+                const q = query(usersRef, where("email", "==", user.email));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    userData = querySnapshot.docs[0].data();
+                } else {
+                    // 2. Fallback: Dacă nu-l găsește după email, încearcă după UID (metoda clasică)
+                    const userDocRef = doc(db, "utilizatori", user.uid);
+                    const userDoc = await getDoc(userDocRef);
+                    if (userDoc.exists()) {
+                        userData = userDoc.data();
+                    }
+                }
+
+                // Dacă am găsit datele utilizatorului, extragem și verificăm rolul
+                if (userData) {
+                    let userRoleRaw = userData.role || userData.rol || userData.grad || userData.functie || "";
                     if (Array.isArray(userRoleRaw)) {
                         userRoleRaw = userRoleRaw[0] || "";
                     }
-
-                    const userRole = userRoleRaw.toString().toLowerCase().trim();
                     
-                    // ----------------------------------------------------
-                    // DEBUG PENTRU CONSOLA (F12) - SĂ VEZI EXACT CE TRAGE
-                    // ----------------------------------------------------
-                    console.log("[DEBUG AUTH] Date complete utilizator din DB:", data);
-                    console.log(`[DEBUG AUTH] Rol normalizat extras: '${userRole}'`);
+                    const userRole = userRoleRaw.toString().toLowerCase().trim();
 
                     if (validRoles.includes(userRole) || userRole.includes("conducere") || userRole.includes("admin")) {
                         isAdmin = true;
-                        console.log("[DEBUG AUTH] Acces ADMIN/PANOU acordat!");
-                    } else {
-                        console.log("[DEBUG AUTH] Acces respins. Rolul nu este în listă.");
                     }
-                } else {
-                    console.log(`[DEBUG AUTH] Documentul pentru UID-ul ${user.uid} NU există în colecția 'utilizatori'.`);
                 }
             } catch (error) {
-                console.error("[DEBUG AUTH] Eroare la citirea rolului:", error);
+                console.error("Eroare la citirea bazei de date:", error);
                 isAdmin = false;
             }
 
@@ -1590,9 +1590,7 @@
         }
     });
 
-    // --- 3. LOGICA PENTRU MODAL, BARA DE SCROLL, BUTON SUS ȘI REVEAL ---
-    
-    // Modal
+    // --- LOGICA PENTRU MODAL, BARA DE SCROLL, BUTON SUS ȘI REVEAL ---
     const modal = document.getElementById("medicalModal");
     const openButtons = document.querySelectorAll("[data-open-medical]");
     const closeButton = document.querySelector("[data-close-medical]");
@@ -1629,7 +1627,6 @@
         }
     });
 
-    // Bară progres scroll
     window.addEventListener('scroll', () => {
         const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
         const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -1638,7 +1635,6 @@
         if(progressBar) progressBar.style.width = progress + '%';
     });
     
-    // Buton Back-to-Top
     const scrollBtn = document.getElementById("scrollTopBtn");
     window.addEventListener("scroll", () => {
         if(scrollBtn) {
@@ -1654,7 +1650,6 @@
         });
     }
 
-    // Animații Reveal la scroll
     const revealElements = document.querySelectorAll('.reveal');
     const revealCallback = (entries, observer) => {
         entries.forEach(entry => {
