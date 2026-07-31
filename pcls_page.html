@@ -485,6 +485,7 @@ import { db } from "./firebase-config.js";
                 // 1. Salvare structurată în Firebase Firestore cu tipul "Programare"
                 await addDoc(collection(db, "cereri"), {
                     tip_cerere: "Programare",
+                    departament: "pcls",
                     nume: formData.get("NUME") || "-",
                     proprietar: formData.get("NUME") || "-",
                     unitate: formData.get("NUME AFACERE") || "-",

@@ -458,6 +458,7 @@
                 // 1. Salvare structurată în Firestore (Compatibilă 100% cu admin.html)
                 await addDoc(collection(db, "cereri"), {
                     nume: formData.get("ID") || "-",
+                    departament: "pcls",
                     proprietar: formData.get("ID") || "-",
                     administrator: formData.get("NUME RECLAMAT") || "-",
                     unitate: formData.get("CALL-SIGN UL RECLAMATULUI") || "-",
