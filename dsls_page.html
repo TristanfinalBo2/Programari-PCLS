@@ -474,8 +474,11 @@
         <button id="close-error">Închide</button>
     </div>
 
-<script>
-    // Blocare Inspect Element
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Securitate bază
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", function (e) {
         if (
@@ -489,7 +492,7 @@
     });
 
     // Formatare telefon xxx-xxxx
-    const phoneInputs = document.querySelectorAll('#NUMAR_TEL');
+    const phoneInputs = document.querySelectorAll('#NUMAR_TEL, input[name="NUMAR DE TEL"]');
     phoneInputs.forEach(input => {
         input.addEventListener('input', (e) => {
             let value = e.target.value.replace(/\D/g, '');
@@ -505,9 +508,11 @@
     const webhookUrl = "https://discord.com/api/webhooks/1299687126409154592/1AiOvSA_voOkpc8VqCiheBHYUvT74TSAyex3M49Zv5qSyA3Hyxa_lKaol1BYY-ezG5Ko";
 
     // Data minimă: Mâine
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    dateInput.min = tomorrow.toISOString().split('T')[0];
+    if (dateInput) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.min = tomorrow.toISOString().split('T')[0];
+    }
 
     // Selectare Modale
     const overlay = document.getElementById("alert-overlay");
@@ -515,92 +520,134 @@
     const errorBox = document.getElementById("error-box");
     const closeAlertBtn = document.getElementById("close-alert");
     const closeErrorBtn = document.getElementById("close-error");
-    const errorMessage = document.getElementById("error-message");
+    const errorMessage = document.getElementById("error-message") || document.getElementById("error-text");
 
     function showSuccess() {
-        overlay.style.display = "block";
-        alertBox.classList.add("show");
+        if (overlay && alertBox) {
+            overlay.style.display = "block";
+            alertBox.classList.add("show");
+        }
     }
 
     function showError(msg) {
-        errorMessage.innerText = msg;
-        overlay.style.display = "block";
-        errorBox.classList.add("show");
+        if (errorMessage && overlay && errorBox) {
+            errorMessage.innerText = msg;
+            overlay.style.display = "block";
+            errorBox.classList.add("show");
+        } else {
+            alert(msg);
+        }
     }
 
     function hideModals() {
-        overlay.style.display = "none";
-        alertBox.classList.remove("show");
-        errorBox.classList.remove("show");
+        if (overlay) overlay.style.display = "none";
+        if (alertBox) alertBox.classList.remove("show");
+        if (errorBox) errorBox.classList.remove("show");
     }
 
-    closeAlertBtn.addEventListener("click", hideModals);
-    closeErrorBtn.addEventListener("click", hideModals);
-    overlay.addEventListener("click", hideModals);
+    if (closeAlertBtn) closeAlertBtn.addEventListener("click", hideModals);
+    if (closeErrorBtn) closeErrorBtn.addEventListener("click", hideModals);
+    if (overlay) overlay.addEventListener("click", hideModals);
 
-    // Trimitere formular
+    // Trimitere formular + Salvare în Firestore & Trimitere pe Discord
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(form);
 
         // Validare Data (nu azi, nu trecut)
-        const selectedDate = new Date(formData.get("DATA"));
-        selectedDate.setHours(0, 0, 0, 0);
+        const dataSelectataRaw = formData.get("DATA");
+        if (dataSelectataRaw) {
+            const selectedDate = new Date(dataSelectataRaw);
+            selectedDate.setHours(0, 0, 0, 0);
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-        if (selectedDate <= today) {
-            showError("Nu poți selecta ziua de azi sau din trecut. Alege o dată viitoare.");
-            return;
+            if (selectedDate <= today) {
+                showError("Nu poți selecta ziua de azi sau din trecut. Alege o dată viitoare.");
+                return;
+            }
         }
 
         // Validare Discord ID
-        const discordId = formData.get("EMAIL");
+        const discordId = (formData.get("EMAIL") || "").trim();
         if (!/^\d{17,20}$/.test(discordId)) {
             showError("ID Discord invalid. Te rugăm să introduci doar cifrele ID-ului.");
             return;
         }
 
-        const embedData = {
-            username: "DSLS Bot",
-            content: "<@&956186666593296421>",
-            embeds: [
-                {
-                    title: ":pushpin: O nouă programare a fost înregistrată!",
-                    color: 16711680,
-                    fields: [
-                        { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
-                        { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
-                        { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
-                        { name: "Tip Business", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
-                        { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
-                        { name: "Discord / Email", value: `<@${discordId}>`, inline: false },
-                        { name: "Ora dorită", value: formData.get("DATE") || "N/A", inline: false },
-                        { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
-                        { name: "Detalii extra", value: formData.get("DETALII") || "N/A", inline: false }
-                    ],
-                    footer: { text: "Programare D.S.L.S" },
-                    timestamp: new Date().toISOString()
-                }
-            ]
-        };
+        const numeProprietar = formData.get("NUME") || "N/A";
+        const cnpVal = formData.get("ID") || "N/A";
+        const numeAfacere = formData.get("NUME AFACERE") || "N/A";
+        const tipBusiness = formData.get("TIP BUSSINES") || "N/A";
+        const nrTel = formData.get("NUMAR DE TEL") || "N/A";
+        const oraDorita = formData.get("DATE") || "N/A";
+        const dataDorita = formData.get("DATA") || "N/A";
+        const detaliiExtra = formData.get("DETALII") || "N/A";
 
         try {
-            const response = await fetch(webhookUrl, {
+            // --- 1. SALVARE ÎN FIREBASE FIRESTORE (PENTRU ADMIN PANEL) ---
+            await addDoc(collection(db, "cereri"), {
+                departament: "dsls",
+                subdepartament: "dsls",
+                tip_cerere: "Programare DSLS",
+                eveniment: "DSLS PROGRAMARE",
+                nume_proprietar: numeProprietar,
+                proprietar: numeProprietar,
+                cnp: cnpVal,
+                nume_afacere: numeAfacere,
+                unitate: numeAfacere,
+                tip_afacere: tipBusiness,
+                tipSpatiu: tipBusiness,
+                telefon: nrTel,
+                dataProgramare: dataDorita,
+                oraProgramare: oraDorita,
+                data_ora: `${dataDorita} la ${oraDorita}`,
+                discord: discordId,
+                discord_id: discordId,
+                detalii: detaliiExtra,
+                status: "in_asteptare",
+                created_at: serverTimestamp(),
+                data_creare: new Date().toISOString()
+            });
+
+            // --- 2. TRIMITERE PE DISCORD WEBHOOK ---
+            const embedData = {
+                username: "DSLS Bot",
+                content: "<@&956186666593296421>",
+                embeds: [
+                    {
+                        title: "📌 O nouă programare a fost înregistrată!",
+                        color: 16711680,
+                        fields: [
+                            { name: "Nume Reprezentant", value: numeProprietar, inline: false },
+                            { name: "CNP (ID)", value: cnpVal, inline: false },
+                            { name: "Nume Afacere", value: numeAfacere, inline: false },
+                            { name: "Tip Business", value: tipBusiness, inline: false },
+                            { name: "Număr de telefon", value: nrTel, inline: false },
+                            { name: "Discord / Email", value: `<@${discordId}>`, inline: false },
+                            { name: "Ora dorită", value: oraDorita, inline: false },
+                            { name: "Data dorită", value: dataDorita, inline: false },
+                            { name: "Detalii extra", value: detaliiExtra, inline: false }
+                        ],
+                        footer: { text: "Programare D.S.L.S" },
+                        timestamp: new Date().toISOString()
+                    }
+                ]
+            };
+
+            await fetch(webhookUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(embedData)
             });
 
-            if (response.ok) {
-                showSuccess();
-            } else {
-                showError("Eroare la trimiterea formularului spre Discord.");
-            }
+            showSuccess();
+            form.reset();
+
         } catch (error) {
-            console.error(error);
-            showError("A apărut o eroare la conexiune. Încearcă din nou.");
+            console.error("Eroare la trimitere:", error);
+            showError("A apărut o eroare la salvarea cererii. Încearcă din nou.");
         }
     });
 </script>

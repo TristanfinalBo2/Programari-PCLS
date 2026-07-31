@@ -497,76 +497,92 @@
         <button id="close-error">OK</button>
     </div>
 
-    <script>
-        // Securitate bază
-        document.addEventListener("contextmenu", e => e.preventDefault());
-        document.addEventListener("keydown", function (e) {
-            if (
-                e.key === "F12" ||
-                (e.ctrlKey && e.shiftKey && e.key === "I") ||
-                (e.ctrlKey && e.shiftKey && e.key === "J") ||
-                (e.ctrlKey && e.key === "U")
-            ) {
-                e.preventDefault();
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Securitate bază
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", function (e) {
+        if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && e.key === "I") ||
+            (e.ctrlKey && e.shiftKey && e.key === "J") ||
+            (e.ctrlKey && e.key === "U")
+        ) {
+            e.preventDefault();
+        }
+    });
+
+    // Formatează telefonul ca xxx-xxxx pentru TOATE câmpurile de telefon
+    const phoneInputs = document.querySelectorAll('input[name="NUMAR DE TEL"], input[name="NUMBER"], input[name="NUMBER2"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7);
             }
+            e.target.value = value;
         });
+    });
 
-        // Formatează telefonul ca xxx-xxxx pentru TOATE câmpurile de telefon
-        const phoneInputs = document.querySelectorAll('input[name="NUMAR DE TEL"], input[name="NUMBER"], input[name="NUMBER2"]');
-        phoneInputs.forEach(input => {
-            input.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 3) {
-                    value = value.slice(0, 3) + '-' + value.slice(3, 7);
-                }
-                e.target.value = value;
-            });
-        });
+    const form = document.getElementById('contact-form');
+    const dateInput = document.getElementById('dataProgramare');
+    // Webhook-ul pentru S.S.M.L.S
+    const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD";
 
-        const form = document.getElementById('contact-form');
-        const dateInput = document.getElementById('dataProgramare');
-        // Webhook-ul pentru S.S.M.L.S
-        const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD";
-
-        // Configurare dată minimă: doar de mâine încolo
+    // Configurare dată minimă: doar de mâine încolo
+    if (dateInput) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         dateInput.min = tomorrow.toISOString().split('T')[0];
+    }
 
-        // Management Modale Premium
-        const overlay = document.getElementById("alert-overlay");
-        const alertBox = document.getElementById("alert-box");
-        const errorBox = document.getElementById("error-box");
-        const errorText = document.getElementById("error-text");
+    // Management Modale Premium
+    const overlay = document.getElementById("alert-overlay");
+    const alertBox = document.getElementById("alert-box");
+    const errorBox = document.getElementById("error-box");
+    const errorText = document.getElementById("error-text");
 
-        function showSuccess() {
+    function showSuccess() {
+        if (overlay && alertBox) {
             overlay.style.display = "block";
             alertBox.classList.add("show");
         }
+    }
 
-        function showError(message) {
+    function showError(message) {
+        if (errorText && overlay && errorBox) {
             errorText.innerText = message;
             overlay.style.display = "block";
             errorBox.classList.add("show");
+        } else {
+            alert(message);
         }
+    }
 
-        function closeModals() {
-            overlay.style.display = "none";
-            alertBox.classList.remove("show");
-            errorBox.classList.remove("show");
-        }
+    function closeModals() {
+        if (overlay) overlay.style.display = "none";
+        if (alertBox) alertBox.classList.remove("show");
+        if (errorBox) errorBox.classList.remove("show");
+    }
 
-        document.getElementById("close-alert").addEventListener("click", closeModals);
-        document.getElementById("close-error").addEventListener("click", closeModals);
-        overlay.addEventListener("click", closeModals);
+    const closeAlertBtn = document.getElementById("close-alert");
+    const closeErrorBtn = document.getElementById("close-error");
 
-        // Submit Formular + Validări Corecte
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const formData = new FormData(form);
+    if (closeAlertBtn) closeAlertBtn.addEventListener("click", closeModals);
+    if (closeErrorBtn) closeErrorBtn.addEventListener("click", closeModals);
+    if (overlay) overlay.addEventListener("click", closeModals);
 
-            // Validare dată selectată
-            const selectedDate = new Date(formData.get("DATA"));
+    // Submit Formular + Salvare în Firestore & Trimitere pe Discord
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+
+        // Validare dată selectată
+        const dataSelectataRaw = formData.get("DATA");
+        if (dataSelectataRaw) {
+            const selectedDate = new Date(dataSelectataRaw);
             selectedDate.setHours(0, 0, 0, 0);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -575,36 +591,80 @@
                 showError("Nu poți selecta ziua de azi. Alege o dată viitoare.");
                 return;
             }
+        }
 
-            // Validare strictă ID Discord
-            const discordId = formData.get("EMAIL").trim();
-            if (!/^\d{17,20}$/.test(discordId)) {
-                showError("ID Discord invalid");
-                return;
-            }
+        // Validare strictă ID Discord
+        const discordId = (formData.get("EMAIL") || "").trim();
+        if (!/^\d{17,20}$/.test(discordId)) {
+            showError("ID Discord invalid (trebuie să fie doar cifre, ex: 123456789012345678)");
+            return;
+        }
 
-            // Pregătire Payload Discord Embed pentru S.S.M.L.S
+        const numeProprietar = formData.get("NUME") || "N/A";
+        const cnpVal = formData.get("ID") || "N/A";
+        const numeAfacere = formData.get("NUME AFACERE") || "N/A";
+        const tipBusiness = formData.get("TIP BUSSINES") || "N/A";
+        const nrTel = formData.get("NUMAR DE TEL") || "N/A";
+        const dataDorita = formData.get("DATA") || "N/A";
+        const oraDorita = formData.get("DAY") || "N/A";
+        const rep1Nume = formData.get("NAME") || "N/A";
+        const rep1Tel = formData.get("NUMBER") || "N/A";
+        const rep2Nume = formData.get("NAME2") || "N/A";
+        const rep2Tel = formData.get("NUMBER2") || "N/A";
+        const detaliiExtra = formData.get("DETALII") || "N/A";
+
+        try {
+            // --- 1. SALVARE ÎN FIREBASE FIRESTORE (PENTRU ADMIN) ---
+            await addDoc(collection(db, "cereri"), {
+                departament: "ssmls",
+                subdepartament: "ssmls",
+                tip_cerere: "Programare SSMLS",
+                eveniment: "SSMLS PROGRAMARE",
+                nume_proprietar: numeProprietar,
+                proprietar: numeProprietar,
+                cnp: cnpVal,
+                nume_afacere: numeAfacere,
+                unitate: numeAfacere,
+                tip_afacere: tipBusiness,
+                tipSpatiu: tipBusiness,
+                telefon: nrTel,
+                dataProgramare: dataDorita,
+                oraProgramare: oraDorita,
+                data_ora: `${dataDorita} la ${oraDorita}`,
+                rep1_nume: rep1Nume,
+                rep1_tel: rep1Tel,
+                rep2_nume: rep2Nume,
+                rep2_tel: rep2Tel,
+                discord: discordId,
+                discord_id: discordId,
+                detalii: detaliiExtra,
+                status: "in_asteptare",
+                created_at: serverTimestamp(),
+                data_creare: new Date().toISOString()
+            });
+
+            // --- 2. PREGĂTIRE ȘI TRIMITERE EMBED DISCORD ---
             const embedData = {
                 username: "SSMLS Bot",
-                content: "<@&1461105499276574911>", // Pune ping-ul de rol corect aici dacă diferă
+                content: "<@&1461105499276574911>",
                 embeds: [
                     {
-                        title: ":pushpin: O nouă programare S.S.M.L.S a fost înregistrată!",
-                        color: 65443, // Culoarea accentului (00ffa3 transformat in int)
+                        title: "📌 O nouă programare S.S.M.L.S a fost înregistrată!",
+                        color: 65443,
                         fields: [
-                            { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
-                            { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
-                            { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
-                            { name: "Tip Business", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
-                            { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
-                            { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
-                            { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
-                            { name: "Nume Primul Reprezentant", value: formData.get("NAME") || "N/A", inline: false },
-                            { name: "Telefon Primul Reprezentant", value: formData.get("NUMBER") || "N/A", inline: false },
-                            { name: "Nume al 2-lea Reprezentant", value: formData.get("NAME2") || "N/A", inline: false },
-                            { name: "Telefon al 2-lea Reprezentant", value: formData.get("NUMBER2") || "N/A", inline: false },
+                            { name: "Nume Reprezentant", value: numeProprietar, inline: false },
+                            { name: "CNP (ID)", value: cnpVal, inline: false },
+                            { name: "Nume Afacere", value: numeAfacere, inline: false },
+                            { name: "Tip Business", value: tipBusiness, inline: false },
+                            { name: "Număr de telefon", value: nrTel, inline: false },
+                            { name: "Data dorită", value: dataDorita, inline: false },
+                            { name: "Ora dorită", value: oraDorita, inline: false },
+                            { name: "Nume Primul Reprezentant", value: rep1Nume, inline: false },
+                            { name: "Telefon Primul Reprezentant", value: rep1Tel, inline: false },
+                            { name: "Nume al 2-lea Reprezentant", value: rep2Nume, inline: false },
+                            { name: "Telefon al 2-lea Reprezentant", value: rep2Tel, inline: false },
                             { name: "Discord ID", value: `<@${discordId}>`, inline: false },
-                            { name: "Detalii extra / Locație", value: formData.get("DETALII") || "N/A", inline: false }
+                            { name: "Detalii extra / Locație", value: detaliiExtra, inline: false }
                         ],
                         footer: { text: "Programare S.S.M.L.S" },
                         timestamp: new Date().toISOString()
@@ -612,24 +672,20 @@
                 ]
             };
 
-            try {
-                const response = await fetch(webhookUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(embedData)
-                });
+            await fetch(webhookUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(embedData)
+            });
 
-                if (response.ok) {
-                    showSuccess();
-                    form.reset();
-                } else {
-                    showError("Eroare la trimiterea către Discord.");
-                }
-            } catch (error) {
-                console.error(error);
-                showError("A apărut o eroare la trimiterea mesajului.");
-            }
-        });
-    </script>
+            showSuccess();
+            form.reset();
+
+        } catch (error) {
+            console.error("Eroare la salvare / trimitere:", error);
+            showError("A apărut o eroare la salvarea cererii. Încearcă din nou.");
+        }
+    });
+</script>
 </body>
 </html>

@@ -473,99 +473,114 @@
         <button id="close-error">Încearcă din nou</button>
     </div>
 
-    <script>
-        // Prevenire Dev Tools
-        document.addEventListener("contextmenu", e => e.preventDefault());
-        document.addEventListener("keydown", function (e) {
-            if (
-                e.key === "F12" ||
-                (e.ctrlKey && e.shiftKey && e.key === "I") ||
-                (e.ctrlKey && e.shiftKey && e.key === "J") ||
-                (e.ctrlKey && e.key === "U")
-            ) {
-                e.preventDefault();
+<script type="module">
+    // 1. IMPORTĂM FIREBASE & SERVER TIMESTAMP
+    import { db } from "./firebase-config.js";
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Prevenire Dev Tools
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("keydown", function (e) {
+        if (
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey && e.key === "I") ||
+            (e.ctrlKey && e.shiftKey && e.key === "J") ||
+            (e.ctrlKey && e.key === "U")
+        ) {
+            e.preventDefault();
+        }
+    });
+
+    // Formatare telefon xxx-xxxx
+    const phoneInputs = document.querySelectorAll('#NUMAR_TEL');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 3) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7);
             }
+            e.target.value = value;
         });
+    });
 
-        // Formatare telefon xxx-xxxx
-        const phoneInputs = document.querySelectorAll('#NUMAR_TEL');
-        phoneInputs.forEach(input => {
-            input.addEventListener('input', (e) => {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 3) {
-                    value = value.slice(0, 3) + '-' + value.slice(3, 7);
-                }
-                e.target.value = value;
-            });
-        });
+    const form = document.getElementById('contact-form');
+    const dateInput = document.getElementById('dataProgramare');
+    const webhookUrl = "https://discord.com/api/webhooks/1299691821789876247/CYqyBx2pyuBw1ftntOVjsNhwkIrc0QwZg7szuGHmrSVCk5TFuR1cBEaA68dPKBXOjxiy";
 
-        const form = document.getElementById('contact-form');
-        const dateInput = document.getElementById('dataProgramare');
-        const webhookUrl = "https://discord.com/api/webhooks/1299691821789876247/CYqyBx2pyuBw1ftntOVjsNhwkIrc0QwZg7szuGHmrSVCk5TFuR1cBEaA68dPKBXOjxiy";
-
-        // Permite selectarea doar începând de mâine
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
+    // Permite selectarea doar începând de mâine
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (dateInput) {
         dateInput.min = tomorrow.toISOString().split('T')[0];
+    }
 
-        // Notificari Logica (Înlocuiește vechiul showNotification)
-        const alertBox = document.getElementById("alert-box");
-        const errorBox = document.getElementById("error-box");
-        const overlay = document.getElementById("alert-overlay");
-        const closeBtn = document.getElementById("close-alert");
-        const closeErrorBtn = document.getElementById("close-error");
-        const errorMessage = document.getElementById("error-message");
+    // Notificari Logica
+    const alertBox = document.getElementById("alert-box");
+    const errorBox = document.getElementById("error-box");
+    const overlay = document.getElementById("alert-overlay");
+    const closeBtn = document.getElementById("close-alert");
+    const closeErrorBtn = document.getElementById("close-error");
+    const errorMessage = document.getElementById("error-message");
 
-        function showSuccess() {
-            overlay.style.display = "block";
-            alertBox.classList.add("show");
-        }
+    function showSuccess() {
+        if (overlay) overlay.style.display = "block";
+        if (alertBox) alertBox.classList.add("show");
+    }
 
-        function showError(msg) {
-            errorMessage.textContent = msg;
-            overlay.style.display = "block";
-            errorBox.classList.add("show");
-        }
+    function showError(msg) {
+        if (errorMessage) errorMessage.textContent = msg;
+        if (overlay) overlay.style.display = "block";
+        if (errorBox) errorBox.classList.add("show");
+    }
 
-        function hideAlerts() {
-            overlay.style.display = "none";
-            alertBox.classList.remove("show");
-            errorBox.classList.remove("show");
-        }
+    function hideAlerts() {
+        if (overlay) overlay.style.display = "none";
+        if (alertBox) alertBox.classList.remove("show");
+        if (errorBox) errorBox.classList.remove("show");
+    }
 
+    if (closeBtn) {
         closeBtn.addEventListener("click", () => {
             hideAlerts();
-            form.reset();
+            if (form) form.reset();
             window.location.reload();
         });
-        closeErrorBtn.addEventListener("click", hideAlerts);
-        overlay.addEventListener("click", hideAlerts);
+    }
+    if (closeErrorBtn) closeErrorBtn.addEventListener("click", hideAlerts);
+    if (overlay) overlay.addEventListener("click", hideAlerts);
 
-        // Submit formular (Logica păstrată intactă)
+    // Submit formular
+    if (form) {
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const formData = new FormData(form);
 
             // Validare dată (trebuie să fie după ziua de azi)
-            const selectedDate = new Date(formData.get("DATA"));
-            selectedDate.setHours(0, 0, 0, 0);
+            const dataIntrodusa = formData.get("DATA");
+            if (dataIntrodusa) {
+                const selectedDate = new Date(dataIntrodusa);
+                selectedDate.setHours(0, 0, 0, 0);
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-            if (selectedDate <= today) {
-                showError("Programarea trebuie făcută pentru o dată ulterioară zilei de astăzi.");
-                return;
+                if (selectedDate <= today) {
+                    showError("Programarea trebuie făcută pentru o dată ulterioară zilei de astăzi.");
+                    return;
+                }
             }
 
-            const discordId = formData.get("EMAIL").trim();
+            const discordId = (formData.get("EMAIL") || "").toString().trim();
 
             if (!/^\d{17,20}$/.test(discordId)) {
                 showError("ID Discord invalid. Asigură-te că folosești doar cifre.");
                 return;
             }
 
+            const dataOraProgramare = `${formData.get("DATA") || ""} la ${formData.get("DATE") || ""}`;
+
+            // --- 1. DATE PENTRU DISCORD WEBHOOK ---
             const embedData = {
                 username: "ISULS Bot",
                 content: "<@&956186666593296422>",
@@ -590,39 +605,68 @@
                 ]
             };
 
-            try {
-                // Schimbare buton pt vizibilitate in timpul incarcarii
-                const submitBtn = document.getElementById('submit');
-                const originalText = submitBtn.value;
-                submitBtn.value = "Se trimite...";
-                submitBtn.style.opacity = "0.5";
-                submitBtn.disabled = true;
+            // --- 2. DATE PENTRU FIREBASE (ADMIN PANEL) ---
+            const firestoreData = {
+                departament: "isuls",             // Departamentul exact pt filtrare
+                eveniment: "ISULS PROGRAMARE",     // Eticheta albastră din admin
+                status: "În Așteptare",            // Statusul inițial
+                archived: false,                   // Să nu fie trimis în Arhivă
+                deleted: false,                    // Să nu fie trimis în Coșul de Gunoi
+                nume_proprietar: formData.get("NUME") || "N/A",
+                cnp: formData.get("ID") || "N/A",
+                nume_afacere: formData.get("NUME AFACERE") || "N/A",
+                tip_afacere: formData.get("TIP BUSSINES") || "N/A",
+                telefon: formData.get("NUMAR DE TEL") || "N/A",
+                discord_id: discordId,
+                data_ora: dataOraProgramare, 
+                detalii: formData.get("DETALII") || "N/A",
+                created_at: serverTimestamp()      // Timestamp nativ Firestore pt ordonare
+            };
 
+            const submitBtn = document.getElementById('submit');
+            let originalText = "Trimite Formularul";
+
+            try {
+                if (submitBtn) {
+                    originalText = submitBtn.value;
+                    submitBtn.value = "Se trimite...";
+                    submitBtn.style.opacity = "0.5";
+                    submitBtn.disabled = true;
+                }
+
+                // Trimitem mai întâi în Baza de Date Firestore
+                await addDoc(collection(db, "cereri"), firestoreData);
+
+                // Trimitem notificarea pe Discord
                 const response = await fetch(webhookUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(embedData)
                 });
 
-                submitBtn.value = originalText;
-                submitBtn.style.opacity = "1";
-                submitBtn.disabled = false;
+                if (submitBtn) {
+                    submitBtn.value = originalText;
+                    submitBtn.style.opacity = "1";
+                    submitBtn.disabled = false;
+                }
 
                 if (response.ok) {
                     showSuccess();
                 } else {
-                    showError("Eroare la trimiterea formularului!");
+                    showError("Cererea a fost salvată în Admin Panel, dar notificarea Discord a eșuat!");
                 }
             } catch (error) {
-                console.error(error);
-                showError("A apărut o eroare de conexiune la trimiterea mesajului.");
+                console.error("Eroare la salvare/trimitere: ", error);
+                showError("A apărut o eroare la trimiterea cererii.");
                 
-                const submitBtn = document.getElementById('submit');
-                submitBtn.value = "Trimite Formularul";
-                submitBtn.style.opacity = "1";
-                submitBtn.disabled = false;
+                if (submitBtn) {
+                    submitBtn.value = originalText;
+                    submitBtn.style.opacity = "1";
+                    submitBtn.disabled = false;
+                }
             }
         });
-    </script>
+    }
+</script>
 </body>
 </html>

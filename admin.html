@@ -546,7 +546,6 @@
     <option value="dsls" style="background: #0a0c0b; color: #fff;">Rol: DSLS</option>
     <option value="mmls" style="background: #0a0c0b; color: #fff;">Rol: MMLS</option>
     <option value="ssmls" style="background: #0a0c0b; color: #fff;">Rol: SSMLS</option>
-    <option value="conducere" style="background: #0a0c0b; color: #fff;">Rol: CONDUCERE</option>
     </select>
     <button id="btn-generate-code" style="background: var(--accent-green); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Generează Cod</button>
   </div>
@@ -561,8 +560,6 @@
   import { 
     collection, 
     onSnapshot, 
-    query, 
-    orderBy,
     doc,
     updateDoc,
     deleteDoc,
@@ -575,7 +572,7 @@
   const ROLE_PERMISSIONS = {
     superadmin: ["all"],
     admin: ["all"],
-    conducere: ["isuls", "dsls", "mmls", "ssmls", "ssmmls"],
+    conducere: ["isuls", "dsls", "mmls", "ssmls"],
     isuls: ["isuls"],
     dsls: ["dsls"],
     mmls: ["mmls", "mm"],
@@ -616,7 +613,7 @@
     return "Admin PCLS";
   }
 
-  // Normalizare denumire rol (tratăm 'ssmmls' ca 'ssmls')
+  // Normalizare denumire rol
   function normalizeRole(roleStr) {
     let r = (roleStr || "").toString().toLowerCase().trim();
     if (r === "ssmmls") return "ssmls";
@@ -628,7 +625,6 @@
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       try {
-        // AM ADĂUGAT "conducere" ÎN LISTA DE ROLURI VALIDE
         const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "ssmls", "ssmmls"];
 
         const userDocRef = doc(db, "utilizatori", user.uid);
@@ -645,27 +641,25 @@
             
             const generatorSection = document.getElementById("admin-generator-section");
             if (generatorSection) {
-              // AM ADĂUGAT "conducere" PENTRU A PUTEA VEDEA SECȚIUNEA DE GENERARE CODURI
-              if (currentUserRole === "superadmin" || currentUserRole === "admin" || currentUserRole === "conducere") {
+              if (["superadmin", "admin", "conducere"].includes(currentUserRole)) {
                 generatorSection.style.display = "block";
               } else {
                 generatorSection.style.display = "none";
               }
             }
 
-            // Aici apelează funcția modificată la Pasul 2
             adjustFilterButtonsForRole(currentUserRole);
-
             initFirestoreListener();
           } else {
             alert(`Acces interzis! Contul tău are rolul '${rawRole}' și nu are permisiuni de administrare.`);
             window.location.href = "index.html"; 
           }
         } else {
-          // ...
+          alert("Profilul de utilizator nu a fost găsit în baza de date.");
+          window.location.href = "index.html";
         }
       } catch (error) {
-        // ...
+        console.error("Eroare la verificarea utilizatorului:", error);
       }
     } else {
       window.location.href = "auth.html";
@@ -673,19 +667,18 @@
   });
 
   // Ascundem butoanele de filtrare pentru departamentele neautorizate
-function adjustFilterButtonsForRole(role) {
-  // Am adăugat "conducere" în lista celor care au acces să vadă TOATE tab-urile
-  if (role === "superadmin" || role === "admin" || role === "conducere") return;
+  function adjustFilterButtonsForRole(role) {
+    if (["superadmin", "admin", "conducere"].includes(role)) return;
 
-  filterButtons.forEach(btn => {
-    const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
-    const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls"];
+    filterButtons.forEach(btn => {
+      const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
+      const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls"];
 
-    if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
-      btn.style.display = "none";
-    }
-  });
-}
+      if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
+        btn.style.display = "none";
+      }
+    });
+  }
 
   // --- 5. LOGICĂ GENERARE COD ACCES ADMIN ---
   if (btnGenerateCode) {
@@ -732,13 +725,25 @@ function adjustFilterButtonsForRole(role) {
 
   // --- 6. ASCOLTĂTOR FIRESTORE PENTRU CERERI ---
   function initFirestoreListener() {
-    const q = query(collection(db, "cereri"), orderBy("data_creare", "desc"));
+    const cereriRef = collection(db, "cereri");
 
-    onSnapshot(q, (snapshot) => {
+    onSnapshot(cereriRef, (snapshot) => {
       allCereri = snapshot.docs.map(docSnap => ({
         id: docSnap.id,
         ...docSnap.data()
       }));
+
+      // Ordonare locală după dată
+      allCereri.sort((a, b) => {
+        const getTime = (x) => {
+          if (x.created_at?.toMillis) return x.created_at.toMillis();
+          if (x.data_creare?.toMillis) return x.data_creare.toMillis();
+          if (x.created_at) return new Date(x.created_at).getTime();
+          if (x.data_creare) return new Date(x.data_creare).getTime();
+          return 0;
+        };
+        return getTime(b) - getTime(a);
+      });
 
       renderCereri();
     }, (error) => {
@@ -764,54 +769,68 @@ function adjustFilterButtonsForRole(role) {
     if (!cereriContainer) return;
     cereriContainer.innerHTML = "";
 
-    // 1. Filtrare strictă în funcție de rolul utilizatorului conectat
+    // 1. Filtrare strictă în funcție de rolul utilizatorului
     const roleAllowedCereri = allCereri.filter(item => {
-      if (currentUserRole === "superadmin" || currentUserRole === "admin") return true;
+      if (["superadmin", "admin", "conducere"].includes(currentUserRole)) return true;
 
       const allowedKeywords = ROLE_PERMISSIONS[currentUserRole] || [currentUserRole];
       
       const itemText = [
-        item.tip_cerere,
-        item.tip,
         item.departament,
         item.subdepartament,
+        item.tip_cerere,
+        item.tip,
+        item.eveniment,
         item.categorie,
         item.unitate,
+        item.nume_afacere,
         item.numeAfacere
       ].filter(Boolean).join(" ").toLowerCase();
 
-      return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
+      return allowedKeywords.some(kw => kw === "all" || itemText.includes(kw.toLowerCase()));
     });
 
-    const activeCount = roleAllowedCereri.filter(c => c.status !== "in_cos" && !c.arhivat).length;
+    const activeCount = roleAllowedCereri.filter(c => {
+      const st = (c.status || "").toLowerCase();
+      return st !== "in_cos" && !c.arhivat && !c.archived && !c.deleted;
+    }).length;
+
     if (totalCountEl) totalCountEl.textContent = activeCount;
 
-    // 2. Filtrare secundară după tab-urile active (Așteptare, Arhivă, Coș etc.)
+    // 2. Filtrare secundară după tab-urile active (Așteptare, Arhivă, Coș, ISULS, DSLS etc.)
     const filtered = roleAllowedCereri.filter(item => {
-      const status = (item.status || "in_asteptare").toString().toLowerCase();
-      const isArhivat = item.arhivat === true;
+      const rawStatus = (item.status || "in_asteptare").toString().toLowerCase().trim();
+      const isTrash = rawStatus === "in_cos" || item.deleted === true;
+      const isArhivat = item.arhivat === true || item.archived === true || rawStatus === "arhivat";
 
       const filterRaw = (currentFilter || "all").toString().trim();
       const filterNorm = filterRaw.toLowerCase();
 
+      // Tab: Coș de Gunoi
       if (filterNorm === "in_cos" || filterNorm.includes("cos") || filterNorm.includes("coș")) {
-        return status === "in_cos";
+        return isTrash;
       }
-      if (status === "in_cos") return false;
+      if (isTrash) return false;
 
+      // Tab: Arhivă
       if (filterNorm === "arhivat" || filterNorm.includes("arhiva") || filterNorm.includes("arhivă")) {
         return isArhivat;
       }
       if (isArhivat) return false;
 
+      // Tab: Toate / All
       if (filterNorm === "all" || filterNorm === "toate") return true;
 
+      // Tab: În Așteptare
       if (filterNorm === "in_asteptare" || filterNorm.includes("asteptare") || filterNorm.includes("așteptare")) {
-        return status === "in_asteptare";
+        return rawStatus.includes("așteptare") || rawStatus.includes("asteptare") || rawStatus === "in_asteptare";
       }
 
-      const itemText = [item.tip_cerere, item.tip, item.departament, item.subdepartament].filter(Boolean).join(" ").toLowerCase();
-      return itemText.includes(filterNorm);
+      // Tab-uri specifice pe departament (ISULS, DSLS, MMLS, SSMLS)
+      const itemDept = (item.departament || item.subdepartament || "").toString().toLowerCase();
+      const itemText = [item.departament, item.subdepartament, item.tip_cerere, item.tip, item.eveniment].filter(Boolean).join(" ").toLowerCase();
+      
+      return itemDept === filterNorm || itemText.includes(filterNorm);
     });
 
     if (filtered.length === 0) {
@@ -820,42 +839,41 @@ function adjustFilterButtonsForRole(role) {
     }
 
     filtered.forEach(item => {
-      const tip = item.tip_cerere || item.tip || "Cerere";
+      const tip = item.eveniment || item.tip_cerere || item.tip || "PROGRAMARE";
       const status = item.status || "in_asteptare";
 
       const tipNorm = tip.toLowerCase();
-      const isProgramare = tipNorm.includes("programar");
-      const isEveniment = tipNorm.includes("eveniment");
+      const isEveniment = tipNorm.includes("eveniment") && !tipNorm.includes("programare");
 
-      let badgeClass = "inregistrare";
-      if (isProgramare) badgeClass = "programare";
+      let badgeClass = "programare";
       if (isEveniment) badgeClass = "eveniment";
+
+      const numeProprietar = escapeHtml(item.nume_proprietar || item.proprietar || item.reprezentant || item.nume || '-');
+      const numeAfacere = escapeHtml(item.nume_afacere || item.unitate || item.numeAfacere || '-');
+      const tipSpatiu = escapeHtml(item.tip_afacere || item.tipSpatiu || item.tipBusiness || '-');
+      const dataOra = escapeHtml(item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : (item.dataDorita ? `${item.dataDorita} la ${item.oraDorita}` : '-')));
+      const codEv = escapeHtml(item.codEveniment || item.cod_eveniment || item.cod || 'PCLS-PROGRAMARE');
 
       let previewHTML = "";
 
-      if (isProgramare) {
+      if (isEveniment) {
         previewHTML = `
-          <p><strong>Nume Proprietar</strong><span>${escapeHtml(item.proprietar || item.nume || '-')}</span></p>
-          <p><strong>Nume Afacere</strong><span>${escapeHtml(item.unitate || item.numeAfacere || '-')}</span></p>
-          <p><strong>Data & Ora</strong><span>${escapeHtml(item.dataProgramare || '-')} la ${escapeHtml(item.oraProgramare || '-')}</span></p>
-        `;
-      } else if (isEveniment) {
-        previewHTML = `
-          <p><strong>Cod Eveniment</strong><span>${escapeHtml(item.codEveniment || item.cod_eveniment || item.cod || '-')}</span></p>
-          <p><strong>Reprezentant</strong><span>${escapeHtml(item.proprietar || item.reprezentant || item.nume || '-')}</span></p>
-          <p><strong>Afacere / Tip</strong><span>${escapeHtml(item.unitate || item.numeAfacere || '-')} (${escapeHtml(item.tipSpatiu || item.tipBusiness || '-')})</span></p>
-          <p><strong>Data & Ora</strong><span>${escapeHtml(item.dataDorita || item.dataProgramare || '-')} la ${escapeHtml(item.oraDorita || item.oraProgramare || '-')}</span></p>
+          <p><strong>Cod Eveniment</strong><span>${codEv}</span></p>
+          <p><strong>Reprezentant</strong><span>${numeProprietar}</span></p>
+          <p><strong>Afacere / Tip</strong><span>${numeAfacere} (${tipSpatiu})</span></p>
+          <p><strong>Data & Ora</strong><span>${dataOra}</span></p>
         `;
       } else {
         previewHTML = `
-          <p><strong>Proprietar</strong><span>${escapeHtml(item.proprietar || item.nume || '-')}</span></p>
-          <p><strong>Unitate</strong><span>${escapeHtml(item.unitate || item.numeAfacere || '-')}</span></p>
-          <p><strong>Tip Spațiu</strong><span>${escapeHtml(item.tipSpatiu || item.tipBusiness || '-')}</span></p>
+          <p><strong>Nume Proprietar</strong><span>${numeProprietar}</span></p>
+          <p><strong>Nume Afacere</strong><span>${numeAfacere}</span></p>
+          <p><strong>Data & Ora</strong><span>${dataOra}</span></p>
         `;
       }
 
-      const isTrashView = status === "in_cos";
-      const isArchiveView = item.arhivat === true;
+      const rawStatusNorm = status.toLowerCase();
+      const isTrashView = rawStatusNorm === "in_cos" || item.deleted === true;
+      const isArchiveView = item.arhivat === true || item.archived === true;
 
       let actionsHTML = "";
       if (isTrashView) {
@@ -885,7 +903,7 @@ function adjustFilterButtonsForRole(role) {
       card.innerHTML = `
         <div class="card-header">
           <span class="type-badge ${badgeClass}">${escapeHtml(tip)}</span>
-          <span class="status-badge ${status}">${formatStatus(status)}</span>
+          <span class="status-badge ${formatStatusClass(status)}">${formatStatus(status)}</span>
         </div>
         <div class="card-body">
           ${previewHTML}
@@ -943,7 +961,7 @@ function adjustFilterButtonsForRole(role) {
         const id = btn.getAttribute("data-id");
         const item = allCereri.find(c => c.id === id);
 
-        if (item && item.status === "in_cos") {
+        if (item && (item.status === "in_cos" || item.deleted === true)) {
           pendingDeleteId = id;
           if (confirmModal) confirmModal.classList.add("active");
         } else {
@@ -956,7 +974,7 @@ function adjustFilterButtonsForRole(role) {
     document.querySelectorAll(".btn-restore").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
-        await updateStatus(id, "in_asteptare", "Restaurat cererea");
+        await updateStatus(id, "În Așteptare", "Restaurat cererea");
         showToast("Cererea a fost restaurată cu succes!", "success");
       });
     });
@@ -969,6 +987,7 @@ function adjustFilterButtonsForRole(role) {
     try {
       await updateDoc(doc(db, "cereri", id), {
         arhivat: shouldArchive,
+        archived: shouldArchive,
         procesat_de: `${adminName} (${shouldArchive ? 'Arhivat' : 'Desarhivat'})`,
         data_procesare: timestamp
       });
@@ -984,11 +1003,19 @@ function adjustFilterButtonsForRole(role) {
     const timestamp = new Date().toLocaleString("ro-RO");
 
     try {
-      await updateDoc(doc(db, "cereri", id), {
+      const updateData = {
         status: newStatus,
         procesat_de: `${adminName} (${actionName})`,
         data_procesare: timestamp
-      });
+      };
+
+      if (newStatus === "in_cos") {
+        updateData.deleted = true;
+      } else {
+        updateData.deleted = false;
+      }
+
+      await updateDoc(doc(db, "cereri", id), updateData);
       if (newStatus !== "in_cos") {
         showToast(`Status actualizat: ${formatStatus(newStatus)}`, "success");
       }
@@ -1023,11 +1050,7 @@ function adjustFilterButtonsForRole(role) {
   // --- 9. MODAL DETALII ---
   function openDetailsModal(item) {
     currentOpenItem = item;
-    const tipNorm = (item.tip_cerere || item.tip || "Înregistrare").toLowerCase();
-    const isProgramare = tipNorm.includes("programar");
-    const isEveniment = tipNorm.includes("eveniment");
-
-    const codUnic = item.codEveniment || item.cod_eveniment || item.cod || "PCLS-000000";
+    const codUnic = item.codEveniment || item.cod_eveniment || item.cod || "PCLS-PROGRAMARE";
     if (detailsCodeTag) {
       detailsCodeTag.textContent = codUnic;
     }
@@ -1036,41 +1059,28 @@ function adjustFilterButtonsForRole(role) {
       ? `${item.procesat_de} pe ${item.data_procesare || '-'}` 
       : "Nicio acțiune";
 
+    const numeProprietar = item.nume_proprietar || item.proprietar || item.reprezentant || item.nume || '-';
+    const numeAfacere = item.nume_afacere || item.unitate || item.numeAfacere || '-';
+    const tipBusiness = item.tip_afacere || item.tipSpatiu || item.tipBusiness || '-';
+    const cnpVal = item.cnp || item.idJucator || item.cnp_id || '-';
+    const telVal = item.telefon || item.tel || '-';
+    const discordVal = item.discord_id || item.discord || item.numeDiscord || '-';
+    const dataOraVal = item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : (item.dataDorita ? `${item.dataDorita} la ${item.oraDorita}` : '-'));
+    const detaliiVal = item.detalii || item.adresa || item.locatie || '-';
+
     let fields = [
+      { label: "Departament", value: (item.departament || "ISULS").toUpperCase() },
       { label: "Status Curent", value: formatStatus(item.status || "in_asteptare") },
       { label: "Procesată de User", value: userAction, highlight: true },
-      { label: "Proprietar / Reprezentant", value: item.proprietar || item.reprezentant || item.nume, full: true }
+      { label: "Proprietar / Reprezentant", value: numeProprietar, full: true },
+      { label: "CNP (ID)", value: cnpVal },
+      { label: "Nume Afacere", value: numeAfacere },
+      { label: "Tip Business / Spațiu", value: tipBusiness },
+      { label: "Data & Ora", value: dataOraVal },
+      { label: "Telefon Contact", value: telVal },
+      { label: "Discord ID / User", value: discordVal },
+      { label: "Detalii Extra / Locație", value: detaliiVal, full: true }
     ];
-
-    if (isEveniment) {
-      fields.push(
-        { label: "Cod Eveniment", value: item.codEveniment || item.cod_eveniment || item.cod },
-        { label: "CNP (ID)", value: item.cnp || item.idJucator || item.cnp_id },
-        { label: "Nume Afacere", value: item.unitate || item.numeAfacere },
-        { label: "Tip Business", value: item.tipSpatiu || item.tipBusiness },
-        { label: "Data & Ora", value: `${item.dataDorita || item.dataProgramare || '-'} la ${item.oraDorita || item.oraProgramare || '-'}` },
-        { label: "Telefon Contact", value: item.tel || item.telefon },
-        { label: "Nume / ID Discord", value: item.discord || item.numeDiscord },
-        { label: "Locație / Adresă", value: item.adresa || item.locatie || item.detalii, full: true }
-      );
-    } else if (isProgramare) {
-      fields.push(
-        { label: "Nume Afacere", value: item.unitate || item.numeAfacere },
-        { label: "Tip Business", value: item.tipSpatiu || item.tipBusiness },
-        { label: "Data & Ora", value: `${item.dataProgramare || '-'} la ${item.oraProgramare || '-'}` },
-        { label: "Telefon Contact", value: item.tel || item.telefon },
-        { label: "Nume / ID Discord", value: item.discord || item.numeDiscord },
-        { label: "Detalii Extra", value: item.detalii, full: true }
-      );
-    } else {
-      fields.push(
-        { label: "Unitate / Afacere", value: item.unitate || item.numeAfacere },
-        { label: "Tip Spațiu", value: item.tipSpatiu || item.tipBusiness },
-        { label: "Adresă Locație", value: item.adresa || item.detalii || item.locatie, full: true },
-        { label: "Telefon Contact", value: item.tel || item.telefon },
-        { label: "Nume / ID Discord", value: item.discord || item.numeDiscord }
-      );
-    }
 
     if (detailsContainer) {
       detailsContainer.innerHTML = fields.map(f => {
@@ -1084,7 +1094,7 @@ function adjustFilterButtonsForRole(role) {
     }
 
     if (detailsTrashBtn) {
-      if (item.status === "in_cos") {
+      if (item.status === "in_cos" || item.deleted === true) {
         detailsTrashBtn.textContent = "Șterge Definitiv";
       } else {
         detailsTrashBtn.textContent = "🗑️ Mută în Coș";
@@ -1107,7 +1117,7 @@ function adjustFilterButtonsForRole(role) {
       if (!currentOpenItem) return;
       const id = currentOpenItem.id;
 
-      if (currentOpenItem.status === "in_cos") {
+      if (currentOpenItem.status === "in_cos" || currentOpenItem.deleted === true) {
         pendingDeleteId = id;
         closeDetailsModal();
         if (confirmModal) confirmModal.classList.add("active");
@@ -1121,12 +1131,19 @@ function adjustFilterButtonsForRole(role) {
 
   // --- 10. FUNCȚII AJUTĂTOARE ---
   function formatStatus(status) {
-    switch (status) {
-      case "aprobat": return "Aprobat";
-      case "respins": return "Respins";
-      case "in_cos": return "Coș de Gunoi";
-      case "in_asteptare": default: return "În Așteptare";
-    }
+    const s = (status || "").toLowerCase();
+    if (s.includes("aprobat") || s === "acceptată" || s === "acceptata") return "Aprobat";
+    if (s.includes("respins")) return "Respins";
+    if (s === "in_cos" || s.includes("cos")) return "Coș de Gunoi";
+    return "În Așteptare";
+  }
+
+  function formatStatusClass(status) {
+    const s = (status || "").toLowerCase();
+    if (s.includes("aprobat") || s === "acceptată" || s === "acceptata") return "aprobat";
+    if (s.includes("respins")) return "respins";
+    if (s === "in_cos" || s.includes("cos")) return "in_cos";
+    return "in_asteptare";
   }
 
   function escapeHtml(str) {
