@@ -856,24 +856,6 @@
     });
   });
 
-  function isPclsRequest(item) {
-    const typeText = [
-      item?.tip_cerere,
-      item?.tip,
-      item?.eveniment,
-      item?.categorie
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return (
-      typeText.includes("eveniment") ||
-      typeText.includes("inregistrare") ||
-      typeText.includes("programare")
-    );
-  }
-
   // --- 8. RANDARE ȘI FILTRARE STRICTĂ PE ROL ȘI DEPARTAMENT ---
   function renderCereri() {
     if (!cereriContainer) return;
@@ -968,9 +950,24 @@
         return rawStatus.includes("așteptare") || rawStatus.includes("asteptare") || rawStatus === "in_asteptare";
       }
 
-      // Tab: PCLS (doar cererile de tip eveniment, înregistrare sau programare)
+      // Tab: PCLS (Cereri generale: Event, Înregistrare, Programare fără sub-departament)
       if (filterNorm === "pcls") {
-        return isPclsRequest(item);
+        const dep = (item.departament || "").toString().toLowerCase().trim();
+        const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
+        const tip = (item.tip || "").toString().toLowerCase().trim();
+        const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
+
+        const isGenericType = 
+          tipCerere.includes("programare") || 
+          tipCerere.includes("inregistrare") || 
+          eveniment.includes("eveniment") || 
+          eveniment.includes("event") || 
+          tip.includes("programare") || 
+          tip.includes("inregistrare") || 
+          tip.includes("eveniment") ||
+          dep === "pcls";
+
+        return isGenericType;
       }
 
       // Tab-uri pe departamente (ISULS, DSLS, MMLS, SSMLS)
