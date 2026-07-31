@@ -958,13 +958,9 @@
         const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
 
         const isGenericType = 
-          tipCerere.includes("programare") || 
-          tipCerere.includes("inregistrare") || 
-          eveniment.includes("eveniment") || 
-          eveniment.includes("event") || 
-          tip.includes("programare") || 
-          tip.includes("inregistrare") || 
-          tip.includes("eveniment") ||
+          tipCerere.toLowerCase() == "programare" || 
+          tipCerere.toLowerCase() == "înregistrare" || 
+          tipCerere.toLowerCase() == "eveniment" ||
           dep === "pcls";
 
         return isGenericType;
