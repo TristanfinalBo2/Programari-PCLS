@@ -1483,55 +1483,59 @@
             const initial = displayName.charAt(0).toUpperCase();
             
             let isAdmin = false;
+            const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
+
+            console.log("=== VERIFICARE AUTH PENTRU:", user.email, "| UID:", user.uid, "===");
 
             try {
-                const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
                 let userData = null;
 
-                // PASUL 1: Căutare după UID
+                // 1. Încercare citire directă prin UID-ul contului
                 const userDocRef = doc(db, "utilizatori", user.uid);
                 const userDoc = await getDoc(userDocRef);
 
                 if (userDoc.exists()) {
                     userData = userDoc.data();
+                    console.log("✅ Găsit document direct după UID:", userData);
                 } else {
-                    // PASUL 2: Căutare după EMAIL exact
+                    console.warn("⚠️ Nu există document cu ID-ul egal cu UID-ul:", user.uid);
+                    
+                    // 2. Încercare căutare după EMAIL
                     try {
-                        const usersRef = collection(db, "utilizatori");
                         const cleanEmail = user.email.toLowerCase().trim();
+                        const usersRef = collection(db, "utilizatori");
                         const q = query(usersRef, where("email", "==", cleanEmail));
                         const querySnapshot = await getDocs(q);
 
                         if (!querySnapshot.empty) {
                             userData = querySnapshot.docs[0].data();
+                            console.log("✅ Găsit document după EMAIL:", userData);
                         } else {
-                            // PASUL 3: Fallback - Parcurgere colecție (dacă e-mailul din DB e salvat cu majuscule)
-                            const allDocs = await getDocs(usersRef);
-                            allDocs.forEach(d => {
-                                const dData = d.data();
-                                if (dData.email && dData.email.toString().toLowerCase().trim() === cleanEmail) {
-                                    userData = dData;
-                                }
-                            });
+                            console.warn("⚠️ Nu s-a găsit niciun document cu email-ul:", cleanEmail);
                         }
-                    } catch (rulesError) {
-                        console.warn("Firestore Security Rules restricționează căutarea după email:", rulesError);
+                    } catch (queryErr) {
+                        console.error("❌ Căutarea după email a fost blocată de Firestore Rules:", queryErr.message);
                     }
                 }
 
-                // Verificare finală a rolului
+                // Verificare Rol
                 if (userData) {
-                    let userRoleRaw = userData.role || userData.rol || userData.grad || userData.functie || "";
-                    if (Array.isArray(userRoleRaw)) userRoleRaw = userRoleRaw[0] || "";
+                    const rawRole = (userData.role || userData.rol || userData.grad || userData.functie || "").toString().toLowerCase().trim();
+                    console.log("🔍 Rol găsit în DB:", rawRole);
 
-                    const userRole = userRoleRaw.toString().toLowerCase().trim();
-
-                    if (validRoles.includes(userRole) || userRole.includes("conducere") || userRole.includes("admin")) {
+                    if (validRoles.includes(rawRole) || rawRole.includes("conducere") || rawRole.includes("admin")) {
                         isAdmin = true;
+                        console.log("🎉 ACCES PERMIS (isAdmin = true)");
+                    } else {
+                        console.warn("⛔ Rolul nu este în lista permisă.");
                     }
+                } else {
+                    console.error("❌ Nu s-au putut prelua datele utilizatorului din Firestore!");
                 }
+
             } catch (error) {
-                console.error("Eroare la verificarea rolului:", error);
+                console.error("❌ Eroare generală Firestore:", error);
+                isAdmin = false;
             }
 
             if (authSection) {
@@ -1601,7 +1605,7 @@
         }
     });
 
-    // --- LOGICA MODAL, BARA DE SCROLL, BUTON SUS ȘI REVEAL ---
+    // --- LOGICA MODAL, SCROLL & REVEAL ---
     const modal = document.getElementById("medicalModal");
     const openButtons = document.querySelectorAll("[data-open-medical]");
     const closeButton = document.querySelector("[data-close-medical]");
