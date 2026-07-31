@@ -1357,7 +1357,7 @@
                     </span>
                     <span>
                         <h3>Programare PCLS</h3>
-                        <p>Solicitări pentru protecția consumatorilor los santos, verificări și programări oficiale pentru unități economice.</p>
+                        <p>Solicitări pentru Protectia Consumatorilor Los Santos, verificări și programări oficiale pentru unități economice.</p>
                     </span>
                     <span class="service-footer">
                         Deschide formularul
@@ -1471,103 +1471,107 @@
     </div>
 <script type="module">
     import { auth, db } from "./firebase-config.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const authSection = document.getElementById("auth-section-premium");
+    const authSection = document.getElementById("auth-section-premium");
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const emailPart = user.email ? user.email.split('@')[0] : "User";
-        const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
-        const initial = displayName.charAt(0).toUpperCase();
-        
-        let isAdmin = false;
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const emailPart = user.email ? user.email.split('@')[0] : "User";
+            const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
+            const initial = displayName.charAt(0).toUpperCase();
+            
+            let isAdmin = false;
 
-        try {
-            const userDocRef = doc(db, "utilizatori", user.uid);
-            const userDoc = await getDoc(userDocRef);
-            const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
+            try {
+                const userDocRef = doc(db, "utilizatori", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                // Am definit clar rolurile care au acces la panou
+                const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
 
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                const userRole = (data.role || data.rol || "").toString().toLowerCase().trim();
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    // Normalizăm textul ca să eliminăm spațiile sau majusculele
+                    const userRole = (data.role || data.rol || "").toString().toLowerCase().trim();
 
-                if (validRoles.includes(userRole)) {
-                    isAdmin = true;
+                    // Verificăm strict dacă se află în listă sau dacă conține cuvântul "conducere"
+                    if (validRoles.includes(userRole) || userRole.includes("conducere")) {
+                        isAdmin = true;
+                    }
                 }
+            } catch (error) {
+                console.error("Eroare la citirea rolului:", error);
+                isAdmin = false;
             }
-        } catch (error) {
-            console.error("Eroare la citirea rolului:", error);
-            isAdmin = false;
-        }
 
-        if (authSection) {
-            authSection.innerHTML = `
-                <div class="user-profile-premium">
-                    <button class="profile-btn-premium" id="profileToggle">
-                        <span>Salut, ${displayName}</span>
-                        <div class="profile-avatar">${initial}</div>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    </button>
-                    
-                    <div class="profile-dropdown-premium" id="profileDropdown">
-                        <div class="dropdown-user-info">
-                            <span>Conectat cu adresa</span>
-                            <strong>${user.email}</strong>
-                        </div>
-                        
-                        <div class="dropdown-divider"></div>
-
-                        ${isAdmin ? `
-                        <a href="admin.html" class="dropdown-item-premium">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                            Cereri Admin / Panou
-                        </a>` : ''}
-                        
-                        <a href="setari.html" class="dropdown-item-premium">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                            Setări cont
-                        </a>
-
-                        <div class="dropdown-divider"></div>
-
-                        <button id="btnLogout" class="dropdown-item-premium" style="color: #ff6b6b;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                            Deconectare
+            if (authSection) {
+                authSection.innerHTML = `
+                    <div class="user-profile-premium">
+                        <button class="profile-btn-premium" id="profileToggle">
+                            <span>Salut, ${displayName}</span>
+                            <div class="profile-avatar">${initial}</div>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
+                        
+                        <div class="profile-dropdown-premium" id="profileDropdown">
+                            <div class="dropdown-user-info">
+                                <span>Conectat cu adresa</span>
+                                <strong>${user.email}</strong>
+                            </div>
+                            
+                            <div class="dropdown-divider"></div>
+
+                            ${isAdmin ? `
+                            <a href="admin.html" class="dropdown-item-premium">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                Cereri Admin / Panou
+                            </a>` : ''}
+                            
+                            <a href="setari.html" class="dropdown-item-premium">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                Setări cont
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <button id="btnLogout" class="dropdown-item-premium" style="color: #ff6b6b;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                Deconectare
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            const profileToggle = document.getElementById("profileToggle");
-            const profileDropdown = document.getElementById("profileDropdown");
+                const profileToggle = document.getElementById("profileToggle");
+                const profileDropdown = document.getElementById("profileDropdown");
 
-            profileToggle.addEventListener("click", (e) => {
-                e.stopPropagation(); 
-                profileDropdown.classList.toggle("show");
-            });
+                profileToggle.addEventListener("click", (e) => {
+                    e.stopPropagation(); 
+                    profileDropdown.classList.toggle("show");
+                });
 
-            document.addEventListener("click", (e) => {
-                if (!profileToggle.contains(e.target) && !profileDropdown.contains(e.target)) {
-                    profileDropdown.classList.remove("show");
-                }
-            });
+                document.addEventListener("click", (e) => {
+                    if (!profileToggle.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.remove("show");
+                    }
+                });
 
-            document.getElementById("btnLogout").addEventListener("click", () => {
-                signOut(auth).then(() => window.location.reload());
-            });
+                document.getElementById("btnLogout").addEventListener("click", () => {
+                    signOut(auth).then(() => window.location.reload());
+                });
+            }
+        } else {
+            if (authSection) {
+                authSection.innerHTML = `
+                    <a href="auth.html" class="btn-login-premium" style="color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 8px 18px; border-radius: 99px; background: rgba(255,255,255,0.05);">
+                        Autentificare
+                    </a>
+                `;
+            }
         }
-    } else {
-        if (authSection) {
-            authSection.innerHTML = `
-                <a href="auth.html" class="btn-login-premium" style="color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 8px 18px; border-radius: 99px; background: rgba(255,255,255,0.05);">
-                    Autentificare
-                </a>
-            `;
-        }
-    }
-});
+    });
 
     // --- 3. LOGICA PENTRU MODAL, BARA DE SCROLL, BUTON SUS ȘI REVEAL ---
     
