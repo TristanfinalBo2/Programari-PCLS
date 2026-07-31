@@ -1190,7 +1190,7 @@
   // --- 9. MODAL DETALII ---
   function openDetailsModal(item) {
     currentOpenItem = item;
-    const codUnic = item.codEveniment || item.cod_eveniment || item.cod || `${item.departament.toUpperCase()}-PROGRAMARE`;
+    const codUnic = item.codEveniment || item.cod_eveniment || item.cod || `${String(item.departament).toUpperCase()}-PROGRAMARE`;
     if (detailsCodeTag) {
       detailsCodeTag.textContent = codUnic;
     }
