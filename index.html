@@ -1484,62 +1484,43 @@ onAuthStateChanged(auth, async (user) => {
         
         let isAdmin = false;
 
-try {
-    let userData = null;
+        try {
+            const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
+            let userData = null;
 
-    // Caută utilizatorul după UID
-    const snap = await getDoc(doc(db, "utilizatori", user.uid));
+            // PASUL 1: Încercăm căutarea după UID
+            const userDocRef = doc(db, "utilizatori", user.uid);
+            const userDoc = await getDoc(userDocRef);
 
-    if (snap.exists()) {
-        userData = snap.data();
-        console.log("Gasit dupa UID");
-    } else {
-        console.log("Nu exista dupa UID, caut dupa email...");
+            if (userDoc.exists()) {
+                userData = userDoc.data();
+            } else {
+                // PASUL 2: Căutăm după EMAIL dacă ID-ul documentului din DB e diferit
+                try {
+                    const usersRef = collection(db, "utilizatori");
+                    const q = query(usersRef, where("email", "==", user.email));
+                    const querySnapshot = await getDocs(q);
 
-        const q = query(
-            collection(db, "utilizatori"),
-            where("email", "==", user.email)
-        );
+                    if (!querySnapshot.empty) {
+                        userData = querySnapshot.docs[0].data();
+                    }
+                } catch (qErr) {
+                    console.error("Eroare la căutarea după email:", qErr);
+                }
+            }
 
-        const result = await getDocs(q);
+            // PASUL 3: Extragere rol (Inclusiv verificarea câmpului 'grad'!)
+            if (userData) {
+                const userRole = (userData.grad || userData.role || userData.rol || userData.functie || "").toString().toLowerCase().trim();
 
-        if (!result.empty) {
-            userData = result.docs[0].data();
-            console.log("Gasit dupa email");
+                if (validRoles.includes(userRole)) {
+                    isAdmin = true;
+                }
+            }
+        } catch (error) {
+            console.error("Eroare la citirea rolului:", error);
+            isAdmin = false;
         }
-    }
-
-    console.log("UserData:", userData);
-
-    if (userData) {
-
-        const role = String(
-            userData.role ??
-            userData.grad ??
-            userData.rol ??
-            userData.functie ??
-            ""
-        ).trim().toLowerCase();
-
-        console.log("ROL =", role);
-
-        isAdmin =
-            role === "superadmin" ||
-            role === "admin" ||
-            role === "conducere" ||
-            role === "isuls" ||
-            role === "dsls" ||
-            role === "mmls" ||
-            role === "mm" ||
-            role === "ssmls" ||
-            role === "ssmmls";
-    }
-
-    console.log("isAdmin =", isAdmin);
-
-} catch (err) {
-    console.error(err);
-}
 
         if (authSection) {
             authSection.innerHTML = `
