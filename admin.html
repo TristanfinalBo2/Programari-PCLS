@@ -898,7 +898,7 @@
       }
 
       // Roluri individuale (ISULS, DSLS, MMLS, SSMLS)
-      const allowedKeywords = ROLE_PERMISSIONS[currentUserRole] || [currentUserRole];
+      const allowedKeywords = ROLE_PERMISSIONS[currentUserRole.toLowerCase()] || [currentUserRole.toLowerCase()];
       const itemText = [
         item.departament,
         item.subdepartament,
@@ -998,7 +998,7 @@
       const numeAfacere = escapeHtml(item.nume_afacere || item.unitate || item.numeAfacere || '-');
       const tipSpatiu = escapeHtml(item.tip_afacere || item.tipSpatiu || item.tipBusiness || '-');
       const dataOra = escapeHtml(item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : (item.dataDorita ? `${item.dataDorita} la ${item.oraDorita}` : '-')));
-      const codEv = escapeHtml(item.codEveniment || item.cod_eveniment || item.cod || 'PCLS-PROGRAMARE');
+      const codEv = escapeHtml(item.codEveniment || item.cod_eveniment || item.cod || `${item.departament.toUpperCase()}-PROGRAMARE`);
 
       let previewHTML = "";
 
