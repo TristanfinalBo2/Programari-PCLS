@@ -463,6 +463,88 @@
   background-color: #0a0c0b; /* Fundal închis la culoare */
   color: #ffffff;             /* Text alb */
   padding: 10px;
+  
+}
+
+/* =========================================================
+   OPTIMIZARE DEDICATĂ PENTRU LAPTOP (1024px - 1440px)
+========================================================= */
+
+@media screen and (min-width: 1024px) and (max-width: 1440px) {
+    
+    /* 1. Ajustare spațiere generală pentru ecrane mai scurte pe înălțime */
+    body {
+        padding: 24px 32px;
+    }
+
+    .admin-container {
+        max-width: 1140px; /* Lățime optimă pentru a nu se lipi de margini */
+    }
+
+    /* 2. Header compact pe laptop */
+    header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+    }
+
+    h1 {
+        font-size: 1.75rem; /* Text lizibil fără să ocupe mult spațiu vertical */
+    }
+
+    .stat-card {
+        padding: 8px 16px;
+    }
+
+    .stat-card strong {
+        font-size: 1.2rem;
+    }
+
+    /* 3. Controale / Filtre compacte */
+    .controls {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 6px 14px;
+        font-size: 0.85rem;
+    }
+
+    /* 4. Cardurile de cereri - Aliniere perfectă pe 1 rând */
+    .card {
+        padding: 14px 20px;
+        gap: 16px;
+    }
+
+    .card-header {
+        width: 180px; /* Lățime redusă pentru insigne */
+    }
+
+    .card-body {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 3 coloane egale pe laptop */
+        gap: 16px;
+    }
+
+    .card-body p span {
+        font-size: 0.88rem;
+    }
+
+    .btn-action {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* 5. Finisaj Modal pe ecran de laptop */
+    .modal-box {
+        max-width: 720px;
+        padding: 24px;
+    }
+
+    .details-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 coloane aerisite în fereastra modală */
+        gap: 12px;
+    }
 }
   </style>
 </head>
