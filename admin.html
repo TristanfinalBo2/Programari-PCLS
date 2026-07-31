@@ -487,6 +487,7 @@
 
     <div class="controls">
       <button class="filter-btn active" data-filter="all">Toate</button>
+      <button class="filter-btn" data-filter="pcls">PCLS</button>
       <button class="filter-btn" data-filter="isuls">ISULS</button>
       <button class="filter-btn" data-filter="dsls">DSLS</button>
       <button class="filter-btn" data-filter="mmls">MMLS</button>
@@ -668,20 +669,20 @@
 
   // Ascundem butoanele de filtrare necorespunzătoare pentru fiecare rol
   function adjustFilterButtonsForRole(role) {
-    if (["superadmin", "admin"].includes(role)) return;
+    if (["superadmin", "admin"].includes(role)) return; // Admin și Superadmin văd toate butoanele, inclusiv PCLS
 
     filterButtons.forEach(btn => {
       const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
 
       if (role === "conducere") {
-        // Conducere vede doar tab-urile relevante
+        // Conducere vede doar tab-urile specifice departamentelor lor (fără tab-ul PCLS)
         const conducereAllowedTabs = ["all", "toate", "in_asteptare", "în așteptare", "arhivat", "arhivă", "in_cos", "coș de gunoi", "isuls", "dsls", "mmls", "ssmls"];
         if (!conducereAllowedTabs.includes(filterVal)) {
           btn.style.display = "none";
         }
       } else {
-        // Pentru celelalte roluri individuale (isuls, dsls, mmls, ssmls)
-        const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls"];
+        // Pentru rolurile individuale (isuls, dsls, mmls, ssmls)
+        const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls", "pcls"];
         if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
           btn.style.display = "none";
         }
@@ -778,9 +779,9 @@
     if (!cereriContainer) return;
     cereriContainer.innerHTML = "";
 
-    // 1. Filtrare strictă în funcție de rolul utilizatorului
+    // 1. Filtrare pe nivel de permisiune rol
     const roleAllowedCereri = allCereri.filter(item => {
-      // Superadmin și Admin văd tot
+      // Superadmin și Admin au acces la tot
       if (["superadmin", "admin"].includes(currentUserRole)) return true;
 
       const dep = (item.departament || "").toString().toLowerCase().trim();
@@ -789,30 +790,24 @@
       const tip = (item.tip || "").toString().toLowerCase().trim();
       const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
 
-      // ROLUL CONDUCERE: Vede DOAR cele 4 departamente (ISULS, DSLS, MMLS, SSMLS)
-      // Exclude cererile generale de tip: EVENIMENT, ÎNREGISTRARE, PROGRAMARE (fără departament)
+      // ROLUL CONDUCERE: vede EXCLUSIV ISULS, DSLS, MMLS, SSMLS
+      // Se blochează cererile generale PCLS (event, înregistrare, programare simplă)
       if (currentUserRole === "conducere") {
         const allowedDepts = ["isuls", "dsls", "mmls", "ssmls", "mm", "ssmmls"];
-        
-        // Verificăm dacă aparține clar unuia din cele 4 departamente
         const hasValidDept = allowedDepts.includes(dep) || allowedDepts.includes(subdep);
 
-        // Identificăm dacă cererea este de tip generic PCLS (fără apartenență de departament)
         const isGenericType = 
-          tipCerere === "programare" || 
-          tipCerere === "inregistrare" || 
-          tipCerere === "inregistrare afacere" ||
-          eveniment === "eveniment" || 
-          eveniment === "event" || 
-          eveniment === "inregistrare" ||
-          tip === "programare" || 
-          tip === "inregistrare" || 
-          tip === "eveniment" ||
+          tipCerere.includes("programare") || 
+          tipCerere.includes("inregistrare") || 
+          eveniment.includes("eveniment") || 
+          eveniment.includes("event") || 
+          tip.includes("programare") || 
+          tip.includes("inregistrare") || 
+          tip.includes("eveniment") ||
           dep === "pcls" || 
           dep === "general" ||
           dep === "";
 
-        // Dacă nu are departament specific SAU este un tip generic, îl ascundem
         if (!hasValidDept || isGenericType) {
           return false;
         }
@@ -820,7 +815,7 @@
         return true;
       }
 
-      // Pentru celelalte roluri specifice (ISULS, DSLS, MMLS, SSMLS)
+      // Roluri individuale (ISULS, DSLS, MMLS, SSMLS)
       const allowedKeywords = ROLE_PERMISSIONS[currentUserRole] || [currentUserRole];
       const itemText = [
         item.departament,
@@ -844,7 +839,7 @@
 
     if (totalCountEl) totalCountEl.textContent = activeCount;
 
-    // 2. Filtrare secundară după tab-urile active (Așteptare, Arhivă, Coș, ISULS, DSLS etc.)
+    // 2. Filtrare secundară după tab-ul selectat
     const filtered = roleAllowedCereri.filter(item => {
       const rawStatus = (item.status || "in_asteptare").toString().toLowerCase().trim();
       const isTrash = rawStatus === "in_cos" || item.deleted === true;
@@ -873,7 +868,29 @@
         return rawStatus.includes("așteptare") || rawStatus.includes("asteptare") || rawStatus === "in_asteptare";
       }
 
-      // Tab-uri specifice pe departament (ISULS, DSLS, MMLS, SSMLS)
+      // Tab: PCLS (Cereri generale: Event, Înregistrare, Programare fără sub-departament)
+      if (filterNorm === "pcls") {
+        const dep = (item.departament || "").toString().toLowerCase().trim();
+        const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
+        const tip = (item.tip || "").toString().toLowerCase().trim();
+        const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
+
+        const isGenericType = 
+          tipCerere.includes("programare") || 
+          tipCerere.includes("inregistrare") || 
+          eveniment.includes("eveniment") || 
+          eveniment.includes("event") || 
+          tip.includes("programare") || 
+          tip.includes("inregistrare") || 
+          tip.includes("eveniment") ||
+          dep === "pcls" || 
+          dep === "general" ||
+          dep === "";
+
+        return isGenericType;
+      }
+
+      // Tab-uri pe departamente (ISULS, DSLS, MMLS, SSMLS)
       const itemDept = (item.departament || item.subdepartament || "").toString().toLowerCase();
       const itemText = [item.departament, item.subdepartament, item.tip_cerere, item.tip, item.eveniment].filter(Boolean).join(" ").toLowerCase();
       
