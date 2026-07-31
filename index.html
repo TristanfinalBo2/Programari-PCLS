@@ -22,6 +22,13 @@
             --radius: 8px;
             --accent: #35f2ad;
             --accent-dim: rgba(53, 242, 173, 0.4);
+            --header-bg: rgba(15, 23, 42, 0.75); /* Albastru foarte închis, transparent */
+            --header-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --accent-gold: #35f2ad;
+            --accent-gold-glow: #18d892;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -116,24 +123,27 @@
    HEADER STYLING & PERFECT ALIGNMENT
    ========================================= */
 .topbar-modern {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 1000;
+    left: 0;
     width: 100%;
-    background: rgba(8, 10, 13, 0.85);
+    background: var(--header-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--header-border);
+    z-index: 1000;
+    transition: all var(--transition-smooth);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 .topbar-container {
-    width: min(1200px, calc(100% - 40px));
-    margin: 0 auto;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    height: 76px;
-    gap: 20px;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 12px 24px;
+    height: 70px;
 }
 
 .brand-premium {
@@ -141,54 +151,83 @@
     align-items: center;
     gap: 12px;
     text-decoration: none;
-    flex-shrink: 0;
+    transition: transform var(--transition-smooth);
 }
 
-.brand-logo-wrapper {
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
+.brand-premium:hover {
+    transform: scale(1.02);
 }
 
 .brand-logo-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+    height: 40px;
+    width: auto;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
 }
 
 .brand-text strong {
-    display: block;
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: var(--text);
-    line-height: 1.1;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 .brand-text span {
-    display: block;
+    color: var(--text-secondary);
     font-size: 0.75rem;
-    color: var(--mint);
-    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 1px;
 }
 
 .nav-premium {
     display: flex;
     align-items: center;
-    gap: 28px;
+    gap: 32px;
 }
 
 .nav-item {
-    color: var(--muted);
+    color: var(--text-primary);
+    text-decoration: none;
     font-size: 0.95rem;
-    font-weight: 600;
-    transition: color 0.2s ease;
+    font-weight: 500;
+    position: relative;
+    padding: 8px 0;
+    transition: color var(--transition-smooth);
+}
+
+/* Efect premium de subliniere la hover */
+.nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: var(--text-primary);
+    transition: width var(--transition-smooth);
+    border-radius: 2px;
 }
 
 .nav-item:hover {
-    color: var(--text);
+    color: #ffffff;
+}
+
+.nav-item:hover::after {
+    width: 100%;
+}
+
+/* Styling special pentru butonul de Admin injectat din JavaScript */
+#admin-nav-container .nav-item {
+    color: var(--accent-gold);
+    text-shadow: 0 0 10px var(--accent-gold-glow);
+}
+
+#admin-nav-container .nav-item::after {
+    background: var(--accent-gold);
 }
 
 .header-actions-premium {
@@ -204,35 +243,36 @@
 }
 
 .profile-btn-premium {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 12px 6px 16px;
+    border-radius: 50px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 14px 6px 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 99px;
-    color: var(--text);
-    cursor: pointer;
+    color: var(--text-primary);
     font-size: 0.9rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
+    cursor: pointer;
+    transition: all var(--transition-smooth);
 }
 
 .profile-btn-premium:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .profile-avatar {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
     border-radius: 50%;
-    background: var(--mint);
-    color: #040806;
-    display: grid;
-    place-items: center;
-    font-weight: 800;
-    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
 }
 
 /* Dropdown Menu */
@@ -1202,14 +1242,7 @@
             }
         }
     </style>
-</head>
-<body>
-    <div id="progress-bar"></div>
-    <a href="#" id="scrollTopBtn" class="floating-btn btn-top">
-        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
-    </a>
-
-    <header class="topbar-modern">
+<header class="topbar-modern">
     <div class="topbar-container">
         <a class="brand-premium" href="index.html">
             <div class="brand-logo-wrapper">
@@ -1225,11 +1258,12 @@
             <a href="#servicii" class="nav-item">Servicii</a>
             <a href="#proces" class="nav-item">Proces</a>
             <a href="ghid_pcls.html" class="nav-item">Ghid PCLS</a>
+            
+            <div id="admin-nav-container"></div>
         </nav>
 
         <div class="header-actions-premium">
             <div id="auth-section-premium"></div>
-
         </div>
     </div>
 </header>
@@ -1475,6 +1509,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authSection = document.getElementById("auth-section-premium");
+const adminNavContainer = document.getElementById("admin-nav-container");
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -1488,50 +1523,53 @@ onAuthStateChanged(auth, async (user) => {
             const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
             let userData = null;
 
-            // PASUL 1: Încercăm căutarea după UID
             const userDocRef = doc(db, "utilizatori", user.uid);
             const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
                 userData = userDoc.data();
-                console.log("✅ Date găsite după UID:", userData);
             } else {
-                console.warn("⚠️ Documentul nu a fost găsit după UID. Încercăm căutarea după email...");
-                
-                // PASUL 2: Căutăm după EMAIL dacă ID-ul documentului diferă
                 const usersRef = collection(db, "utilizatori");
                 const q = query(usersRef, where("email", "==", user.email));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
                     userData = querySnapshot.docs[0].data();
-                    console.log("✅ Date găsite după Email:", userData);
-                } else {
-                    console.error("❌ Nu s-a găsit niciun document în BD pentru acest email.");
                 }
             }
 
-            // PASUL 3: Extragere rol 
             if (userData) {
-                // Am pus `role` PRIMUL, pentru că în poza ta din DB așa se numește câmpul
                 const rawRole = userData.role || userData.rol || userData.grad || userData.functie || "";
                 const userRole = rawRole.toString().toLowerCase().trim();
-                
-                console.log(`🔍 Rol extras pentru verificare: "${userRole}"`);
 
                 if (validRoles.includes(userRole)) {
                     isAdmin = true;
-                    console.log("✅ Succes! Utilizatorul a primit acces.");
-                } else {
-                    console.warn(`❌ Rolul "${userRole}" NU este în lista validRoles.`);
                 }
             }
         } catch (error) {
-            console.error("⛔ Eroare severă la citirea din Firestore (posibil Security Rules):", error);
+            console.error("Eroare Firebase:", error);
             isAdmin = false;
         }
 
-        // Randarea meniului
+        // ==========================================
+        // 1. INJECTARE BUTON ADMIN ÎN NAVIGAȚIA SUS
+        // ==========================================
+        if (adminNavContainer) {
+            if (isAdmin) {
+                // I-am dat o culoare (auriu/portocaliu) ca să iasă în evidență față de celelalte butoane.
+                adminNavContainer.innerHTML = `
+                    <a href="admin.html" class="nav-item" style="color: white; font-weight: 700;">
+                        Cereri Admin
+                    </a>
+                `;
+            } else {
+                adminNavContainer.innerHTML = "";
+            }
+        }
+
+        // ==========================================
+        // 2. RANDARE MENIU DROPDOWN (FĂRĂ ADMIN!)
+        // ==========================================
         if (authSection) {
             authSection.innerHTML = `
                 <div class="user-profile-premium">
@@ -1548,12 +1586,6 @@ onAuthStateChanged(auth, async (user) => {
                         </div>
                         
                         <div class="dropdown-divider"></div>
-
-                        ${isAdmin ? `
-                        <a href="admin.html" class="dropdown-item-premium">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                            Cereri Admin / Panou
-                        </a>` : ''}
                         
                         <a href="setari.html" class="dropdown-item-premium">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -1589,12 +1621,16 @@ onAuthStateChanged(auth, async (user) => {
             });
         }
     } else {
+        // Cazul în care userul e deconectat
         if (authSection) {
             authSection.innerHTML = `
                 <a href="auth.html" class="btn-login-premium" style="color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 8px 18px; border-radius: 99px; background: rgba(255,255,255,0.05);">
                     Autentificare
                 </a>
             `;
+        }
+        if (adminNavContainer) {
+            adminNavContainer.innerHTML = "";
         }
     }
 });
