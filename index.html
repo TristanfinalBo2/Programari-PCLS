@@ -1494,34 +1494,44 @@ onAuthStateChanged(auth, async (user) => {
 
             if (userDoc.exists()) {
                 userData = userDoc.data();
+                console.log("✅ Date găsite după UID:", userData);
             } else {
-                // PASUL 2: Căutăm după EMAIL dacă ID-ul documentului din DB e diferit
-                try {
-                    const usersRef = collection(db, "utilizatori");
-                    const q = query(usersRef, where("email", "==", user.email));
-                    const querySnapshot = await getDocs(q);
+                console.warn("⚠️ Documentul nu a fost găsit după UID. Încercăm căutarea după email...");
+                
+                // PASUL 2: Căutăm după EMAIL dacă ID-ul documentului diferă
+                const usersRef = collection(db, "utilizatori");
+                const q = query(usersRef, where("email", "==", user.email));
+                const querySnapshot = await getDocs(q);
 
-                    if (!querySnapshot.empty) {
-                        userData = querySnapshot.docs[0].data();
-                    }
-                } catch (qErr) {
-                    console.error("Eroare la căutarea după email:", qErr);
+                if (!querySnapshot.empty) {
+                    userData = querySnapshot.docs[0].data();
+                    console.log("✅ Date găsite după Email:", userData);
+                } else {
+                    console.error("❌ Nu s-a găsit niciun document în BD pentru acest email.");
                 }
             }
 
-            // PASUL 3: Extragere rol (Inclusiv verificarea câmpului 'grad'!)
+            // PASUL 3: Extragere rol 
             if (userData) {
-                const userRole = (userData.grad || userData.role || userData.rol || userData.functie || "").toString().toLowerCase().trim();
+                // Am pus `role` PRIMUL, pentru că în poza ta din DB așa se numește câmpul
+                const rawRole = userData.role || userData.rol || userData.grad || userData.functie || "";
+                const userRole = rawRole.toString().toLowerCase().trim();
+                
+                console.log(`🔍 Rol extras pentru verificare: "${userRole}"`);
 
                 if (validRoles.includes(userRole)) {
                     isAdmin = true;
+                    console.log("✅ Succes! Utilizatorul a primit acces.");
+                } else {
+                    console.warn(`❌ Rolul "${userRole}" NU este în lista validRoles.`);
                 }
             }
         } catch (error) {
-            console.error("Eroare la citirea rolului:", error);
+            console.error("⛔ Eroare severă la citirea din Firestore (posibil Security Rules):", error);
             isAdmin = false;
         }
 
+        // Randarea meniului
         if (authSection) {
             authSection.innerHTML = `
                 <div class="user-profile-premium">
@@ -1542,7 +1552,7 @@ onAuthStateChanged(auth, async (user) => {
                         ${isAdmin ? `
                         <a href="admin.html" class="dropdown-item-premium">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                            Cereri Admin
+                            Cereri Admin / Panou
                         </a>` : ''}
                         
                         <a href="setari.html" class="dropdown-item-premium">
