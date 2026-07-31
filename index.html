@@ -1472,7 +1472,6 @@
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-// Am adăugat collection, query, where, getDocs pentru a putea căuta după email
 import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authSection = document.getElementById("auth-section-premium");
@@ -1489,14 +1488,14 @@ onAuthStateChanged(auth, async (user) => {
             const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
             let userData = null;
 
-            // 1. Încercăm să găsim contul după UID (cum aveai tu)
+            // PASUL 1: Încercăm căutarea după UID
             const userDocRef = doc(db, "utilizatori", user.uid);
             const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
                 userData = userDoc.data();
             } else {
-                // 2. FALLBACK SALVATOR: Căutăm după adresa de email dacă ID-ul documentului e diferit
+                // PASUL 2: Căutăm după EMAIL dacă ID-ul documentului din DB e diferit
                 try {
                     const usersRef = collection(db, "utilizatori");
                     const q = query(usersRef, where("email", "==", user.email));
@@ -1505,14 +1504,14 @@ onAuthStateChanged(auth, async (user) => {
                     if (!querySnapshot.empty) {
                         userData = querySnapshot.docs[0].data();
                     }
-                } catch (rulesError) {
-                    console.error("Eroare la căutarea după email (verifica regulile Firestore):", rulesError);
+                } catch (qErr) {
+                    console.error("Eroare la căutarea după email:", qErr);
                 }
             }
 
-            // 3. Dacă am găsit datele (fie prin UID, fie prin Email), validăm rolul
+            // PASUL 3: Extragere rol (Inclusiv verificarea câmpului 'grad'!)
             if (userData) {
-                const userRole = (userData.role || userData.rol || "").toString().toLowerCase().trim();
+                const userRole = (userData.grad || userData.role || userData.rol || userData.functie || "").toString().toLowerCase().trim();
 
                 if (validRoles.includes(userRole)) {
                     isAdmin = true;
@@ -1589,7 +1588,6 @@ onAuthStateChanged(auth, async (user) => {
         }
     }
 });
-
     // --- 3. LOGICA PENTRU MODAL, BARA DE SCROLL, BUTON SUS ȘI REVEAL ---
     
     // Modal
