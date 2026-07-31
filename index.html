@@ -1488,21 +1488,38 @@
                 const userDocRef = doc(db, "utilizatori", user.uid);
                 const userDoc = await getDoc(userDocRef);
                 
-                // Am definit clar rolurile care au acces la panou
                 const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
 
                 if (userDoc.exists()) {
                     const data = userDoc.data();
-                    // Normalizăm textul ca să eliminăm spațiile sau majusculele
-                    const userRole = (data.role || data.rol || "").toString().toLowerCase().trim();
-
-                    // Verificăm strict dacă se află în listă sau dacă conține cuvântul "conducere"
-                    if (validRoles.includes(userRole) || userRole.includes("conducere")) {
-                        isAdmin = true;
+                    
+                    // Căutăm rolul în mai multe câmpuri posibile din DB
+                    let userRoleRaw = data.role || data.rol || data.grad || data.functie || data.departament || "";
+                    
+                    // Dacă cumva ai salvat rolul sub formă de array, luăm primul element
+                    if (Array.isArray(userRoleRaw)) {
+                        userRoleRaw = userRoleRaw[0] || "";
                     }
+
+                    const userRole = userRoleRaw.toString().toLowerCase().trim();
+                    
+                    // ----------------------------------------------------
+                    // DEBUG PENTRU CONSOLA (F12) - SĂ VEZI EXACT CE TRAGE
+                    // ----------------------------------------------------
+                    console.log("[DEBUG AUTH] Date complete utilizator din DB:", data);
+                    console.log(`[DEBUG AUTH] Rol normalizat extras: '${userRole}'`);
+
+                    if (validRoles.includes(userRole) || userRole.includes("conducere") || userRole.includes("admin")) {
+                        isAdmin = true;
+                        console.log("[DEBUG AUTH] Acces ADMIN/PANOU acordat!");
+                    } else {
+                        console.log("[DEBUG AUTH] Acces respins. Rolul nu este în listă.");
+                    }
+                } else {
+                    console.log(`[DEBUG AUTH] Documentul pentru UID-ul ${user.uid} NU există în colecția 'utilizatori'.`);
                 }
             } catch (error) {
-                console.error("Eroare la citirea rolului:", error);
+                console.error("[DEBUG AUTH] Eroare la citirea rolului:", error);
                 isAdmin = false;
             }
 
