@@ -666,16 +666,25 @@
     }
   });
 
-  // Ascundem butoanele de filtrare pentru departamentele neautorizate
+  // Ascundem butoanele de filtrare necorespunzătoare pentru fiecare rol
   function adjustFilterButtonsForRole(role) {
-    if (["superadmin", "admin", "conducere"].includes(role)) return;
+    if (["superadmin", "admin"].includes(role)) return;
 
     filterButtons.forEach(btn => {
       const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
-      const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls"];
 
-      if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
-        btn.style.display = "none";
+      if (role === "conducere") {
+        // Conducere vede doar tab-urile relevante
+        const conducereAllowedTabs = ["all", "toate", "in_asteptare", "în așteptare", "arhivat", "arhivă", "in_cos", "coș de gunoi", "isuls", "dsls", "mmls", "ssmls"];
+        if (!conducereAllowedTabs.includes(filterVal)) {
+          btn.style.display = "none";
+        }
+      } else {
+        // Pentru celelalte roluri individuale (isuls, dsls, mmls, ssmls)
+        const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls"];
+        if (subdepartments.includes(filterVal) && filterVal !== role && !(role === "ssmls" && filterVal === "ssmmls")) {
+          btn.style.display = "none";
+        }
       }
     });
   }
@@ -771,10 +780,48 @@
 
     // 1. Filtrare strictă în funcție de rolul utilizatorului
     const roleAllowedCereri = allCereri.filter(item => {
-      if (["superadmin", "admin", "conducere"].includes(currentUserRole)) return true;
+      // Superadmin și Admin văd tot
+      if (["superadmin", "admin"].includes(currentUserRole)) return true;
 
+      const dep = (item.departament || "").toString().toLowerCase().trim();
+      const subdep = (item.subdepartament || "").toString().toLowerCase().trim();
+      const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
+      const tip = (item.tip || "").toString().toLowerCase().trim();
+      const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
+
+      // ROLUL CONDUCERE: Vede DOAR cele 4 departamente (ISULS, DSLS, MMLS, SSMLS)
+      // Exclude cererile generale de tip: EVENIMENT, ÎNREGISTRARE, PROGRAMARE (fără departament)
+      if (currentUserRole === "conducere") {
+        const allowedDepts = ["isuls", "dsls", "mmls", "ssmls", "mm", "ssmmls"];
+        
+        // Verificăm dacă aparține clar unuia din cele 4 departamente
+        const hasValidDept = allowedDepts.includes(dep) || allowedDepts.includes(subdep);
+
+        // Identificăm dacă cererea este de tip generic PCLS (fără apartenență de departament)
+        const isGenericType = 
+          tipCerere === "programare" || 
+          tipCerere === "inregistrare" || 
+          tipCerere === "inregistrare afacere" ||
+          eveniment === "eveniment" || 
+          eveniment === "event" || 
+          eveniment === "inregistrare" ||
+          tip === "programare" || 
+          tip === "inregistrare" || 
+          tip === "eveniment" ||
+          dep === "pcls" || 
+          dep === "general" ||
+          dep === "";
+
+        // Dacă nu are departament specific SAU este un tip generic, îl ascundem
+        if (!hasValidDept || isGenericType) {
+          return false;
+        }
+
+        return true;
+      }
+
+      // Pentru celelalte roluri specifice (ISULS, DSLS, MMLS, SSMLS)
       const allowedKeywords = ROLE_PERMISSIONS[currentUserRole] || [currentUserRole];
-      
       const itemText = [
         item.departament,
         item.subdepartament,
@@ -787,7 +834,7 @@
         item.numeAfacere
       ].filter(Boolean).join(" ").toLowerCase();
 
-      return allowedKeywords.some(kw => kw === "all" || itemText.includes(kw.toLowerCase()));
+      return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
     });
 
     const activeCount = roleAllowedCereri.filter(c => {
@@ -1097,7 +1144,7 @@
       if (item.status === "in_cos" || item.deleted === true) {
         detailsTrashBtn.textContent = "Șterge Definitiv";
       } else {
-        detailsTrashBtn.textContent = "🗑️ Mută în Coș";
+        detailsTrashBtn.textContent = "Mută în Coș";
       }
     }
 
