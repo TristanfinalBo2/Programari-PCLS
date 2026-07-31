@@ -998,7 +998,7 @@
       const numeAfacere = escapeHtml(item.nume_afacere || item.unitate || item.numeAfacere || '-');
       const tipSpatiu = escapeHtml(item.tip_afacere || item.tipSpatiu || item.tipBusiness || '-');
       const dataOra = escapeHtml(item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : (item.dataDorita ? `${item.dataDorita} la ${item.oraDorita}` : '-')));
-      const codEv = escapeHtml(item.codEveniment || item.cod_eveniment || item.cod || `${item.departament.toUpperCase()}-PROGRAMARE`);
+      const codEv = escapeHtml(item.codEveniment || item.cod_eveniment || item.cod || `PCLS-PROGRAMARE`);
 
       let previewHTML = "";
 
@@ -1196,7 +1196,7 @@
   // --- 9. MODAL DETALII ---
   function openDetailsModal(item) {
     currentOpenItem = item;
-    const codUnic = item.codEveniment || item.cod_eveniment || item.cod || "PCLS-PROGRAMARE";
+    const codUnic = item.codEveniment || item.cod_eveniment || item.cod || `${item.departament.toUpperCase()}-PROGRAMARE`;
     if (detailsCodeTag) {
       detailsCodeTag.textContent = codUnic;
     }
