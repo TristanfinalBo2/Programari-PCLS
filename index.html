@@ -1487,7 +1487,7 @@ onAuthStateChanged(auth, async (user) => {
         try {
             const userDocRef = doc(db, "utilizatori", user.uid);
             const userDoc = await getDoc(userDocRef);
-            const validRoles = ["conducere", "admin", "superadmin", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
+            const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]; 
 
             if (userDoc.exists()) {
                 const data = userDoc.data();
