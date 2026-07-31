@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programare S.S.M.L.S</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #050505;
+            --accent: #00ffa3;
+            --error: #ff3c64;
+            --text-primary: #ffffff;
+            --text-secondary: #88928c;
+            --surface-bg: rgba(255, 255, 255, 0.02);
+            --surface-border: rgba(255, 255, 255, 0.06);
+            --input-bg: rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.05) 0%, transparent 60%);
+        }
+
+                                /* Controale Flotante */
+        .floating-btn {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 17, 16, 0.85);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            text-decoration: none;
+            z-index: 2000;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-back {
+            top: 30px; left: 30px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-top {
+            bottom: 30px; right: 30px;
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            opacity: 0; visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .btn-top.show {
+            opacity: 1; visibility: visible;
+            transform: translateY(0);
+        }
+
+        .floating-btn svg {
+            width: 20px; height: 20px;
+            fill: none; stroke: currentColor; stroke-width: 2;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+
+        .floating-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 10px 25px var(--accent-dim);
+            transform: translateY(-3px);
+        }
+
+        .btn-back:hover svg { transform: translateX(-4px); transition: transform 0.3s; }
+        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.8s ease-out;
+            padding: 60px 20px;
+        }
+
+        h4 {
+            font-weight: 400;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        form {
+            width: 100%;
+            background: var(--surface-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--surface-border);
+            border-radius: 20px;
+            padding: 40px 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Aliniere Grid Simetrică pentru S.S.M.L.S */
+        form input[name="NUME"],
+        form input[name="ID"],
+        form input[name="NUME AFACERE"],
+        form input[name="TIP BUSSINES"],
+        form input[name="NUMAR DE TEL"],
+        form input[name="DAY"],
+        form input[name="NAME"],
+        form input[name="NUMBER"],
+        form input[name="NAME2"],
+        form input[name="NUMBER2"],
+        .date-container {
+            grid-column: span 1;
+        }
+
+        .date-container,
+        form input[name="EMAIL"],
+        form textarea[name="DETALII"],
+        .custom-checkbox,
+        .date-hint,
+        #submit {
+            grid-column: span 2;
+        }
+
+        form input[type="text"],
+        form input[type="number"],
+        form input[type="date"],
+        form textarea {
+            width: 100%;
+            padding: 16px 20px;
+            background-color: var(--input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            font-weight: 300;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        form input::placeholder,
+        form textarea::placeholder {
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        form input:focus,
+        form textarea:focus {
+            border-color: var(--accent);
+            background-color: rgba(0, 255, 163, 0.02);
+            box-shadow: 0 0 8px rgba(0, 255, 163, 0.2);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            transition: color 0.3s;
+            margin-top: 5px;
+        }
+
+        .custom-checkbox:hover {
+            color: var(--text-primary);
+        }
+
+        .custom-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .custom-checkbox .checkmark {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            margin-right: 16px;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox input[type="checkbox"]:checked + .checkmark {
+            border-color: var(--accent);
+            background-color: var(--accent);
+        }
+
+        .custom-checkbox .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            width: 5px;
+            height: 10px;
+            border: solid #000;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-top: -2px;
+        }
+
+        .custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
+            display: block;
+        }
+
+        #submit {
+            margin-top: 10px;
+            opacity: 0.8;
+            width: 100%;
+            padding: 18px;
+            background-color: var(--accent);
+            color: #000000;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 163, 0.25);
+            background-color: #00e592;
+            opacity: 1;
+        }
+
+        small {
+            display: block;
+            margin-top: 25px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .date-container {
+            position: relative;
+            width: 100%;
+        }
+
+        /* --- Scurtătură Calendar Webkit --- */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.4;
+            cursor: pointer;
+        }
+
+        /* --- STILURI MODALE (POP-UP) --- */
+        #alert-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: none;
+        }
+
+        #alert-box, #error-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 100%;
+            max-width: 400px;
+            padding: 50px 40px;
+            border-radius: 24px;
+            background: #0a0a0a;
+            text-align: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #alert-box {
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        #error-box {
+            border: 1px solid rgba(255, 60, 100, 0.3);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 60, 100, 0.05);
+        }
+
+        #alert-box.show, #error-box.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #alert-box h2, #error-box h2 {
+            margin: 24px 0 12px;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        #alert-box p, #error-box p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        #alert-box button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--surface-bg);
+            border: 1px solid var(--surface-border);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #alert-box button:hover {
+            background: var(--text-primary);
+            color: #000;
+        }
+
+        #error-box button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 60, 100, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #error-box button:hover {
+            background: var(--error);
+            color: #000;
+            box-shadow: 0 8px 25px rgba(255, 60, 100, 0.3);
+        }
+
+        .date-hint {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: -10px;
+            padding-left: 5px;
+        }
+
+        .alert-icon { width: 64px; height: 64px; margin: 0 auto; }
+        .alert-icon svg { width: 100%; height: 100%; display: block; }
+        
+        .circle { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
+        .check { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
+        
+        .circle-error { fill: none; stroke: var(--error); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
+        .x-mark { fill: none; stroke: var(--error); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
+
+        @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        @media (max-width: 768px) {
+            form { grid-template-columns: 1fr; padding: 30px 24px; }
+            form input, form textarea, .date-container, .custom-checkbox, .date-hint, #submit { grid-column: span 1 !important; }
+            .container { padding: 80px 24px 40px; }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="index.html" class="floating-btn btn-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Înapoi
+    </a>
+    
+    <div class="container">
+        <h4>Programare S.S.M.L.S.</h4>
+        <form name="contact-form" id="contact-form">
+            <input type="text" name="NUME" placeholder="Numele reprezentantului" required>
+            <input type="number" name="ID" placeholder="CNP (ID)" required>
+            
+            <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
+            <input type="text" name="TIP BUSSINES" placeholder="Menționează tipul de Business" required>
+            
+            <input type="text" name="NUMAR DE TEL" placeholder="Număr de telefon (ex. 123-4567)" required maxlength="8">
+            <input type="text" name="DAY" placeholder="Menționează ora dorită pentru programare">
+            
+            <div class="date-container">
+                <input type="date" name="DATA" id="dataProgramare" required>
+            </div>
+            
+            <input type="text" name="NAME" placeholder="Numele Primului Reprezentant" required>
+            <input type="text" name="NUMBER" placeholder="Numărul de telefon al Primului Reprezentant" required maxlength="8">
+            <input type="text" name="NAME2" placeholder="Numele și Prenumele la al 2-lea Reprezentant" required>
+            <input type="text" name="NUMBER2" placeholder="Numărul de telefon la al 2-lea Reprezentant" required maxlength="8">
+
+            <input type="text" name="EMAIL" placeholder="Discord ID -> click dreapta pe poza de discord -> copy ID" required>
+            <textarea name="DETALII" rows="5" placeholder="Puteți atașa un link cu poza locației de pe hartă"></textarea>
+            
+            <label class="custom-checkbox">
+                <input type="checkbox" required>
+                <span class="checkmark"></span>
+                Am primit confirmarea de înregistrare a afacerii din partea unui Secretar PCLS prin email!
+            </label>
+            <label class="custom-checkbox">
+                <input type="checkbox" required>
+                <span class="checkmark"></span>
+                Sunt conștient că Instructajul va avea loc la spitalul din Roxwood!
+            </label>
+
+            <span class="date-hint">* Programarea nu se poate face în aceeași zi.</span>
+            <input type="submit" value="Trimite Formularul" id="submit">
+        </form>
+        <small>Copyright © 2025 Tristan</small>
+    </div>
+    
+    <div id="alert-overlay"></div>
+
+    <div id="alert-box">
+        <div class="alert-icon">
+            <svg viewBox="0 0 52 52">
+                <circle class="circle" cx="26" cy="26" r="25" />
+                <path class="check" d="M14 27 L22 35 L38 18" />
+            </svg>
+        </div>
+        <h2>Cerere Înregistrată</h2>
+        <p>Informațiile au fost transmise cu succes către sistemul nostru. Veți fi contactat în scurt timp.</p>
+        <button id="close-alert">Finalizare</button>
+    </div>
+
+    <div id="error-box">
+        <div class="alert-icon">
+            <svg viewBox="0 0 52 52">
+                <circle class="circle-error" cx="26" cy="26" r="25" />
+                <path class="x-mark" d="M16 16 L36 36 M36 16 L16 36" />
+            </svg>
+        </div>
+        <h2 style="color: var(--error);">Eroare!</h2>
+        <p id="error-text">ID Discord invalid</p>
+        <button id="close-error">OK</button>
+    </div>
+
+    <script>
+        // Securitate bază
+        document.addEventListener("contextmenu", e => e.preventDefault());
+        document.addEventListener("keydown", function (e) {
+            if (
+                e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && e.key === "I") ||
+                (e.ctrlKey && e.shiftKey && e.key === "J") ||
+                (e.ctrlKey && e.key === "U")
+            ) {
+                e.preventDefault();
+            }
+        });
+
+        // Formatează telefonul ca xxx-xxxx pentru TOATE câmpurile de telefon
+        const phoneInputs = document.querySelectorAll('input[name="NUMAR DE TEL"], input[name="NUMBER"], input[name="NUMBER2"]');
+        phoneInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 3) {
+                    value = value.slice(0, 3) + '-' + value.slice(3, 7);
+                }
+                e.target.value = value;
+            });
+        });
+
+        const form = document.getElementById('contact-form');
+        const dateInput = document.getElementById('dataProgramare');
+        // Webhook-ul pentru S.S.M.L.S
+        const webhookUrl = "https://discord.com/api/webhooks/1461100015249522771/6yLphr2A1xpqCcbbdLWz6mxzKU3h39GSUPBrkiRVzo_-wrBxucj6l7CFXJGyBSfVAbPD";
+
+        // Configurare dată minimă: doar de mâine încolo
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.min = tomorrow.toISOString().split('T')[0];
+
+        // Management Modale Premium
+        const overlay = document.getElementById("alert-overlay");
+        const alertBox = document.getElementById("alert-box");
+        const errorBox = document.getElementById("error-box");
+        const errorText = document.getElementById("error-text");
+
+        function showSuccess() {
+            overlay.style.display = "block";
+            alertBox.classList.add("show");
+        }
+
+        function showError(message) {
+            errorText.innerText = message;
+            overlay.style.display = "block";
+            errorBox.classList.add("show");
+        }
+
+        function closeModals() {
+            overlay.style.display = "none";
+            alertBox.classList.remove("show");
+            errorBox.classList.remove("show");
+        }
+
+        document.getElementById("close-alert").addEventListener("click", closeModals);
+        document.getElementById("close-error").addEventListener("click", closeModals);
+        overlay.addEventListener("click", closeModals);
+
+        // Submit Formular + Validări Corecte
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            // Validare dată selectată
+            const selectedDate = new Date(formData.get("DATA"));
+            selectedDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate <= today) {
+                showError("Nu poți selecta ziua de azi. Alege o dată viitoare.");
+                return;
+            }
+
+            // Validare strictă ID Discord
+            const discordId = formData.get("EMAIL").trim();
+            if (!/^\d{17,20}$/.test(discordId)) {
+                showError("ID Discord invalid");
+                return;
+            }
+
+            // Pregătire Payload Discord Embed pentru S.S.M.L.S
+            const embedData = {
+                username: "SSMLS Bot",
+                content: "<@&1461105499276574911>", // Pune ping-ul de rol corect aici dacă diferă
+                embeds: [
+                    {
+                        title: ":pushpin: O nouă programare S.S.M.L.S a fost înregistrată!",
+                        color: 65443, // Culoarea accentului (00ffa3 transformat in int)
+                        fields: [
+                            { name: "Nume Reprezentant", value: formData.get("NUME") || "N/A", inline: false },
+                            { name: "CNP (ID)", value: formData.get("ID") || "N/A", inline: false },
+                            { name: "Nume Afacere", value: formData.get("NUME AFACERE") || "N/A", inline: false },
+                            { name: "Tip Business", value: formData.get("TIP BUSSINES") || "N/A", inline: false },
+                            { name: "Număr de telefon", value: formData.get("NUMAR DE TEL") || "N/A", inline: false },
+                            { name: "Data dorită", value: formData.get("DATA") || "N/A", inline: false },
+                            { name: "Ora dorită", value: formData.get("DAY") || "N/A", inline: false },
+                            { name: "Nume Primul Reprezentant", value: formData.get("NAME") || "N/A", inline: false },
+                            { name: "Telefon Primul Reprezentant", value: formData.get("NUMBER") || "N/A", inline: false },
+                            { name: "Nume al 2-lea Reprezentant", value: formData.get("NAME2") || "N/A", inline: false },
+                            { name: "Telefon al 2-lea Reprezentant", value: formData.get("NUMBER2") || "N/A", inline: false },
+                            { name: "Discord ID", value: `<@${discordId}>`, inline: false },
+                            { name: "Detalii extra / Locație", value: formData.get("DETALII") || "N/A", inline: false }
+                        ],
+                        footer: { text: "Programare S.S.M.L.S" },
+                        timestamp: new Date().toISOString()
+                    }
+                ]
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(embedData)
+                });
+
+                if (response.ok) {
+                    showSuccess();
+                    form.reset();
+                } else {
+                    showError("Eroare la trimiterea către Discord.");
+                }
+            } catch (error) {
+                console.error(error);
+                showError("A apărut o eroare la trimiterea mesajului.");
+            }
+        });
+    </script>
+</body>
+</html>
