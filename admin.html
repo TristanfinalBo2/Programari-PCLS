@@ -1229,7 +1229,8 @@
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   const ROLE_PERMISSIONS = {
-    superadmin: ["all"], admin: ["all"],
+    superadmin: ["all"], 
+    admin: ["all"],
     conducere: ["isuls", "dsls", "mmls", "ssmls"],
     isuls: ["isuls"], dsls: ["dsls"], mmls: ["mmls", "mm"], ssmls: ["ssmls", "ssmmls"]
   };
@@ -1412,18 +1413,34 @@
     cereriContainer.innerHTML = "";
 
     const roleAllowedCereri = allCereri.filter(item => {
-      if (["superadmin", "admin"].includes(currentUserRole)) return true;
-      const dep = (item.departament || "").toString().toLowerCase().trim();
-      const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
-      if (currentUserRole === "conducere") {
-        const allowedDepts = ["isuls", "dsls", "mmls", "ssmls", "mm", "ssmmls"];
-        if (!allowedDepts.includes(dep) || tipCerere.includes("programare") || dep === "pcls") return false;
-        return true;
-      }
-      const allowedKeywords = ROLE_PERMISSIONS[currentUserRole.toLowerCase()] || [currentUserRole.toLowerCase()];
-      const itemText = [item.departament, item.tip_cerere, item.eveniment].filter(Boolean).join(" ").toLowerCase();
-      return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
-    });
+  const roleNorm = (currentUserRole || "").toString().toLowerCase().trim();
+  
+  // 1. Adminii și Superadminii văd toate cererile
+  if (["superadmin", "admin"].includes(roleNorm)) return true;
+
+  // Textul combinat din cerere pentru o căutare flexibilă
+  const dep = (item.departament || "").toString().toLowerCase().trim();
+  const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
+  const eveniment = (item.eveniment || "").toString().toLowerCase().trim();
+  const itemText = `${dep} ${tipCerere} ${eveniment}`;
+
+  // 2. Logică dedicată pentru ROLUL CONDUCERE
+  if (roleNorm === "conducere") {
+    const allowedDepts = ["isuls", "dsls", "mmls", "ssmls", "mm", "ssmmls"];
+    
+    // Verificăm dacă cererea conține vreunul din departamentele permise
+    const hasAllowedDept = allowedDepts.some(d => itemText.includes(d));
+    
+    // Excludem doar dacă este strict o cerere generală PCLS fără un departament din listă
+    const isStrictPcls = dep === "pcls" && !hasAllowedDept;
+
+    return hasAllowedDept && !isStrictPcls;
+  }
+
+  // 3. Logică pentru celelalte roluri individuale (ISULS, DSLS, MMLS, etc.)
+  const allowedKeywords = ROLE_PERMISSIONS[roleNorm] || [roleNorm];
+  return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
+});
 
     const activeCount = roleAllowedCereri.filter(c => c.status !== "in_cos" && !c.arhivat && !c.deleted).length;
     if (totalCountEl) totalCountEl.textContent = activeCount;

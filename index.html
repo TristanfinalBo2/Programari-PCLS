@@ -1422,8 +1422,8 @@ h1 {
 
                 <div class="hero-meta" aria-label="Rezumat portal">
                     <div>
-                        <strong>4</strong>
-                        <span>direcții medicale conectate</span>
+                        <strong id="live-active-requests" style="transition: opacity 0.3s ease;">...</strong>
+                        <span>cereri active în așteptare</span>
                     </div>
                     <div>
                         <strong>24/7</strong>
@@ -1633,11 +1633,15 @@ h1 {
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// Am adăugat onSnapshot în importurile de Firestore pentru a putea citi datele live
+import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authSection = document.getElementById("auth-section-premium");
 const adminNavContainer = document.getElementById("admin-nav-container");
 
+// ==========================================
+// 1. LOGICĂ AUTENTIFICARE ȘI PERMISIUNI
+// ==========================================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         const emailPart = user.email ? user.email.split('@')[0] : "User";
@@ -1679,11 +1683,10 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         // ==========================================
-        // 1. INJECTARE BUTON ADMIN ÎN NAVIGAȚIA SUS
+        // 1A. INJECTARE BUTON ADMIN ÎN NAVIGAȚIA SUS
         // ==========================================
         if (adminNavContainer) {
             if (isAdmin) {
-                // I-am dat o culoare (auriu/portocaliu) ca să iasă în evidență față de celelalte butoane.
                 adminNavContainer.innerHTML = `
                     <a href="admin.html" class="nav-item" style="color: white; font-weight: 700;">
                         Cereri Admin
@@ -1695,7 +1698,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         // ==========================================
-        // 2. RANDARE MENIU DROPDOWN (FĂRĂ ADMIN!)
+        // 1B. RANDARE MENIU DROPDOWN
         // ==========================================
         if (authSection) {
             authSection.innerHTML = `
@@ -1761,83 +1764,129 @@ onAuthStateChanged(auth, async (user) => {
         }
     }
 });
-    // --- 3. LOGICA PENTRU MODAL, BARA DE SCROLL, BUTON SUS ȘI REVEAL ---
-    
-    // Modal
-    const modal = document.getElementById("medicalModal");
-    const openButtons = document.querySelectorAll("[data-open-medical]");
-    const closeButton = document.querySelector("[data-close-medical]");
 
-    function openMedicalModal() {
-        if(modal) {
-            modal.classList.add("active");
-            modal.setAttribute("aria-hidden", "false");
-            if(closeButton) closeButton.focus();
-        }
-    }
+// ==========================================
+// 2. LOGICA PENTRU MODAL, BARA DE SCROLL, REVEAL
+// ==========================================
+const modal = document.getElementById("medicalModal");
+const openButtons = document.querySelectorAll("[data-open-medical]");
+const closeButton = document.querySelector("[data-close-medical]");
 
-    function closeMedicalModal() {
-        if(modal) {
-            modal.classList.remove("active");
-            modal.setAttribute("aria-hidden", "true");
-        }
-    }
-
-    if(openButtons) {
-        openButtons.forEach((button) => button.addEventListener("click", openMedicalModal));
-    }
-    if(closeButton) {
-        closeButton.addEventListener("click", closeMedicalModal);
-    }
+function openMedicalModal() {
     if(modal) {
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal) closeMedicalModal();
-        });
+        modal.classList.add("active");
+        modal.setAttribute("aria-hidden", "false");
+        if(closeButton) closeButton.focus();
     }
-    document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && modal && modal.classList.contains("active")) {
-            closeMedicalModal();
-        }
-    });
+}
 
-    // Bară progres scroll
-    window.addEventListener('scroll', () => {
-        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const progress = (scrollTop / scrollHeight) * 100;
-        const progressBar = document.getElementById('progress-bar');
-        if(progressBar) progressBar.style.width = progress + '%';
-    });
-    
-    // Buton Back-to-Top
-    const scrollBtn = document.getElementById("scrollTopBtn");
-    window.addEventListener("scroll", () => {
-        if(scrollBtn) {
-            if (window.scrollY > 500) scrollBtn.classList.add("show");
-            else scrollBtn.classList.remove("show");
-        }
-    });
+function closeMedicalModal() {
+    if(modal) {
+        modal.classList.remove("active");
+        modal.setAttribute("aria-hidden", "true");
+    }
+}
 
+if(openButtons) {
+    openButtons.forEach((button) => button.addEventListener("click", openMedicalModal));
+}
+if(closeButton) {
+    closeButton.addEventListener("click", closeMedicalModal);
+}
+if(modal) {
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeMedicalModal();
+    });
+}
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && modal && modal.classList.contains("active")) {
+        closeMedicalModal();
+    }
+});
+
+// Bară progres scroll
+window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const progress = (scrollTop / scrollHeight) * 100;
+    const progressBar = document.getElementById('progress-bar');
+    if(progressBar) progressBar.style.width = progress + '%';
+});
+
+// Buton Back-to-Top
+const scrollBtn = document.getElementById("scrollTopBtn");
+window.addEventListener("scroll", () => {
     if(scrollBtn) {
-        scrollBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
+        if (window.scrollY > 500) scrollBtn.classList.add("show");
+        else scrollBtn.classList.remove("show");
     }
+});
 
-    // Animații Reveal la scroll
-    const revealElements = document.querySelectorAll('.reveal');
-    const revealCallback = (entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-                observer.unobserve(entry.target); 
+if(scrollBtn) {
+    scrollBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+}
+
+// Animații Reveal la scroll
+const revealElements = document.querySelectorAll('.reveal');
+const revealCallback = (entries, observer) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            observer.unobserve(entry.target); 
+        }
+    });
+};
+const revealOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
+revealElements.forEach(el => revealObserver.observe(el));
+
+
+// ==========================================
+// 3. STATISTICI LIVE - CERERI ACTIVE EXACT CA ÎN ADMIN
+// ==========================================
+const liveRequestsEl = document.getElementById("live-active-requests");
+
+if (liveRequestsEl) {
+    const cereriRef = collection(db, "cereri");
+
+    // Ascultăm live modificările din baza de date
+    onSnapshot(cereriRef, (snapshot) => {
+        let activeCount = 0;
+
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const status = (data.status || "in_asteptare").toString().toLowerCase().trim();
+            
+            // Verificăm condițiile (la fel ca în admin.html)
+            const isDeleted = data.deleted === true;
+            const isArchived = data.arhivat === true || data.archived === true;
+            const isTrash = status === "in_cos" || status.includes("cos");
+            const isApproved = status.includes("aprobat") || status.includes("acceptat") || status === "acceptată";
+            const isRejected = status.includes("respins");
+
+            // Numărăm DOAR cererile care nu sunt șterse, arhivate, respinse sau aprobate
+            if (!isDeleted && !isArchived && !isTrash && !isApproved && !isRejected) {
+                activeCount++;
             }
         });
-    };
-    const revealOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
-    const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
-    revealElements.forEach(el => revealObserver.observe(el));
+
+        // Animăm ușor modificarea cifrei
+        liveRequestsEl.style.transition = "opacity 0.3s ease";
+        liveRequestsEl.style.opacity = 0;
+        
+        setTimeout(() => {
+            liveRequestsEl.textContent = activeCount;
+            liveRequestsEl.style.opacity = 1;
+        }, 300);
+
+    }, (error) => {
+        console.error("Eroare la citirea statisticilor live:", error);
+        liveRequestsEl.textContent = "-";
+    });
+}
 </script>
 </body>
 </html>
