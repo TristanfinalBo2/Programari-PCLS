@@ -1,254 +1,566 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setări Cont - Programări PCLS</title>
-    <style>
-        :root {
-            --bg: #080a0d;
-            --bg-raised: #10141a;
-            --line: #2b3440;
-            --text: #f8f3ea;
-            --muted: #b3bac6;
-            --mint: #35f2ad;
-            --coral: #ff6b6b;
-            --radius: 12px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setări Cont - Programări PCLS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+:root {
+  color-scheme: dark;
+  --bg: #02040a;
+  --panel: rgba(10, 18, 32, 0.94);
+  --text: #f7fbff;
+  --text-2: #b7c3d6;
+  --text-3: #78869d;
+  --cyan: #7ce7ff;
+  --blue: #4c8dff;
+  --violet: #a77cff;
+  --mint: #68f2c0;
+  --danger: #ff7185;
+  --line: rgba(255, 255, 255, 0.09);
+  --shadow: 0 34px 90px rgba(0, 0, 0, 0.52), 0 10px 34px rgba(0, 0, 0, 0.26);
+  --shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.25);
+  --ease: 0.24s ease;
+}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-        }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+html {
+  min-height: 100%;
+  background: var(--bg);
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
-        .container {
-            width: min(800px, calc(100% - 40px));
-            margin: 40px auto;
-        }
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(76, 141, 255, 0.16), transparent 27%),
+    radial-gradient(circle at 88% 8%, rgba(167, 124, 255, 0.12), transparent 24%),
+    radial-gradient(circle at 62% 95%, rgba(104, 242, 192, 0.055), transparent 24%),
+    linear-gradient(150deg, #07101d 0%, #050914 42%, #02040a 100%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--muted);
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 24px;
-            transition: color 0.2s;
-        }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
-        .back-btn:hover {
-            color: var(--mint);
-        }
+::selection { color: #031019; background: rgba(124, 231, 255, 0.88); }
 
-        .settings-card {
-            background: var(--bg-raised);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 32px;
-            margin-bottom: 24px;
-        }
+.back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #edf7ff;
+  background: linear-gradient(180deg, rgba(19, 31, 52, 0.96), rgba(8, 14, 25, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform var(--ease), border-color var(--ease), background var(--ease);
+}
 
-        .settings-card h2 {
-            font-size: 1.4rem;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
+.back-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-        .settings-card p {
-            color: var(--muted);
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-        }
+.back-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124, 231, 255, 0.28);
+  background: linear-gradient(180deg, rgba(25, 42, 68, 0.98), rgba(12, 20, 35, 0.98));
+}
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
+.page {
+  width: min(1080px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 92px 0 58px;
+}
 
-        .form-group label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--muted);
-        }
+.portal {
+  position: relative;
+  padding: 1px;
+  border-radius: 42px;
+  background: linear-gradient(120deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(124, 231, 255, 0.16),
+    rgba(76, 141, 255, 0.11),
+    rgba(167, 124, 255, 0.14),
+    rgba(255, 255, 255, 0.08));
+  box-shadow: var(--shadow);
+}
 
-        .form-control {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
+.portal-inner {
+  position: relative;
+  border-radius: 41px;
+  background:
+    radial-gradient(circle at 14% 4%, rgba(124, 231, 255, 0.055), transparent 30%),
+    radial-gradient(circle at 92% 10%, rgba(167, 124, 255, 0.045), transparent 28%),
+    linear-gradient(180deg, rgba(12, 21, 37, 0.98), rgba(4, 9, 18, 0.99));
+}
 
-        .form-control:focus {
-            border-color: var(--mint);
-        }
+.portal-inner::after {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 231, 255, 0.8), rgba(167, 124, 255, 0.48), transparent);
+  pointer-events: none;
+}
 
-        .form-control[disabled] {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+.topbar {
+  min-height: 76px;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.008));
+  border-radius: 41px 41px 0 0;
+}
 
-        .btn-submit {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 24px;
-            background: var(--mint);
-            color: #03100b;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
 
-        .btn-submit:hover {
-            background: #68ffd2;
-        }
+.brand-mark {
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: var(--cyan);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.12), rgba(124, 231, 255, 0.075), rgba(167, 124, 255, 0.035));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
 
-        .btn-submit:active {
-            transform: scale(0.98);
-        }
+.brand-mark svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--line);
-            color: var(--text);
-        }
+.brand-copy strong { display: block; font-size: 1.02rem; font-weight: 650; }
+.brand-copy span { display: block; margin-top: 3px; color: var(--text-3); font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.16em; }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--muted);
-        }
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  color: #d3ffed;
+  background: rgba(104, 242, 192, 0.065);
+  border: 1px solid rgba(104, 242, 192, 0.15);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
-        .alert-box {
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-            display: none;
-        }
+.status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 12px rgba(104, 242, 192, 0.7);
+}
 
-        .alert-success {
-            background: rgba(53, 242, 173, 0.15);
-            border: 1px solid var(--mint);
-            color: var(--mint);
-        }
+.content { padding: 38px 38px 40px; }
 
-        .alert-error {
-            background: rgba(255, 107, 107, 0.15);
-            border: 1px solid var(--coral);
-            color: var(--coral);
-        }
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
+.header-copy { max-width: 680px; }
 
-        .info-box {
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: var(--cyan);
+  font-size: 0.69rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.17em;
+}
 
-        .info-box span {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--muted);
-            margin-bottom: 4px;
-        }
+.kicker::before { content: ""; width: 22px; height: 1px; background: linear-gradient(90deg, var(--cyan), transparent); }
 
-        .info-box strong {
-            font-size: 1rem;
-            color: var(--text);
-        }
+.header h1 {
+  font-size: clamp(2rem, 1.55rem + 1.2vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.06;
+}
 
-        @media (max-width: 600px) {
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            .settings-card {
-                padding: 20px;
-            }
-        }
-    </style>
+.header h1 span {
+  background: linear-gradient(100deg, var(--cyan), var(--blue), var(--violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header p { margin-top: 11px; color: var(--text-2); font-size: 0.96rem; line-height: 1.65; }
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: var(--text-2);
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.075);
+  font-size: .73rem;
+  white-space: nowrap;
+}
+
+#statusMessage { margin-bottom: 16px; }
+
+.settings-card {
+  position: relative;
+  padding: 22px;
+  border-radius: 25px;
+  background: transparent;
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+.settings-card + .settings-card { margin-top: 16px; }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.card-title { display: flex; align-items: center; gap: 12px; }
+
+.card-index {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #e0f8ff;
+  background: rgba(124,231,255,.06);
+  border: 1px solid rgba(124,231,255,.12);
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.card-title h2 { font-size: 1rem; font-weight: 650; }
+.card-title p { margin-top: 3px; color: var(--text-3); font-size: .78rem; line-height: 1.45; }
+.card-note { color: var(--text-3); font-size: .68rem; text-transform: uppercase; letter-spacing: .13em; white-space: nowrap; }
+
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.form-group { min-width: 0; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { display: block; margin-bottom: 8px; color: var(--text-3); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+
+.input-shell {
+  padding: 1px;
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(255,255,255,.07), rgba(124,231,255,.035), rgba(167,124,255,.03));
+}
+
+.form-control {
+  width: 100%;
+  min-height: 50px;
+  border: 0;
+  border-radius: 17px;
+  padding: 0 16px;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(5,11,20,.9), rgba(3,7,14,.98));
+  font: inherit;
+  font-size: .94rem;
+  outline: none;
+  transition: background var(--ease), box-shadow var(--ease);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.form-control:focus {
+  background: linear-gradient(180deg, rgba(9,18,31,.98), rgba(4,9,17,1));
+  box-shadow: 0 0 0 3px rgba(124,231,255,.045);
+}
+
+.form-control[disabled] {
+  opacity: .68;
+  cursor: not-allowed;
+  color: #9ba8bb;
+}
+
+.actions-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 22px;
+  margin-top: 17px;
+  padding: 18px 18px 18px 20px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+}
+
+.action-copy { color: var(--text-2); font-size: .84rem; line-height: 1.55; }
+
+.btn-submit {
+  min-width: 220px;
+  min-height: 50px;
+  padding: 0 22px;
+  border: 1px solid rgba(124,231,255,.2);
+  border-radius: 16px;
+  color: #f8fbff;
+  background: linear-gradient(110deg, rgba(76,141,255,.82), rgba(103,171,255,.84), rgba(145,117,238,.77));
+  box-shadow: 0 16px 32px rgba(76,141,255,.15), inset 0 1px 0 rgba(255,255,255,.14);
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .075em;
+  cursor: pointer;
+  transition: transform var(--ease), filter var(--ease), box-shadow var(--ease);
+}
+
+.btn-submit:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 20px 38px rgba(76,141,255,.2), inset 0 1px 0 rgba(255,255,255,.14); }
+.btn-submit:active { transform: translateY(0); }
+
+.btn-secondary {
+  color: var(--text);
+  background: rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.1);
+  box-shadow: none;
+}
+.btn-secondary:hover { background: rgba(255,255,255,.07); box-shadow: none; }
+
+.info-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.info-box {
+  min-height: 92px;
+  padding: 17px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(255,255,255,.085);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.info-box span { display: block; margin-bottom: 7px; color: var(--text-3); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+.info-box strong { color: var(--text); font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }
+
+.alert-box {
+  display: none;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: .88rem;
+  line-height: 1.5;
+}
+.alert-success { color: #d3ffed; background: rgba(104,242,192,.07); border: 1px solid rgba(104,242,192,.18); }
+.alert-error { color: #ffd5dc; background: rgba(255,113,133,.08); border: 1px solid rgba(255,113,133,.22); }
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 19px 32px;
+  color: var(--text-3);
+  font-size: .71rem;
+  letter-spacing: .04em;
+  border-top: 1px solid rgba(255,255,255,.055);
+}
+.footer strong { color: #dff7ff; font-weight: 650; }
+
+@media (max-width: 760px) {
+  .header { align-items: flex-start; flex-direction: column; }
+  .form-grid, .info-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: auto; }
+  .actions-row { grid-template-columns: 1fr; }
+  .btn-submit { width: 100%; min-width: 0; }
+  .content { padding: 28px 24px 30px; }
+  .footer { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 620px) {
+  .page { width: min(100% - 18px, 1080px); padding-top: 78px; }
+  .back-btn { top: 14px; left: 14px; min-height: 42px; padding: 0 15px; }
+  .portal, .portal-inner { border-radius: 28px; }
+  .topbar { min-height: 68px; padding: 0 18px; border-radius: 28px 28px 0 0; }
+  .brand-mark { width: 40px; height: 40px; flex-basis: 40px; border-radius: 13px; }
+  .brand-copy strong { font-size: .9rem; }
+  .brand-copy span { font-size: .59rem; }
+  .status { padding: 8px 10px; font-size: .68rem; }
+  .content { padding: 22px 14px 24px; }
+  .header { margin-bottom: 18px; padding: 0 6px 18px; }
+  .header h1 { font-size: 1.82rem; }
+  .header p { font-size: .9rem; }
+  .settings-card { padding: 17px 14px; border-radius: 21px; }
+  .card-head { align-items: flex-start; }
+  .card-note { display: none; }
+  .actions-row { padding: 16px 14px; }
+  .footer { padding: 17px 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+  </style>
 </head>
 <body>
+  <a href="index.html" class="back-btn" aria-label="Înapoi la pagina principală">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Înapoi
+  </a>
 
-    <div class="container">
-        <a href="index.html" class="back-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Înapoi la Pagina Principală
-        </a>
+  <main class="page">
+    <section class="portal">
+      <div class="portal-inner">
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path></svg>
+            </div>
+            <div class="brand-copy">
+              <strong>Setări Cont</strong>
+              <span>Programări PCLS</span>
+            </div>
+          </div>
+          <div class="status">Sesiune securizată</div>
+        </div>
 
-        <h1 style="font-size: 2rem; margin-bottom: 24px;">Setări Cont</h1>
+        <div class="content">
+          <header class="header">
+            <div class="header-copy">
+              <div class="kicker">Administrare cont</div>
+              <h1>Controlează-ți <span>profilul</span></h1>
+              <p>Actualizează numele afișat, verifică rolul contului și gestionează resetarea parolei dintr-un singur loc.</p>
+            </div>
+            <div class="header-badge">Date sincronizate cu Firebase</div>
+          </header>
 
-        <div id="statusMessage" class="alert-box"></div>
+          <div id="statusMessage" class="alert-box"></div>
 
-        <div class="settings-card">
-            <h2>Profil Utilizator</h2>
-            <p>Vizualizează și actualizează detaliile contului tău.</p>
+          <section class="settings-card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="card-index">01</span>
+                <div>
+                  <h2>Profil utilizator</h2>
+                  <p>Vizualizează și actualizează datele de afișare.</p>
+                </div>
+              </div>
+              <span class="card-note">Date personale</span>
+            </div>
 
             <form id="profileForm">
+              <div class="form-grid">
                 <div class="form-group">
-                    <label for="userEmail">Adresă de Email</label>
+                  <label for="userEmail">Adresă de email</label>
+                  <div class="input-shell">
                     <input type="email" id="userEmail" class="form-control" disabled>
+                  </div>
                 </div>
-
                 <div class="form-group">
-                    <label for="displayName">Nume / Afișaj</label>
+                  <label for="displayName">Nume / afișaj</label>
+                  <div class="input-shell">
                     <input type="text" id="displayName" class="form-control" placeholder="Introdu numele tău">
+                  </div>
                 </div>
+              </div>
 
-                <button type="submit" class="btn-submit">Salvează Modificările</button>
+              <div class="actions-row">
+                <p class="action-copy">Numele actualizat va fi salvat atât în profilul Firebase Auth, cât și în documentul contului din Firestore.</p>
+                <button type="submit" class="btn-submit">Salvează modificările</button>
+              </div>
             </form>
-        </div>
+          </section>
 
-        <div class="settings-card">
-            <h2>Detalii Acces & Sistem</h2>
-            <p>Starea contului și rolul atribuit în baza de date.</p>
+          <section class="settings-card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="card-index">02</span>
+                <div>
+                  <h2>Acces și sistem</h2>
+                  <p>Rolul atribuit și starea curentă a contului.</p>
+                </div>
+              </div>
+              <span class="card-note">Timp real</span>
+            </div>
 
             <div class="info-grid">
-                <div class="info-box">
-                    <span>Rol Utilizator</span>
-                    <strong id="userRole">Se încarcă...</strong>
-                </div>
-                <div class="info-box">
-                    <span>Stare Cont</span>
-                    <strong id="userStatus" style="color: var(--mint);">Activ</strong>
-                </div>
+              <div class="info-box">
+                <span>Rol utilizator</span>
+                <strong id="userRole">Se încarcă...</strong>
+              </div>
+              <div class="info-box">
+                <span>Stare cont</span>
+                <strong id="userStatus" style="color: var(--mint);">Activ</strong>
+              </div>
             </div>
+          </section>
+
+          <section class="settings-card">
+            <div class="card-head">
+              <div class="card-title">
+                <span class="card-index">03</span>
+                <div>
+                  <h2>Securitate și parolă</h2>
+                  <p>Solicită un email securizat pentru alegerea unei parole noi.</p>
+                </div>
+              </div>
+              <span class="card-note">Protecție cont</span>
+            </div>
+
+            <div class="actions-row" style="margin-top:0;">
+              <p class="action-copy">Linkul de resetare va fi trimis automat către adresa de email asociată contului autentificat.</p>
+              <button type="button" id="btnResetPassword" class="btn-submit btn-secondary">Trimite email resetare</button>
+            </div>
+          </section>
         </div>
 
-        <div class="settings-card">
-            <h2>Securitate și Parolă</h2>
-            <p>Tratăm securitatea cu seriozitate. Poți solicita un link de resetare a parolei pe email.</p>
-
-            <button type="button" id="btnResetPassword" class="btn-submit btn-secondary">
-                Trimite Email Resetare Parolă
-            </button>
-        </div>
-    </div>
+        <footer class="footer">
+          <span>Programări PCLS · Setări utilizator</span>
+          <span>Conectare protejată prin <strong>Firebase</strong></span>
+        </footer>
+      </div>
+    </section>
+  </main>
 
 <script type="module">
     import { auth, db } from "./firebase-config.js"; 

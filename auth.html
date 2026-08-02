@@ -240,6 +240,87 @@
         a.back-link:hover {
             color: var(--accent-green);
         }
+    
+
+        /* LIQUID GLASS — exclusiv efect vizual, fără modificări de structură */
+        body {
+            background-color: #05070d;
+            background-image:
+                radial-gradient(circle at 18% 10%, rgba(76, 141, 255, 0.16) 0%, transparent 34%),
+                radial-gradient(circle at 82% 82%, rgba(167, 124, 255, 0.13) 0%, transparent 35%),
+                radial-gradient(circle at 54% 24%, rgba(0, 255, 163, 0.10) 0%, transparent 42%),
+                linear-gradient(145deg, #04070d 0%, #07101c 48%, #05070d 100%);
+            background-attachment: scroll;
+        }
+
+        .auth-box {
+            background:
+                linear-gradient(145deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025) 48%, rgba(6, 12, 23, 0.52));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow:
+                0 30px 70px rgba(0, 0, 0, 0.46),
+                0 10px 34px rgba(76, 141, 255, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(22px) saturate(155%);
+            -webkit-backdrop-filter: blur(22px) saturate(155%);
+        }
+
+        .badge-logo {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.10), rgba(0, 255, 163, 0.065));
+            border-color: rgba(255, 255, 255, 0.14);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+            backdrop-filter: blur(12px) saturate(145%);
+            -webkit-backdrop-filter: blur(12px) saturate(145%);
+        }
+
+        input {
+            background: linear-gradient(180deg, rgba(5, 11, 21, 0.56), rgba(4, 8, 16, 0.72));
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.045),
+                0 8px 24px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(12px) saturate(135%);
+            -webkit-backdrop-filter: blur(12px) saturate(135%);
+        }
+
+        input:focus {
+            background: linear-gradient(180deg, rgba(8, 18, 31, 0.68), rgba(4, 10, 18, 0.82));
+            border-color: rgba(124, 231, 255, 0.44);
+            box-shadow:
+                0 0 0 3px rgba(124, 231, 255, 0.075),
+                0 12px 30px rgba(76, 141, 255, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .toggle-password {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.055);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        button.btn-main {
+            background: linear-gradient(105deg, rgba(0, 255, 163, 0.92), rgba(124, 231, 255, 0.90));
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            box-shadow:
+                0 14px 28px rgba(0, 255, 163, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.28);
+        }
+
+        button.btn-alt {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.022));
+            border-color: rgba(255, 255, 255, 0.13);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+        }
+
+        button.btn-alt:hover {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(124, 231, 255, 0.035));
+            border-color: rgba(124, 231, 255, 0.20);
+        }
+
     </style>
 </head>
 <body>

@@ -7,482 +7,1058 @@
     <title>Programare M.M.L.S</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-main: #050505;
-            --accent: #00ffa3;
-            --error: #ff3c64;
-            --text-primary: #ffffff;
-            --text-secondary: #88928c;
-            --surface-bg: rgba(255, 255, 255, 0.02);
-            --surface-border: rgba(255, 255, 255, 0.06);
-            --input-bg: rgba(0, 0, 0, 0.2);
-        }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+:root {
+  color-scheme: dark;
+  --bg: #02040a;
+  --bg-2: #07101d;
+  --panel: rgba(10, 18, 32, 0.94);
+  --panel-2: rgba(6, 12, 23, 0.96);
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-strong: rgba(255, 255, 255, 0.055);
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.15);
+  --text: #f7fbff;
+  --text-2: #b7c3d6;
+  --text-3: #78869d;
+  --cyan: #7ce7ff;
+  --blue: #4c8dff;
+  --violet: #a77cff;
+  --mint: #68f2c0;
+  --danger: #ff7185;
+  --shadow: 0 34px 90px rgba(0, 0, 0, 0.52), 0 10px 34px rgba(0, 0, 0, 0.26);
+  --shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.25);
+  --ease: 0.24s ease;
+}
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            min-height: 100vh;
-            width: 100vw;
-            overflow-x: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            background-image: radial-gradient(circle at 50% 0%, rgba(0, 255, 163, 0.05) 0%, transparent 60%);
-        }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-                        /* Controale Flotante */
-        .floating-btn {
-            position: fixed;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(15, 17, 16, 0.85);
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--border-light);
-            color: var(--text-main);
-            text-decoration: none;
-            z-index: 2000;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+html {
+  min-height: 100%;
+  background: var(--bg);
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
-        .btn-back {
-            top: 30px; left: 30px;
-            padding: 12px 24px;
-            border-radius: 30px;
-            gap: 10px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(76, 141, 255, 0.16), transparent 27%),
+    radial-gradient(circle at 88% 8%, rgba(167, 124, 255, 0.12), transparent 24%),
+    radial-gradient(circle at 62% 95%, rgba(104, 242, 192, 0.055), transparent 24%),
+    linear-gradient(150deg, #07101d 0%, #050914 42%, #02040a 100%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
-        .btn-top {
-            bottom: 30px; right: 30px;
-            width: 54px; height: 54px;
-            border-radius: 50%;
-            opacity: 0; visibility: hidden;
-            transform: translateY(20px);
-        }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
 
-        .btn-top.show {
-            opacity: 1; visibility: visible;
-            transform: translateY(0);
-        }
+::selection {
+  color: #031019;
+  background: rgba(124, 231, 255, 0.88);
+}
 
-        .floating-btn svg {
-            width: 20px; height: 20px;
-            fill: none; stroke: currentColor; stroke-width: 2;
-            stroke-linecap: round; stroke-linejoin: round;
-        }
+.back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #edf7ff;
+  background: linear-gradient(180deg, rgba(19, 31, 52, 0.96), rgba(8, 14, 25, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform var(--ease), border-color var(--ease), background var(--ease);
+}
 
-        .floating-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            box-shadow: 0 10px 25px var(--accent-dim);
-            transform: translateY(-3px);
-        }
+.back-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-        .btn-back:hover svg { transform: translateX(-4px); transition: transform 0.3s; }
-        .btn-top:hover svg { transform: translateY(-3px); transition: transform 0.3s; }
+.back-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124, 231, 255, 0.28);
+  background: linear-gradient(180deg, rgba(25, 42, 68, 0.98), rgba(12, 20, 35, 0.98));
+}
 
-        .container {
-            width: 100%;
-            max-width: 850px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.8s ease-out;
-            padding: 60px 20px;
-        }
+.page {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 92px 0 58px;
+}
 
-        h4 {
-            font-weight: 400;
-            font-size: 2.2rem;
-            margin-bottom: 30px;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            text-align: center;
-        }
+.portal {
+  position: relative;
+  padding: 1px;
+  border-radius: 42px;
+  background: linear-gradient(120deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(124, 231, 255, 0.16),
+    rgba(76, 141, 255, 0.11),
+    rgba(167, 124, 255, 0.14),
+    rgba(255, 255, 255, 0.08));
+  box-shadow: var(--shadow);
+}
 
-        form {
-            width: 100%;
-            background: var(--surface-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--surface-border);
-            border-radius: 20px;
-            padding: 40px 50px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
+.portal-inner {
+  position: relative;
+  border-radius: 41px;
+  overflow: visible;
+  background:
+    radial-gradient(circle at 14% 4%, rgba(124, 231, 255, 0.055), transparent 30%),
+    radial-gradient(circle at 92% 10%, rgba(167, 124, 255, 0.045), transparent 28%),
+    linear-gradient(180deg, rgba(12, 21, 37, 0.98), rgba(4, 9, 18, 0.99));
+}
 
-        /* Aliniere Grid Simetrică pentru M.M.L.S */
-        form input[name="NUME"],
-        form input[name="ID"],
-        form input[name="NUME AFACERE"],
-        form input[name="TIP BUSSINES"],
-        form input[name="NUMAR ANGAJATI"],
-        form input[name="NUMAR DE TEL"],
-        form input[name="DAY"],
-        .date-container {
-            grid-column: span 1;
-        }
+.portal-inner::after {
+  content: "";
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124, 231, 255, 0.8), rgba(167, 124, 255, 0.48), transparent);
+  pointer-events: none;
+}
 
-        form input[name="EMAIL"],
-        form textarea[name="DETALII"],
-        .custom-checkbox,
-        #submit {
-            grid-column: span 2;
-        }
+.topbar {
+  min-height: 76px;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.008));
+  border-radius: 41px 41px 0 0;
+}
 
-        form input[type="text"],
-        form input[type="number"],
-        form input[type="date"],
-        form textarea {
-            width: 100%;
-            padding: 16px 20px;
-            background-color: var(--input-bg);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-family: inherit;
-            font-weight: 300;
-            transition: all 0.3s ease;
-            outline: none;
-        }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
 
-        form textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+.brand-mark {
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: var(--cyan);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.12), rgba(124, 231, 255, 0.075), rgba(167, 124, 255, 0.035));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
 
-        form input::placeholder,
-        form textarea::placeholder {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
+.brand-mark svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-        form input:focus,
-        form textarea:focus {
-            border-color: var(--accent);
-            background-color: rgba(0, 255, 163, 0.02);
-            box-shadow: 0 0 8px rgba(0, 255, 163, 0.2);
-        }
+.brand-copy strong {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 650;
+  letter-spacing: 0.005em;
+}
 
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
+.brand-copy span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-3);
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
 
-        .custom-checkbox {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-weight: 300;
-            transition: color 0.3s;
-            margin-top: 5px;
-        }
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  color: #d3ffed;
+  background: rgba(104, 242, 192, 0.065);
+  border: 1px solid rgba(104, 242, 192, 0.15);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
-        .custom-checkbox:hover {
-            color: var(--text-primary);
-        }
+.status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 12px rgba(104, 242, 192, 0.7);
+}
 
-        .custom-checkbox input[type="checkbox"] {
-            display: none;
-        }
+.content {
+  padding: 38px 38px 40px;
+}
 
-        .custom-checkbox .checkmark {
-            position: relative;
-            width: 20px;
-            height: 20px;
-            background-color: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            margin-right: 16px;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-shrink: 0;
-        }
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
 
-        .custom-checkbox input[type="checkbox"]:checked + .checkmark {
-            border-color: var(--accent);
-            background-color: var(--accent);
-        }
+.header-copy {
+  max-width: 680px;
+}
 
-        .custom-checkbox .checkmark:after {
-            content: "";
-            position: absolute;
-            display: none;
-            width: 5px;
-            height: 10px;
-            border: solid #000;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-            margin-top: -2px;
-        }
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: var(--cyan);
+  font-size: 0.69rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.17em;
+}
 
-        .custom-checkbox input[type="checkbox"]:checked + .checkmark:after {
-            display: block;
-        }
+.kicker::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
 
-        #submit {
-            margin-top: 10px;
-            opacity: 0.8;
-            width: 100%;
-            padding: 18px;
-            background-color: var(--accent);
-            color: #000000;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+.header h1 {
+  font-size: clamp(2rem, 1.55rem + 1.2vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.06;
+}
 
-        #submit:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 255, 163, 0.25);
-            background-color: #00e592;
-            opacity: 1;
-        }
+.header h1 span {
+  color: #88a9ff;
+  background: linear-gradient(100deg, var(--cyan), var(--blue), var(--violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-        small {
-            display: block;
-            margin-top: 25px;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-weight: 300;
-            letter-spacing: 0.5px;
-            text-align: center;
-        }
+.header p {
+  margin-top: 11px;
+  color: var(--text-2);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
 
-        .date-container {
-            position: relative;
-            width: 100%;
-        }
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 
-        /* --- Scurtătură Calendar Webkit --- */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            opacity: 0.4;
-            cursor: pointer;
-        }
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: var(--text-3);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  font-size: 0.72rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
 
-        /* --- STILURI MODALE (POP-UP) --- */
-        #alert-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 9998;
-            display: none;
-        }
+.step b {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #dff8ff;
+  background: rgba(124, 231, 255, 0.08);
+  border: 1px solid rgba(124, 231, 255, 0.12);
+  font-size: 0.64rem;
+}
 
-        #alert-box, #error-box {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.95);
-            width: 100%;
-            max-width: 400px;
-            padding: 50px 40px;
-            border-radius: 24px;
-            background: #0a0a0a;
-            text-align: center;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+.form-shell,
+.form-inner {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+}
 
-        #alert-box {
-            border: 1px solid var(--surface-border);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-        }
+form {
+  width: 100%;
+}
 
-        #error-box {
-            border: 1px solid rgba(255, 60, 100, 0.3);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 60, 100, 0.05);
-        }
+.section {
+  position: relative;
+  padding: 20px;
+  border-radius: 25px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
 
-        #alert-box.show, #error-box.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translate(-50%, -50%) scale(1);
-        }
+.section + .section {
+  margin-top: 16px;
+}
 
-        #alert-box h2, #error-box h2 {
-            margin: 24px 0 12px;
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            font-weight: 500;
-        }
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
 
-        #alert-box p, #error-box p {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            font-weight: 300;
-            margin-bottom: 32px;
-            line-height: 1.5;
-        }
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-        #alert-box button {
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            border: none;
-            background: var(--surface-bg);
-            border: 1px solid var(--surface-border);
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+.section-index {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #e0f8ff;
+  background: rgba(124, 231, 255, 0.06);
+  border: 1px solid rgba(124, 231, 255, 0.12);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
 
-        #alert-box button:hover {
-            background: var(--text-primary);
-            color: #000;
-        }
+.section-title h2 {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
 
-        #error-box button {
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            border: none;
-            background: rgba(255, 60, 100, 0.1);
-            border: 1px solid var(--error);
-            color: var(--error);
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+.section-title p {
+  margin-top: 3px;
+  color: var(--text-3);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
 
-        #error-box button:hover {
-            background: var(--error);
-            color: #000;
-            box-shadow: 0 8px 25px rgba(255, 60, 100, 0.3);
-        }
+.section-note {
+  color: var(--text-3);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  white-space: nowrap;
+}
 
-        .date-hint {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: -10px;
-            padding-left: 5px;
-        }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
 
-        .alert-icon { width: 64px; height: 64px; margin: 0 auto; }
-        .alert-icon svg { width: 100%; height: 100%; display: block; }
-        
-        .circle { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
-        .check { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
-        
-        .circle-error { fill: none; stroke: var(--error); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; animation: drawCircle 0.8s ease forwards; }
-        .x-mark { fill: none; stroke: var(--error); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: drawCheck 0.6s 0.6s ease forwards; }
+.field {
+  min-width: 0;
+}
 
-        @keyframes drawCircle { to { stroke-dashoffset: 0; } }
-        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.field.full {
+  grid-column: 1 / -1;
+}
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-main); }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+.field label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-3);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
 
-        @media (max-width: 768px) {
-            form { grid-template-columns: 1fr; padding: 30px 24px; }
-            form input[name="NUME"], form input[name="ID"], form input[name="NUME AFACERE"], form input[name="TIP BUSSINES"], form input[name="NUMAR ANGAJATI"], form input[name="NUMAR DE TEL"], form input[name="DAY"], .date-container, form input[name="EMAIL"], form textarea[name="DETALII"], .custom-checkbox, #submit { grid-column: span 1; }
-            .container { padding: 80px 24px 40px; }
-        }
-    </style>
+.input-shell {
+  padding: 1px;
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.07), rgba(124, 231, 255, 0.035), rgba(167, 124, 255, 0.03));
+}
+
+form input[type="text"],
+form input[type="number"],
+form textarea {
+  width: 100%;
+  border: 0;
+  border-radius: 17px;
+  padding: 15px 16px;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(5, 11, 20, 0.9), rgba(3, 7, 14, 0.98));
+  font: inherit;
+  font-size: 0.94rem;
+  outline: none;
+  transition: background var(--ease), box-shadow var(--ease);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+form input::placeholder,
+form textarea::placeholder {
+  color: #77859a;
+}
+
+form input:focus,
+form textarea:focus {
+  background: linear-gradient(180deg, rgba(9, 18, 31, 0.98), rgba(4, 9, 17, 1));
+  box-shadow: 0 0 0 3px rgba(124, 231, 255, 0.045);
+}
+
+textarea {
+  min-height: 118px;
+  resize: vertical;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.confirmations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 16px 17px;
+  border-radius: 19px;
+  color: var(--text-2);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  font-size: 0.87rem;
+  line-height: 1.52;
+  cursor: pointer;
+  transition: border-color var(--ease), background var(--ease), color var(--ease);
+}
+
+.custom-checkbox:hover {
+  color: var(--text);
+  border-color: rgba(124, 231, 255, 0.13);
+  background: rgba(124, 231, 255, 0.025);
+}
+
+.custom-checkbox input {
+  display: none;
+}
+
+.checkmark {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  margin-top: 1px;
+  border-radius: 8px;
+  background: #06101b;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  transition: background var(--ease), border-color var(--ease), box-shadow var(--ease);
+}
+
+.checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+  width: 5px;
+  height: 10px;
+  left: 7px;
+  top: 4px;
+  border: solid #04120c;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-checkbox input:checked + .checkmark {
+  background: linear-gradient(145deg, var(--mint), #50d9a9);
+  border-color: rgba(104, 242, 192, 0.34);
+  box-shadow: 0 0 0 4px rgba(104, 242, 192, 0.055);
+}
+
+.custom-checkbox input:checked + .checkmark::after {
+  display: block;
+}
+
+.submit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  margin-top: 17px;
+  padding: 20px 20px 20px 22px;
+  border-radius: 23px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.submit-copy {
+  color: var(--text-2);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  max-width: 610px;
+}
+
+#submit {
+  min-width: 220px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 1px solid rgba(124, 231, 255, 0.2);
+  border-radius: 17px;
+  color: #f8fbff;
+  background: linear-gradient(110deg, rgba(76, 141, 255, 0.82), rgba(103, 171, 255, 0.84), rgba(145, 117, 238, 0.77));
+  box-shadow: 0 16px 32px rgba(76, 141, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.095em;
+  cursor: pointer;
+  transition: transform var(--ease), filter var(--ease), box-shadow var(--ease);
+}
+
+#submit:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 20px 38px rgba(76, 141, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+#submit:disabled {
+  cursor: wait;
+  transform: none;
+  filter: saturate(0.6);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 19px 32px;
+  color: var(--text-3);
+  font-size: 0.71rem;
+  letter-spacing: 0.04em;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.footer strong {
+  color: #dff7ff;
+  font-weight: 650;
+}
+
+#alert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: none;
+  background: rgba(2, 5, 11, 0.82);
+}
+
+#alert-box,
+#error-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 9999;
+  width: min(100% - 32px, 440px);
+  padding: 40px 32px;
+  border-radius: 30px;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.96);
+  transition: opacity var(--ease), visibility var(--ease), transform var(--ease);
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(18, 31, 52, 0.99), rgba(7, 13, 24, 0.99));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--shadow);
+}
+
+#error-box {
+  border-color: rgba(255, 113, 133, 0.24);
+}
+
+#alert-box.show,
+#error-box.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#alert-box h2,
+#error-box h2 {
+  margin: 20px 0 10px;
+  font-size: 1.45rem;
+  font-weight: 650;
+}
+
+#alert-box p,
+#error-box p {
+  margin-bottom: 26px;
+  color: var(--text-2);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+#alert-box button,
+#error-box button {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 15px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: filter var(--ease);
+}
+
+#alert-box button {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+#error-box button {
+  color: #ffd5dc;
+  background: rgba(255, 113, 133, 0.13);
+  border: 1px solid rgba(255, 113, 133, 0.23);
+}
+
+#alert-box button:hover,
+#error-box button:hover {
+  filter: brightness(1.08);
+}
+
+.alert-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+}
+
+.circle,
+.check,
+.circle-error,
+.x-mark {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.circle,
+.check {
+  stroke: var(--mint);
+}
+
+.circle-error,
+.x-mark {
+  stroke: var(--danger);
+}
+
+.circle,
+.circle-error {
+  stroke-width: 2;
+}
+
+.check {
+  stroke-width: 2;
+}
+
+.x-mark {
+  stroke-width: 3;
+}
+
+@media (max-width: 900px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stepper {
+    justify-content: flex-start;
+  }
+
+  .content {
+    padding: 28px 24px 30px;
+  }
+
+  .grid,
+  .confirmations {
+    grid-template-columns: 1fr;
+  }
+
+  .field.full {
+    grid-column: auto;
+  }
+
+  .submit-row {
+    grid-template-columns: 1fr;
+  }
+
+  .submit-copy {
+    max-width: none;
+  }
+
+  #submit {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .footer {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 620px) {
+  .page {
+    width: min(100% - 18px, 1180px);
+    padding-top: 78px;
+  }
+
+  .back-btn {
+    top: 14px;
+    left: 14px;
+    min-height: 42px;
+    padding: 0 15px;
+  }
+
+  .portal,
+  .portal-inner {
+    border-radius: 28px;
+  }
+
+  .topbar {
+    min-height: 68px;
+    padding: 0 18px;
+    border-radius: 28px 28px 0 0;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 13px;
+  }
+
+  .brand-copy strong {
+    font-size: 0.9rem;
+  }
+
+  .brand-copy span {
+    font-size: 0.59rem;
+  }
+
+  .status {
+    padding: 8px 10px;
+    font-size: 0.68rem;
+  }
+
+  .content {
+    padding: 22px 14px 24px;
+  }
+
+  .header {
+    margin-bottom: 18px;
+    padding: 0 6px 18px;
+  }
+
+  .header h1 {
+    font-size: 1.82rem;
+  }
+
+  .header p {
+    font-size: 0.9rem;
+  }
+
+  .step {
+    padding: 0 10px;
+    font-size: 0.67rem;
+  }
+
+  .section {
+    padding: 17px 14px;
+    border-radius: 21px;
+  }
+
+  .section-head {
+    align-items: flex-start;
+  }
+
+  .section-note {
+    display: none;
+  }
+
+  .section-title p {
+    font-size: 0.73rem;
+  }
+
+  .submit-row {
+    padding: 17px 14px;
+  }
+
+  .footer {
+    padding: 17px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+  
+
+form input[type="date"] {
+  width: 100%;
+  border: 0;
+  border-radius: 17px;
+  padding: 15px 16px;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(5, 11, 20, 0.9), rgba(3, 7, 14, 0.98));
+  font: inherit;
+  font-size: 0.94rem;
+  outline: none;
+  color-scheme: dark;
+  transition: background var(--ease), box-shadow var(--ease);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+form input[type="date"]:focus {
+  background: linear-gradient(180deg, rgba(9, 18, 31, 0.98), rgba(4, 9, 17, 1));
+  box-shadow: 0 0 0 3px rgba(124, 231, 255, 0.045);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.date-hint {
+  display: block;
+  margin-top: 10px;
+  color: var(--text-3);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.confirmations.single {
+  grid-template-columns: 1fr;
+}
+
+  </style>
 </head>
 
 <body>
-    <a href="index.html" class="floating-btn btn-back">
-        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Înapoi
-    </a>
-    
-    <div class="container">
-        <h4>Programare M.M.L.S</h4>
-        <form name="contact-form" id="contact-form">
-            <input type="text" name="NUME" placeholder="Numele reprezentantului" required>
-            <input type="number" name="ID" placeholder="CNP (ID)" required>
-            
-            <input type="text" name="NUME AFACERE" placeholder="Nume Afacere" required>
-            <input type="text" name="TIP BUSSINES" placeholder="Menționează tipul de Business" required>
-            
-            <input type="number" name="NUMAR ANGAJATI" placeholder="Menționează numărul de angajați" required>
-            <input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Număr de telefon (ex. 123-4567)" required maxlength="8">
-            
-            <input type="text" name="DAY" placeholder="Menționează ora dorită pentru programare">
-            
-            <div class="date-container">
-                <input type="date" name="DATA" id="dataProgramare" required>
+  <a href="index.html" class="back-btn">
+    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Înapoi
+  </a>
+
+  <main class="page">
+    <section class="portal">
+      <div class="portal-inner">
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.9 8.5-7 10-4.1-1.5-7-5.4-7-10V6l7-3z"></path><path d="M8.5 12.2l2.1 2.1 4.9-5"></path></svg>
             </div>
-            
-            <input type="text" name="EMAIL" placeholder="Discord ID -> click dreapta pe poza de discord -> copy ID" required>
-            
-            <textarea name="DETALII" rows="5" placeholder="Strada, locația afacerii mai în detaliu:"></textarea>
-            
-            <label class="custom-checkbox">
-                <input type="checkbox" required>
-                <span class="checkmark"></span>
-                Am primit confirmarea de înregistrare a afacerii din partea unui Secretar PCLS prin email!
-            </label>
-            <span class="date-hint">* Programarea nu se poate face in aceasi zi.</span>
-            <input type="submit" value="Trimite Formularul" id="submit">
-        </form>
-        <small>Copyright © 2025 Tristan</small>
-    </div>
-    
-    <div id="alert-overlay"></div>
-
-    <div id="alert-box">
-        <div class="alert-icon">
-            <svg viewBox="0 0 52 52">
-                <circle class="circle" cx="26" cy="26" r="25" />
-                <path class="check" d="M14 27 L22 35 L38 18" />
-            </svg>
+            <div class="brand-copy">
+              <strong>Programare M.M.L.S</strong>
+              <span>Portal administrativ M.M.L.S</span>
+            </div>
+          </div>
+          <div class="status">Sistem activ</div>
         </div>
-        <h2>Cerere Înregistrată</h2>
-        <p>Informațiile au fost transmise cu succes către sistemul nostru. Veți fi contactat în scurt timp.</p>
-        <button id="close-alert">Finalizare</button>
-    </div>
 
-    <div id="error-box">
-        <div class="alert-icon">
-            <svg viewBox="0 0 52 52">
-                <circle class="circle-error" cx="26" cy="26" r="25" />
-                <path class="x-mark" d="M16 16 L36 36 M36 16 L16 36" />
-            </svg>
+        <div class="content">
+          <header class="header">
+            <div class="header-copy">
+              <div class="kicker">Cerere oficială</div>
+              <h1>Completează <span>programarea M.M.L.S</span></h1>
+              <p>Introdu datele reprezentantului, informațiile afacerii, numărul de angajați și intervalul dorit. Cererea este transmisă direct prin fluxul administrativ existent.</p>
+            </div>
+            <div class="stepper" aria-label="Etapele formularului">
+              <span class="step"><b>1</b> Identificare</span>
+              <span class="step"><b>2</b> Programare</span>
+              <span class="step"><b>3</b> Confirmare</span>
+            </div>
+          </header>
+
+          <div class="form-shell">
+            <div class="form-inner">
+              <form name="contact-form" id="contact-form">
+                <section class="section">
+                  <div class="section-head">
+                    <div class="section-title">
+                      <span class="section-index">01</span>
+                      <div><h2>Datele reprezentantului și afacerii</h2><p>Identificare, structură și date de contact</p></div>
+                    </div>
+                    <span class="section-note">Câmpuri obligatorii</span>
+                  </div>
+                  <div class="grid">
+                    <div class="field">
+                      <label for="nume-reprezentant">Numele reprezentantului</label>
+                      <div class="input-shell"><input id="nume-reprezentant" type="text" name="NUME" placeholder="Numele reprezentantului" required></div>
+                    </div>
+                    <div class="field">
+                      <label for="cnp-id">CNP / ID</label>
+                      <div class="input-shell"><input id="cnp-id" type="number" name="ID" placeholder="CNP (ID)" required></div>
+                    </div>
+                    <div class="field">
+                      <label for="nume-afacere">Nume afacere</label>
+                      <div class="input-shell"><input id="nume-afacere" type="text" name="NUME AFACERE" placeholder="Nume Afacere" required></div>
+                    </div>
+                    <div class="field">
+                      <label for="tip-business">Tip business</label>
+                      <div class="input-shell"><input id="tip-business" type="text" name="TIP BUSSINES" placeholder="Menționează tipul de Business" required></div>
+                    </div>
+                    <div class="field">
+                      <label for="numar-angajati">Număr de angajați</label>
+                      <div class="input-shell"><input id="numar-angajati" type="number" name="NUMAR ANGAJATI" placeholder="Menționează numărul de angajați" required></div>
+                    </div>
+                    <div class="field">
+                      <label for="NUMAR_TEL">Număr de telefon</label>
+                      <div class="input-shell"><input type="text" id="NUMAR_TEL" name="NUMAR DE TEL" placeholder="Număr de telefon (ex. 123-4567)" required maxlength="8"></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="section-head">
+                    <div class="section-title">
+                      <span class="section-index">02</span>
+                      <div><h2>Programare și contact digital</h2><p>Data, ora, Discord și localizarea afacerii</p></div>
+                    </div>
+                    <span class="section-note">Data minimă: mâine</span>
+                  </div>
+                  <div class="grid">
+                    <div class="field">
+                      <label for="ora-programare">Ora dorită</label>
+                      <div class="input-shell"><input id="ora-programare" type="text" name="DAY" placeholder="Menționează ora dorită pentru programare"></div>
+                    </div>
+                    <div class="field">
+                      <label for="dataProgramare">Data programării</label>
+                      <div class="input-shell"><input type="date" name="DATA" id="dataProgramare" required></div>
+                      <span class="date-hint">Programarea nu se poate face în aceeași zi.</span>
+                    </div>
+                    <div class="field full">
+                      <label for="discord-id">Discord ID</label>
+                      <div class="input-shell"><input id="discord-id" type="text" name="EMAIL" placeholder="Discord ID — click dreapta pe profil și Copy ID" required></div>
+                    </div>
+                    <div class="field full">
+                      <label for="detalii-programare">Locație și detalii suplimentare</label>
+                      <div class="input-shell"><textarea id="detalii-programare" name="DETALII" rows="5" placeholder="Strada, locația afacerii și alte detalii relevante"></textarea></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="section-head">
+                    <div class="section-title">
+                      <span class="section-index">03</span>
+                      <div><h2>Confirmare obligatorie</h2><p>Verifică eligibilitatea înainte de trimitere</p></div>
+                    </div>
+                  </div>
+                  <div class="confirmations single">
+                    <label class="custom-checkbox">
+                      <input type="checkbox" required>
+                      <span class="checkmark"></span>
+                      <span>Am primit confirmarea de înregistrare a afacerii din partea unui Secretar PCLS prin email.</span>
+                    </label>
+                  </div>
+                </section>
+
+                <div class="submit-row">
+                  <span class="submit-copy">Cererea va fi salvată în sistem și transmisă către echipa M.M.L.S prin fluxul administrativ existent.</span>
+                  <input type="submit" value="Trimite Formularul" id="submit">
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <h2 style="color: var(--error);">Eroare!</h2>
-        <p id="error-text">ID Discord invalid</p>
-        <button id="close-error">OK</button>
-    </div>
+
+        <footer class="footer">
+          <span>© 2025 Tristan. Toate drepturile rezervate.</span>
+          <span><strong>M.M.L.S</strong> · Portal de programări</span>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <div id="alert-overlay"></div>
+  <div id="alert-box">
+    <div class="alert-icon"><svg viewBox="0 0 52 52"><circle class="circle" cx="26" cy="26" r="25" /><path class="check" d="M14 27 L22 35 L38 18" /></svg></div>
+    <h2>Cerere Înregistrată</h2>
+    <p>Informațiile au fost transmise cu succes către sistemul nostru. Veți fi contactat în scurt timp.</p>
+    <button id="close-alert">Finalizare</button>
+  </div>
+  <div id="error-box">
+    <div class="alert-icon"><svg viewBox="0 0 52 52"><circle class="circle-error" cx="26" cy="26" r="25" /><path class="x-mark" d="M16 16 L36 36 M36 16 L16 36" /></svg></div>
+    <h2>Eroare</h2>
+    <p id="error-text">ID Discord invalid</p>
+    <button id="close-error">OK</button>
+  </div>
+
 
 <script type="module">
     import { db } from "./firebase-config.js";
