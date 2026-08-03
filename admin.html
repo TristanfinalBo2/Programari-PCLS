@@ -443,12 +443,12 @@
         border-radius: 50%;
         flex: 0 0 7px;
     }
-    .status-badge.in_asteptare {
+    .status-badge.în_așteptare {
         background: rgba(255, 214, 10, 0.14);
         color: #ffe68a;
         border-color: rgba(255, 214, 10, 0.18);
     }
-    .status-badge.in_asteptare::before { background: var(--accent-warning); box-shadow: 0 0 10px var(--accent-warning); }
+    .status-badge.în_așteptare::before { background: var(--accent-warning); box-shadow: 0 0 10px var(--accent-warning); }
     .status-badge.aprobat {
         background: rgba(99, 230, 190, 0.14);
         color: #bff7df;
@@ -1118,7 +1118,7 @@
       <button class="filter-btn" data-filter="dsls">DSLS</button>
       <button class="filter-btn" data-filter="mmls">MMLS</button>
       <button class="filter-btn" data-filter="ssmls">SSMLS</button>
-      <button class="filter-btn" data-filter="in_asteptare">În Așteptare</button>
+      <button class="filter-btn" data-filter="în_așteptare">În Așteptare</button>
       <button class="filter-btn archive-btn" data-filter="arhivat">Arhivă</button>
       <button class="filter-btn trash-btn" data-filter="in_cos">Coș de Gunoi</button>
     </div>
@@ -1316,7 +1316,7 @@
     filterButtons.forEach(btn => {
       const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
       if (role === "conducere") {
-        const conducereAllowedTabs = ["all", "toate", "in_asteptare", "în așteptare", "arhivat", "arhivă", "in_cos", "coș de gunoi", "isuls", "dsls", "mmls", "ssmls"];
+        const conducereAllowedTabs = ["all", "toate", "în_așteptare", "în așteptare", "arhivat", "arhivă", "in_cos", "coș de gunoi", "isuls", "dsls", "mmls", "ssmls"];
         if (!conducereAllowedTabs.includes(filterVal)) btn.style.display = "none";
       } else {
         const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls", "pcls"];
@@ -1449,7 +1449,7 @@
     if (totalCountEl) totalCountEl.textContent = activeCount;
 
     let filtered = roleAllowedCereri.filter(item => {
-      const rawStatus = (item.status || "in_asteptare").toString().toLowerCase().trim();
+      const rawStatus = (item.status || "în_așteptare" || "în așteptare").toString().toLowerCase().trim();
       const isTrash = rawStatus === "in_cos" || item.deleted === true;
       const isArhivat = item.arhivat === true || item.archived === true || rawStatus === "arhivat";
       const filterNorm = (currentFilter || "all").toString().trim().toLowerCase();
@@ -1459,7 +1459,7 @@
       if (filterNorm === "arhivat") return isArhivat;
       if (isArhivat) return false;
       if (filterNorm === "all") return true;
-      if (filterNorm === "in_asteptare") return rawStatus.includes("asteptare");
+      if (filterNorm === "în_așteptare") return rawStatus.includes("asteptare");
       if (filterNorm === "pcls") {
         const normalizePclsText = (value) => String(value || "")
           .normalize("NFD")
@@ -1519,7 +1519,7 @@
 
     filtered.forEach(item => {
       const tip = item.eveniment || item.tip_cerere || item.tip || "PROGRAMARE";
-      const status = item.status || "in_asteptare";
+      const status = item.status || "în_așteptare" || "în așteptare";
       const badgeClass = tip.toLowerCase().includes("eveniment") ? "eveniment" : "programare";
       const numeProprietar = escapeHtml(item.nume_proprietar || item.proprietar || item.nume || '-');
       const numeAfacere = escapeHtml(item.nume_afacere || item.unitate || '-');
@@ -1546,7 +1546,7 @@
       card.innerHTML = `
         <div class="card-header">
           <span class="type-badge ${badgeClass}">${escapeHtml(tip)}</span>
-          <span class="status-badge ${status.includes("aprobat") ? 'aprobat' : (status.includes("respins") ? 'respins' : (status === "in_cos" ? 'in_cos' : 'in_asteptare'))}">${escapeHtml(status.replace("_", " "))}</span>
+          <span class="status-badge ${status.includes("aprobat") ? 'aprobat' : (status.includes("respins") ? 'respins' : (status === "in_cos" ? 'in_cos' : 'în așteptare'))}">${escapeHtml(status.replace("_", " "))}</span>
         </div>
         <div class="card-body">
           <p><strong>Nume</strong><span>${numeProprietar}</span></p>
