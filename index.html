@@ -1858,7 +1858,7 @@ if (liveRequestsEl) {
 
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
-            const status = (data.status || "în_așteptare").toString().toLowerCase().trim();
+            const status = (data.status || "in_asteptare").toString().toLowerCase().trim();
             
             // Verificăm condițiile (la fel ca în admin.html)
             const isDeleted = data.deleted === true;
