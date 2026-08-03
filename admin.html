@@ -1450,7 +1450,6 @@
 
     let filtered = roleAllowedCereri.filter(item => {
       const rawStatus = (item.status || "in_asteptare").toString().toLowerCase().trim();
-      console.log(rawStatus);
       const isTrash = rawStatus === "in_cos" || item.deleted === true;
       const isArhivat = item.arhivat === true || item.archived === true || rawStatus === "arhivat";
       const filterNorm = (currentFilter || "all").toString().trim().toLowerCase();
@@ -1460,7 +1459,7 @@
       if (filterNorm === "arhivat") return isArhivat;
       if (isArhivat) return false;
       if (filterNorm === "all") return true;
-      if (filterNorm === "in_asteptare") return rawStatus.includes("asteptare");
+      if (filterNorm === "in_asteptare") return rawStatus.includes("așteptare") || rawStatus.includes("asteptare");
       if (filterNorm === "pcls") {
         const normalizePclsText = (value) => String(value || "")
           .normalize("NFD")
