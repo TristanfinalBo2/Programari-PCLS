@@ -1543,10 +1543,11 @@
 
       const card = document.createElement("div");
       card.className = "card";
+      const statusLabel = status === "in_asteptare" ? "În Așteptare" : status.replace(/_/g, " ");
       card.innerHTML = `
         <div class="card-header">
           <span class="type-badge ${badgeClass}">${escapeHtml(tip)}</span>
-          <span class="status-badge ${status.includes("aprobat") ? 'aprobat' : (status.includes("respins") ? 'respins' : (status === "in_cos" ? 'in_cos' : 'in_asteptare'))}">${escapeHtml(status.replace("_", " "))}</span>
+          <span class="status-badge ${status.includes("aprobat") ? 'aprobat' : (status.includes("respins") ? 'respins' : (status === "in_cos" ? 'in_cos' : 'in_asteptare'))}">${escapeHtml(statusLabel)}</span>
         </div>
         <div class="card-body">
           <p><strong>Nume</strong><span>${numeProprietar}</span></p>
