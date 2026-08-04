@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="profile-dropdown-premium" id="profileDropdown">
                             <div class="dropdown-user-info">
                                 <span>Conectat cu adresa</span>
-                                <strong>${user.email}</strong>
+                                <strong>${user.email ? displayName : 'Discord: ' + displayName}</strong>
                             </div>
                             
                             <div class="dropdown-divider"></div>
