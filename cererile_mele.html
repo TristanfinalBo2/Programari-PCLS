@@ -93,7 +93,7 @@ body {
         try {
             const collectionsToSearch = ["cereri_pcls", "cereri_inregistrare", "cereri_medici", "cereri"];
             let userRequests = [];
-
+            
             for (const colName of collectionsToSearch) {
                 try {
                     const q = query(collection(db, colName), where("userId", "==", user.uid));
@@ -108,7 +108,7 @@ body {
                 container.innerHTML = `<div class="empty-state">Nu ai depus nicio cerere până în prezent.</div>`;
                 return;
             }
-
+            console.log("Cereri găsite:", userRequests);
             container.innerHTML = userRequests.map(req => {
                 const status = req.status || "În așteptare";
                 let statusClass = "status-pending";
