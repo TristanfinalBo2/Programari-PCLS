@@ -1221,59 +1221,79 @@ input[type="number"] {
     import { OAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const discordTrigger = document.getElementById("discord-trigger");
-    const discordModalOverlay = document.getElementById("discord-modal-overlay");
-    const discordModalConnect = document.getElementById("discord-modal-connect");
-    const discordModalClose = document.getElementById("discord-modal-close");
-    const discordInput = document.getElementById("discord-id");
-    let currentDiscordValue = "";
+const discordConnectedBox = document.getElementById("discord-connected-box");
+const discordLoginBox = document.getElementById("discord-login-box");
+const discordInput = document.getElementById("discord-input");
+const submitButton = document.getElementById("submit");
+const discordTrigger = document.getElementById("discord-trigger");
+const discordModalOverlay = document.getElementById("discord-modal-overlay");
+const discordModalConnect = document.getElementById("discord-modal-connect");
+const discordModalClose = document.getElementById("discord-modal-close");
+let currentDiscordValue = "";
 
-    function showDiscordModal() {
-        if (discordModalOverlay) discordModalOverlay.classList.add("show");
-    }
+function showDiscordModal() {
+    if (discordModalOverlay) discordModalOverlay.classList.add("show");
+}
 
-    function hideDiscordModal() {
-        if (discordModalOverlay) discordModalOverlay.classList.remove("show");
-    }
+function hideDiscordModal() {
+    if (discordModalOverlay) discordModalOverlay.classList.remove("show");
+}
 
-    async function connectDiscord() {
-        try {
-            const provider = new OAuthProvider("oidc.oidc.discord");
-            provider.addScope("identify");
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-            const discordProvider = user.providerData.find(p => p.providerId === "oidc.discord" || p.providerId.includes("discord"));
-            const discordId = discordProvider?.uid || user?.reloadUserInfo?.uid || user?.uid || "";
-            const discordName = user?.reloadUserInfo?.screenName || discordProvider?.displayName || user?.displayName || user?.email || "";
+async function connectDiscord() {
+    try {
+        const provider = new OAuthProvider("oidc.oidc.discord");
+        provider.addScope("identify");
 
-            if (!discordId) {
-                throw new Error("Nu s-a putut obține ID-ul Discord.");
-            }
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        const discordProvider = user.providerData.find(p => p.providerId === "oidc.discord" || p.providerId.includes("discord"));
+        const discordId = discordProvider?.uid || user?.reloadUserInfo?.uid || user?.uid || "";
+        const discordName = user?.reloadUserInfo?.screenName || discordProvider?.displayName || user?.displayName || user?.email || "";
 
+        if (discordId) {
             currentDiscordValue = discordId;
-            if (discordInput) discordInput.value = discordId;
-            await setDoc(doc(db, "utilizatori", user.uid), {
+            discordInput.value = discordId;
+            discordConnectedBox.style.display = "flex";
+            discordLoginBox.style.display = "none";
+            if (submitButton) submitButton.disabled = false;
+
+            const userRef = doc(db, "utilizatori", user.uid);
+            await setDoc(userRef, {
                 discordId,
                 numeDiscord: discordName,
                 ultimaLogare: serverTimestamp()
             }, { merge: true });
-            hideDiscordModal();
-        } catch (error) {
-            console.error("Eroare conectare Discord:", error);
-            showError("Nu s-a putut conecta profilul Discord.");
+        } else {
+            throw new Error("Nu s-a putut obține ID-ul Discord.");
         }
-    }
 
-    if (discordTrigger) discordTrigger.addEventListener("click", (event) => {
+        hideDiscordModal();
+    } catch (error) {
+        console.error("Eroare conectare Discord:", error);
+        showErrorAlert("Nu s-a putut conecta profilul Discord.");
+    }
+}
+
+if (discordTrigger) {
+    discordTrigger.addEventListener("click", (event) => {
         event.preventDefault();
         showDiscordModal();
     });
-    if (discordModalConnect) discordModalConnect.addEventListener("click", connectDiscord);
-    if (discordModalClose) discordModalClose.addEventListener("click", hideDiscordModal);
-    if (discordModalOverlay) discordModalOverlay.addEventListener("click", (event) => {
+}
+
+if (discordModalConnect) {
+    discordModalConnect.addEventListener("click", connectDiscord);
+}
+
+if (discordModalClose) {
+    discordModalClose.addEventListener("click", hideDiscordModal);
+}
+
+if (discordModalOverlay) {
+    discordModalOverlay.addEventListener("click", (event) => {
         if (event.target === discordModalOverlay) hideDiscordModal();
     });
-
+}
     // Prevenire Dev Tools
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", function (e) {
