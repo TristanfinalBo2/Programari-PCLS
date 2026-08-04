@@ -469,7 +469,8 @@
         const getDiscordDisplayName = (user) => {
             const providerData = user?.providerData || [];
             const discordProvider = providerData.find(p => p.providerId === 'oidc.discord' || p.providerId.includes('discord'));
-            return discordProvider?.displayName || user?.displayName || user?.email || 'Utilizator Discord';
+            const firebaseUsername = user?.reloadUserInfo?.screenName || user?.reloadUserInfo?.displayName;
+            return firebaseUsername || discordProvider?.displayName || user?.displayName || user?.email || 'Utilizator Discord';
         };
 
         // ==========================================
