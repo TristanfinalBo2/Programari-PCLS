@@ -1709,7 +1709,7 @@ onAuthStateChanged(auth, async (user) => {
                     <div class="profile-dropdown-premium" id="profileDropdown">
                         <div class="dropdown-user-info">
                         <span>Conectat ca</span>
-                        <strong>${user.email ? user.email : 'Discord: ' + displayName}</strong> 
+                        <strong>${user.email ? displayName : 'Discord: ' + displayName}</strong> 
                         </div>
                         
                         <div class="dropdown-divider"></div>
