@@ -8,9 +8,10 @@
 :root {
     color-scheme: dark;
     --bg: #05070c;
-    --glass: rgba(18, 25, 40, 0.48);
-    --glass-strong: rgba(22, 31, 49, 0.68);
+    --glass: rgba(18, 25, 40, 0.56);
+    --glass-strong: rgba(22, 31, 49, 0.92);
     --line: rgba(255, 255, 255, 0.11);
+    --line-strong: rgba(255,255,255,.17);
     --text: #f7f9ff;
     --muted: #b8c0d0;
     --quiet: #7f8aa0;
@@ -19,49 +20,104 @@
     --mint: #63e6be;
     --gold: #ffd60a;
     --danger: #ff6961;
+    --violet: #bf5af2;
     --radius: 24px;
-    --blur: blur(28px) saturate(155%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-width: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar, .modal-card::-webkit-scrollbar { display: none; }
 body {
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     color: var(--text);
-    background: radial-gradient(circle at 14% 9%, rgba(10, 132, 255, 0.24), transparent 29%),
-                radial-gradient(circle at 86% 13%, rgba(191, 90, 242, 0.18), transparent 28%),
-                linear-gradient(145deg, #070b14 0%, #090d18 38%, #05070c 100%);
-    background-attachment: fixed;
-    padding: 100px 20px 40px;
+    background:
+        radial-gradient(circle at 14% 9%, rgba(10, 132, 255, 0.24), transparent 29%),
+        radial-gradient(circle at 86% 13%, rgba(191, 90, 242, 0.18), transparent 28%),
+        linear-gradient(145deg, #070b14 0%, #090d18 38%, #05070c 100%);
+    padding: 86px 20px 40px;
 }
 
+button, a { font: inherit; }
 .page-shell { max-width: 1100px; margin: 0 auto; }
-.header-title { margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
-.header-title h1 { font-size: 2.2rem; font-weight: 780; background: linear-gradient(180deg, #fff, #a7b5ca); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.btn-back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,0.06); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
-.btn-back:hover { background: rgba(255,255,255,0.12); }
+.header-title { margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.header-title h1 { font-size: clamp(2rem, 5vw, 2.5rem); font-weight: 780; background: linear-gradient(180deg, #fff, #a7b5ca); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.btn-back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,0.06); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: .2s ease; white-space: nowrap; }
+.btn-back:hover { background: rgba(255,255,255,0.12); border-color: var(--line-strong); transform: translateY(-1px); }
 
 .requests-grid { display: grid; gap: 16px; }
 .request-card {
     padding: 22px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: var(--glass);
-    backdrop-filter: var(--blur);
+    background: linear-gradient(145deg, rgba(18, 25, 40, 0.67), rgba(15, 19, 34, 0.48));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 18px 50px rgba(0,0,0,.12);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.dept-badge { padding: 4px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; border: 1px solid rgba(100,210,255,0.3); color: var(--accent); background: rgba(100,210,255,0.1); }
-.status-badge { padding: 5px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+.card-header { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+.dept-badge { padding: 5px 12px; border-radius: 999px; font-size: 0.76rem; font-weight: 750; text-transform: uppercase; border: 1px solid rgba(100,210,255,0.3); color: var(--accent); background: rgba(100,210,255,0.1); letter-spacing: .035em; }
+.status-badge { padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 750; white-space: nowrap; }
 .status-pending { background: rgba(255,214,10,0.15); color: var(--gold); border: 1px solid rgba(255,214,10,0.3); }
 .status-approved { background: rgba(99,230,190,0.15); color: var(--mint); border: 1px solid rgba(99,230,190,0.3); }
 .status-rejected { background: rgba(255,105,97,0.15); color: var(--danger); border: 1px solid rgba(255,105,97,0.3); }
+.status-archived { background: rgba(191,90,242,.12); color: #d9a8ff; border: 1px solid rgba(191,90,242,.28); }
 
-.card-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.9rem; color: var(--muted); }
-.card-details strong { color: var(--text); }
-.empty-state { text-align: center; padding: 50px; color: var(--quiet); font-size: 1.1rem; }
+.card-details { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; font-size: 0.9rem; color: var(--muted); }
+.card-detail { min-width: 0; }
+.card-detail span { display: block; color: var(--quiet); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+.card-detail strong { display: block; color: var(--text); font-weight: 650; overflow-wrap: anywhere; }
+.card-processing { padding: 12px 14px; border: 1px solid rgba(255,255,255,.075); border-radius: 15px; background: rgba(255,255,255,.025); color: var(--muted); font-size: .86rem; }
+.card-processing strong { color: var(--text); }
+.card-actions { display: flex; justify-content: flex-end; padding-top: 2px; }
+.btn-details { border: 1px solid rgba(100,210,255,.28); color: #dff6ff; background: linear-gradient(135deg, rgba(10,132,255,.18), rgba(100,210,255,.08)); border-radius: 13px; padding: 11px 16px; cursor: pointer; font-weight: 700; transition: .2s ease; }
+.btn-details:hover { transform: translateY(-1px); border-color: rgba(100,210,255,.5); background: linear-gradient(135deg, rgba(10,132,255,.27), rgba(100,210,255,.12)); }
+.empty-state { text-align: center; padding: 50px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(18,25,40,.42); color: var(--quiet); font-size: 1.05rem; }
+
+.modal-overlay { position: fixed; inset: 0; z-index: 5000; display: grid; place-items: center; padding: 20px; background: rgba(2,5,12,.78); opacity: 0; visibility: hidden; transition: opacity .22s ease, visibility .22s ease; }
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal-card { width: min(920px, 100%); max-height: min(88vh, 900px); overflow-y: auto; scrollbar-width: none; border: 1px solid var(--line-strong); border-radius: 28px; background: linear-gradient(155deg, rgba(22,31,49,.98), rgba(8,13,25,.98)); box-shadow: 0 40px 100px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05); transform: translateY(14px) scale(.985); transition: transform .22s ease; }
+.modal-overlay.open .modal-card { transform: translateY(0) scale(1); }
+.modal-header { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 24px 26px 20px; border-bottom: 1px solid var(--line); background: rgba(16,23,38,.98); }
+.modal-title-wrap { min-width: 0; }
+.modal-eyebrow { color: var(--accent); font-size: .72rem; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; margin-bottom: 7px; }
+.modal-title { font-size: clamp(1.35rem, 3vw, 1.8rem); overflow-wrap: anywhere; }
+.modal-close { width: 40px; height: 40px; flex: 0 0 40px; border: 1px solid var(--line); border-radius: 13px; color: var(--text); background: rgba(255,255,255,.05); cursor: pointer; font-size: 1.25rem; line-height: 1; transition: .2s ease; }
+.modal-close:hover { background: rgba(255,255,255,.1); }
+.modal-body { padding: 24px 26px 28px; }
+.modal-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.section-title { font-size: .78rem; color: var(--quiet); letter-spacing: .1em; text-transform: uppercase; margin: 24px 0 12px; }
+.process-grid, .details-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.detail-item { border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.028); border-radius: 16px; padding: 14px 15px; min-width: 0; }
+.detail-item.full { grid-column: 1 / -1; }
+.detail-item.highlight { border-color: rgba(100,210,255,.18); background: rgba(100,210,255,.045); }
+.detail-label { display: block; color: var(--quiet); font-size: .7rem; text-transform: uppercase; letter-spacing: .075em; margin-bottom: 7px; }
+.detail-value { color: var(--text); font-size: .92rem; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
+.detail-value a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted rgba(100,210,255,.45); }
+.detail-value a:hover { color: #c6f2ff; }
+.modal-footer { display: flex; justify-content: flex-end; padding: 0 26px 26px; }
+.modal-done { border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,.06); border-radius: 13px; padding: 11px 18px; cursor: pointer; font-weight: 700; }
+.modal-done:hover { background: rgba(255,255,255,.11); }
+body.modal-open { overflow: hidden; }
+
+@media (max-width: 760px) {
+    body { padding: 28px 12px 28px; }
+    .header-title { align-items: flex-start; flex-direction: column; margin-bottom: 22px; }
+    .btn-back { align-self: flex-start; }
+    .request-card { padding: 17px; border-radius: 20px; }
+    .card-details { grid-template-columns: 1fr; gap: 12px; }
+    .card-actions, .btn-details { width: 100%; }
+    .card-header { align-items: flex-start; }
+    .modal-overlay { padding: 8px; }
+    .modal-card { max-height: 94vh; border-radius: 22px; }
+    .modal-header { padding: 20px 18px 16px; }
+    .modal-body { padding: 18px; }
+    .process-grid, .details-grid { grid-template-columns: 1fr; }
+    .detail-item.full { grid-column: auto; }
+    .modal-footer { padding: 0 18px 18px; }
+    .modal-done { width: 100%; }
+}
     </style>
 </head>
 <body>
@@ -77,66 +133,365 @@ body {
     </div>
 </div>
 
+<div id="details-modal" class="modal-overlay" aria-hidden="true">
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-request-title">
+        <header class="modal-header">
+            <div class="modal-title-wrap">
+                <div class="modal-eyebrow">Detalii complete cerere</div>
+                <h2 id="modal-request-title" class="modal-title">Cerere</h2>
+            </div>
+            <button id="modal-close" class="modal-close" type="button" aria-label="Închide">×</button>
+        </header>
+        <div class="modal-body">
+            <div id="modal-badges" class="modal-badges"></div>
+            <h3 class="section-title">Status și procesare</h3>
+            <div id="modal-process" class="process-grid"></div>
+            <h3 class="section-title">Toate informațiile cererii</h3>
+            <div id="modal-details" class="details-grid"></div>
+        </div>
+        <footer class="modal-footer">
+            <button id="modal-done" class="modal-done" type="button">Închide</button>
+        </footer>
+    </section>
+</div>
+
 <script type="module">
     import { auth, db } from "./firebase-config.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const container = document.getElementById("requests-list");
+    const modal = document.getElementById("details-modal");
+    const modalTitle = document.getElementById("modal-request-title");
+    const modalBadges = document.getElementById("modal-badges");
+    const modalProcess = document.getElementById("modal-process");
+    const modalDetails = document.getElementById("modal-details");
+    const modalClose = document.getElementById("modal-close");
+    const modalDone = document.getElementById("modal-done");
 
-    onAuthStateChanged(auth, async (user) => {
+    const requestsBySource = {
+        discord: new Map(),
+        discord_id: new Map()
+    };
+    const activeRequests = new Map();
+    let listenerErrors = 0;
+    let listenerUpdates = 0;
+    let unsubscribeListeners = [];
+
+    const friendlyLabels = {
+        departament: "Departament",
+        subdepartament: "Subdepartament",
+        tip_cerere: "Tip cerere",
+        tipCerere: "Tip cerere",
+        tip: "Tip cerere",
+        eveniment: "Tip / Eveniment",
+        cod_eveniment: "Cod eveniment",
+        codEveniment: "Cod eveniment",
+        cod: "Cod eveniment",
+        nume: "Nume reprezentant",
+        nume_proprietar: "Nume proprietar / reprezentant",
+        proprietar: "Proprietar",
+        administrator: "Administrator",
+        cnp: "CNP / ID",
+        cnp_id: "CNP / ID",
+        nume_afacere: "Nume afacere",
+        numeAfacere: "Nume afacere",
+        unitate: "Unitate economică",
+        tip_afacere: "Tip afacere",
+        tipSpatiu: "Tip spațiu / afacere",
+        telefon: "Telefon",
+        tel: "Telefon",
+        dataProgramare: "Data programării",
+        oraProgramare: "Ora programării",
+        data_ora: "Data și ora",
+        dataDorita: "Data dorită",
+        oraDorita: "Ora dorită",
+        discord: "Discord ID",
+        discord_id: "Discord ID",
+        numeDiscord: "Discord ID",
+        detalii: "Detalii suplimentare",
+        adresa: "Adresă",
+        locatie: "Locație",
+        nr_angajati: "Număr angajați",
+        rep1_nume: "Primul reprezentant",
+        rep1_tel: "Telefon primul reprezentant",
+        rep2_nume: "Al doilea reprezentant",
+        rep2_tel: "Telefon al doilea reprezentant",
+        email_aplicant: "Solicitant",
+        pozaBuletin: "Poză buletin",
+        pozaLocatie: "Poză locație",
+        status: "Status",
+        procesat_de: "Procesată de",
+        data_procesare: "Data procesării",
+        created_at: "Data depunerii",
+        data_creare: "Data depunerii",
+        createdAt: "Data depunerii"
+    };
+
+    const canonicalFields = [
+        { label: "Departament", keys: ["departament"] },
+        { label: "Subdepartament", keys: ["subdepartament"] },
+        { label: "Tip cerere", keys: ["eveniment", "tip_cerere", "tipCerere", "tip"] },
+        { label: "Cod eveniment", keys: ["cod_eveniment", "codEveniment", "cod"] },
+        { label: "Nume proprietar / reprezentant", keys: ["nume_proprietar", "proprietar", "nume"] },
+        { label: "Administrator", keys: ["administrator"] },
+        { label: "CNP / ID", keys: ["cnp", "cnp_id"] },
+        { label: "Nume afacere / unitate", keys: ["nume_afacere", "numeAfacere", "unitate"] },
+        { label: "Tip afacere / spațiu", keys: ["tip_afacere", "tipSpatiu"] },
+        { label: "Telefon", keys: ["telefon", "tel"] },
+        { label: "Data și ora", keys: ["data_ora"] },
+        { label: "Data programării", keys: ["dataProgramare", "dataDorita"] },
+        { label: "Ora programării", keys: ["oraProgramare", "oraDorita"] },
+        { label: "Discord ID", keys: ["discord", "discord_id", "numeDiscord"] },
+        { label: "Număr angajați", keys: ["nr_angajati"] },
+        { label: "Primul reprezentant", keys: ["rep1_nume"] },
+        { label: "Telefon primul reprezentant", keys: ["rep1_tel"] },
+        { label: "Al doilea reprezentant", keys: ["rep2_nume"] },
+        { label: "Telefon al doilea reprezentant", keys: ["rep2_tel"] },
+        { label: "Solicitant", keys: ["email_aplicant"] },
+        { label: "Adresă", keys: ["adresa"] },
+        { label: "Locație", keys: ["locatie"] },
+        { label: "Detalii suplimentare", keys: ["detalii"] },
+        { label: "Poză buletin", keys: ["pozaBuletin"] },
+        { label: "Poză locație", keys: ["pozaLocatie"] }
+    ];
+
+    const ignoredFields = new Set([
+        "id", "col", "status", "procesat_de", "data_procesare",
+        "created_at", "data_creare", "createdAt", "arhivat", "archived",
+        "deleted", "stare"
+    ]);
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>'"]/g, char => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;"
+        })[char]);
+    }
+
+    function normalizeText(value) {
+        return String(value ?? "").trim();
+    }
+
+    function isMeaningful(value) {
+        return value !== undefined && value !== null && normalizeText(value) !== "" && normalizeText(value) !== "-" && normalizeText(value).toUpperCase() !== "N/A";
+    }
+
+    function toDate(value) {
+        if (!value) return null;
+        if (typeof value.toDate === "function") return value.toDate();
+        if (typeof value === "object" && typeof value.seconds === "number") return new Date(value.seconds * 1000);
+        if (value instanceof Date) return value;
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatDate(value, withTime = true) {
+        const date = toDate(value);
+        if (!date) return isMeaningful(value) ? String(value) : "Nedisponibilă";
+        return new Intl.DateTimeFormat("ro-RO", {
+            day: "2-digit", month: "2-digit", year: "numeric",
+            ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {})
+        }).format(date);
+    }
+
+    function requestTimestamp(req) {
+        const date = toDate(req.created_at || req.data_creare || req.createdAt || req.data);
+        return date ? date.getTime() : 0;
+    }
+
+    function getRequestType(req) {
+        const value = req.eveniment || req.tip_cerere || req.tipCerere || req.tip;
+        if (isMeaningful(value)) return String(value);
+        const dept = normalizeText(req.departament).toUpperCase();
+        return dept ? `Cerere ${dept}` : "Cerere";
+    }
+
+    function getStatusInfo(rawStatus) {
+        const raw = normalizeText(rawStatus || "in_asteptare");
+        const normalized = raw.toLowerCase().replace(/[ăâ]/g, "a").replace(/î/g, "i").replace(/ș/g, "s").replace(/ț/g, "t");
+        if (normalized.includes("aprob") || normalized.includes("accept")) return { label: "Aprobată", className: "status-approved", actionLabel: "Aprobată de" };
+        if (normalized.includes("respins") || normalized.includes("reject")) return { label: "Respinsă", className: "status-rejected", actionLabel: "Respinsă de" };
+        if (normalized.includes("arhiv")) return { label: "Arhivată", className: "status-archived", actionLabel: "Arhivată de" };
+        if (normalized.includes("cos") || normalized.includes("deleted")) return { label: "Mutată în coș", className: "status-rejected", actionLabel: "Mutată de" };
+        return { label: "În așteptare", className: "status-pending", actionLabel: "Procesată de" };
+    }
+
+    function getBusinessName(req) {
+        return req.nume_afacere || req.numeAfacere || req.unitate || req.nume_proprietar || req.proprietar || req.nume || "N/A";
+    }
+
+    function formatValue(value, key = "") {
+        if (!isMeaningful(value)) return "Nedisponibil";
+        if (["created_at", "data_creare", "createdAt"].includes(key)) return formatDate(value, true);
+        if (typeof value === "boolean") return value ? "Da" : "Nu";
+        if (Array.isArray(value)) return value.map(item => typeof item === "object" ? JSON.stringify(item) : String(item)).join(", ");
+        if (typeof value === "object") {
+            const date = toDate(value);
+            if (date) return formatDate(date, true);
+            try { return JSON.stringify(value, null, 2); } catch { return String(value); }
+        }
+        return String(value);
+    }
+
+    function renderValue(value, key = "") {
+        const formatted = formatValue(value, key);
+        const possibleUrl = normalizeText(formatted);
+        try {
+            const url = new URL(possibleUrl);
+            if (["http:", "https:"].includes(url.protocol)) {
+                return `<a href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer">Deschide linkul</a>`;
+            }
+        } catch (_) {}
+        return escapeHtml(formatted);
+    }
+
+    function mergeAndRender() {
+        activeRequests.clear();
+        Object.values(requestsBySource).forEach(sourceMap => {
+            sourceMap.forEach((value, key) => activeRequests.set(key, value));
+        });
+        renderRequests(Array.from(activeRequests.values()).sort((a, b) => requestTimestamp(b) - requestTimestamp(a)));
+    }
+
+    function renderRequests(requests) {
+        if (requests.length === 0) {
+            if (listenerUpdates === 0 && listenerErrors < 2) return;
+            container.innerHTML = `<div class="empty-state">Nu ai depus nicio cerere până în prezent.</div>`;
+            return;
+        }
+
+        container.innerHTML = requests.map(req => {
+            const statusInfo = getStatusInfo(req.status);
+            const type = getRequestType(req);
+            const submittedAt = formatDate(req.created_at || req.data_creare || req.createdAt || req.data, true);
+            const processedBy = isMeaningful(req.procesat_de) ? req.procesat_de : "Neprocesată încă";
+
+            return `
+                <article class="request-card">
+                    <div class="card-header">
+                        <span class="dept-badge">${escapeHtml(type)}</span>
+                        <span class="status-badge ${statusInfo.className}">${escapeHtml(statusInfo.label)}</span>
+                    </div>
+                    <div class="card-details">
+                        <div class="card-detail"><span>Nume afacere / titular</span><strong>${escapeHtml(getBusinessName(req))}</strong></div>
+                        <div class="card-detail"><span>Tipul cererii</span><strong>${escapeHtml(type)}</strong></div>
+                        <div class="card-detail"><span>Data depunerii</span><strong>${escapeHtml(submittedAt)}</strong></div>
+                    </div>
+                    <div class="card-processing"><strong>${escapeHtml(statusInfo.actionLabel)}:</strong> ${escapeHtml(processedBy)}</div>
+                    <div class="card-actions">
+                        <button class="btn-details" type="button" data-request-id="${escapeHtml(req.id)}">Vezi cererea completă</button>
+                    </div>
+                </article>
+            `;
+        }).join("");
+    }
+
+    function buildDetailFields(req) {
+        const usedKeys = new Set();
+        const fields = [];
+
+        canonicalFields.forEach(group => {
+            const key = group.keys.find(candidate => isMeaningful(req[candidate]));
+            group.keys.forEach(candidate => usedKeys.add(candidate));
+            if (key) fields.push({ label: group.label, value: req[key], key, full: ["Detalii suplimentare", "Adresă", "Locație", "Poză buletin", "Poză locație"].includes(group.label) });
+        });
+
+        Object.entries(req).forEach(([key, value]) => {
+            if (usedKeys.has(key) || ignoredFields.has(key) || !isMeaningful(value)) return;
+            fields.push({ label: friendlyLabels[key] || key.replace(/_/g, " "), value, key, full: typeof value === "object" || String(value).length > 80 });
+        });
+
+        return fields;
+    }
+
+    function openDetails(req) {
+        if (!req) return;
+        const type = getRequestType(req);
+        const statusInfo = getStatusInfo(req.status);
+        const processUser = isMeaningful(req.procesat_de) ? req.procesat_de : "Cererea nu a fost procesată încă";
+        const processDate = isMeaningful(req.data_procesare) ? req.data_procesare : "Nedisponibilă";
+        const submittedAt = formatDate(req.created_at || req.data_creare || req.createdAt || req.data, true);
+
+        modalTitle.textContent = type;
+        modalBadges.innerHTML = `
+            <span class="dept-badge">${escapeHtml(type)}</span>
+            <span class="status-badge ${statusInfo.className}">${escapeHtml(statusInfo.label)}</span>
+        `;
+        modalProcess.innerHTML = `
+            <div class="detail-item highlight"><span class="detail-label">Status actual</span><div class="detail-value">${escapeHtml(statusInfo.label)}</div></div>
+            <div class="detail-item highlight"><span class="detail-label">${escapeHtml(statusInfo.actionLabel)}</span><div class="detail-value">${escapeHtml(processUser)}</div></div>
+            <div class="detail-item"><span class="detail-label">Data procesării</span><div class="detail-value">${escapeHtml(processDate)}</div></div>
+            <div class="detail-item"><span class="detail-label">Data depunerii</span><div class="detail-value">${escapeHtml(submittedAt)}</div></div>
+            <div class="detail-item full"><span class="detail-label">Cod / ID cerere</span><div class="detail-value">${escapeHtml(req.id)}</div></div>
+        `;
+
+        const fields = buildDetailFields(req);
+        modalDetails.innerHTML = fields.length ? fields.map(field => `
+            <div class="detail-item ${field.full ? "full" : ""}">
+                <span class="detail-label">${escapeHtml(field.label)}</span>
+                <div class="detail-value">${renderValue(field.value, field.key)}</div>
+            </div>
+        `).join("") : `<div class="detail-item full"><div class="detail-value">Nu există alte informații disponibile.</div></div>`;
+
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+    }
+
+    function closeDetails() {
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+    }
+
+    container.addEventListener("click", event => {
+        const button = event.target.closest("[data-request-id]");
+        if (!button) return;
+        openDetails(activeRequests.get(button.dataset.requestId));
+    });
+
+    modalClose.addEventListener("click", closeDetails);
+    modalDone.addEventListener("click", closeDetails);
+    modal.addEventListener("click", event => { if (event.target === modal) closeDetails(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape" && modal.classList.contains("open")) closeDetails(); });
+
+    onAuthStateChanged(auth, user => {
+        unsubscribeListeners.forEach(unsubscribe => unsubscribe());
+        unsubscribeListeners = [];
+        requestsBySource.discord.clear();
+        requestsBySource.discord_id.clear();
+        listenerErrors = 0;
+        listenerUpdates = 0;
+
         if (!user) {
             window.location.href = "auth.html";
             return;
         }
 
-        try {
-            let userRequests = [];
-            
-            // Căutare directă doar în colecția "cereri"
-            const q = query(collection(db, "cereri"), where("discord", "==", user.providerData[0].uid));
-            const snap = await getDocs(q);
-            
-            console.log("Cereri din baza de date:", snap.docs.map(doc => doc.data()));
-            console.log(user.uid)
-            console.log(user.providerData[0].uid)
-            snap.forEach(docSnap => {
-                userRequests.push({ id: docSnap.id, col: "cereri", ...docSnap.data() });
+        const accountIdentifier = user.providerData?.[0]?.uid || user.uid;
+        const queryDefinitions = [
+            { source: "discord", field: "discord" },
+            { source: "discord_id", field: "discord_id" }
+        ];
+
+        queryDefinitions.forEach(definition => {
+            const requestQuery = query(collection(db, "cereri"), where(definition.field, "==", accountIdentifier));
+            const unsubscribe = onSnapshot(requestQuery, snapshot => {
+                const sourceMap = new Map();
+                snapshot.forEach(docSnap => sourceMap.set(docSnap.id, { id: docSnap.id, col: "cereri", ...docSnap.data() }));
+                requestsBySource[definition.source] = sourceMap;
+                listenerUpdates += 1;
+                mergeAndRender();
+            }, error => {
+                console.error(`Eroare la citirea cererilor după ${definition.field}:`, error);
+                listenerErrors += 1;
+                if (listenerErrors >= queryDefinitions.length && activeRequests.size === 0) {
+                    container.innerHTML = `<div class="empty-state">A apărut o eroare la încărcarea cererilor.</div>`;
+                }
             });
-
-            if (userRequests.length === 0) {
-                container.innerHTML = `<div class="empty-state">Nu ai depus nicio cerere până în prezent.</div>`;
-                return;
-            }
-
-            console.log("Cereri găsite:", userRequests);
-            container.innerHTML = userRequests.map(req => {
-                const status = req.status || "În așteptare";
-                let statusClass = "status-pending";
-                if (status.toLowerCase().includes("aprobat")) statusClass = "status-approved";
-                if (status.toLowerCase().includes("respins")) statusClass = "status-rejected";
-
-                return `
-                    <div class="request-card">
-                        <div class="card-header">
-                            <span class="dept-badge">${req.tipCerere || 'CERERE'}</span>
-                            <span class="status-badge ${statusClass}">${status === "in_asteptare" ? "În așteptare" : status}</span>
-                        </div>
-                        <div class="card-details">
-                            <div><strong>Nume afacere/titular:</strong> ${req.numeAfacere || req.nume || 'N/A'}</div>
-                            <div><strong>Data depunerii:</strong> ${req.data ? new Date(req.data.seconds * 1000).toLocaleDateString('ro-RO') : 'Recenta'}</div>
-                            <div><strong>Cod / ID Cerere:</strong> ${req.id}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-        } catch (err) {
-            console.error("Eroare încărcare cereri:", err);
-            container.innerHTML = `<div class="empty-state">A apărut o eroare la încărcarea cererilor.</div>`;
-        }
+            unsubscribeListeners.push(unsubscribe);
+        });
     });
-
 </script>
 
 </body>
