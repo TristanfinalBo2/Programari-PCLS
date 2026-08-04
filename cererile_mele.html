@@ -99,6 +99,7 @@ body {
             
             console.log("Cereri din baza de date:", snap.docs.map(doc => doc.data()));
             console.log(user.uid)
+            console.log(user)
             snap.forEach(docSnap => {
                 userRequests.push({ id: docSnap.id, col: "cereri", ...docSnap.data() });
             });
