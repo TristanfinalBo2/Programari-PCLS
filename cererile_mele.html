@@ -98,6 +98,7 @@ body {
                 try {
                     const q = query(collection(db, colName), where("userId", "==", user.uid));
                     const snap = await getDocs(q);
+                    console.log(`Cereri din ${colName}:`, snap.docs.map(doc => doc.data()));
                     snap.forEach(docSnap => {
                         userRequests.push({ id: docSnap.id, col: colName, ...docSnap.data() });
                     });
