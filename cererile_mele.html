@@ -94,12 +94,12 @@ body {
             let userRequests = [];
             
             // Căutare directă doar în colecția "cereri"
-            const q = query(collection(db, "cereri"), where("discord", "==", user.uid));
+            const q = query(collection(db, "cereri"), where("discord", "==", user.providerData[0].uid));
             const snap = await getDocs(q);
             
             console.log("Cereri din baza de date:", snap.docs.map(doc => doc.data()));
             console.log(user.uid)
-            console.log(user)
+            console.log(user.providerData[0].uid)
             snap.forEach(docSnap => {
                 userRequests.push({ id: docSnap.id, col: "cereri", ...docSnap.data() });
             });
