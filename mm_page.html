@@ -1230,7 +1230,7 @@ input[type="number"] {
     import { OAuthProvider, onAuthStateChanged, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { collection, addDoc, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const discordConnectedBox = document.getElementById("discord-connected-box");
+const discordConnectedBox = document.getElementById("discord-connected-box");
 const discordLoginBox = document.getElementById("discord-login-box");
 const discordInput = document.getElementById("discord-input");
 const submitButton = document.getElementById("submit");
@@ -1303,6 +1303,50 @@ if (discordModalOverlay) {
         if (event.target === discordModalOverlay) hideDiscordModal();
     });
 }
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // --- UTILIZATOR CONECTAT ---
+        let discordVal = "";
+
+        try {
+            const userSnap = await getDoc(doc(db, "utilizatori", user.uid));
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                discordVal = data.discordId || data.numeDiscord || data.nume || user.displayName || user.email;
+            } else {
+                discordVal = user.displayName || user.email;
+            }
+        } catch (error) {
+            console.error("Eroare la preluarea datelor Discord:", error);
+            discordVal = user.displayName || user.email;
+        }
+
+        // 1. Inserăm valoarea în câmp
+        currentDiscordValue = discordVal;
+        discordInput.value = discordVal;
+
+        // 2. Afișăm caseta de "Conectat" și o ascundem pe cea de "Conectează-te"
+        discordConnectedBox.style.display = "flex";
+        discordLoginBox.style.display = "none";
+
+        // 3. Activăm butonul de trimitere al formularului
+        if (submitButton) submitButton.disabled = false;
+
+    } else {
+        // --- UTILIZATOR NECONECTAT ---
+        // 1. Curățăm valoarea
+        currentDiscordValue = "";
+        discordInput.value = "";
+
+        // 2. Ascundem caseta de "Conectat" și afișăm butonul de conectare cu Discord
+        discordConnectedBox.style.display = "none";
+        discordLoginBox.style.display = "block";
+
+        // 3. Dezactivăm butonul de trimitere pentru a preveni cererile neautentificate
+        if (submitButton) submitButton.disabled = true;
+    }
+});
 
     // Securitate bază
     document.addEventListener("contextmenu", e => e.preventDefault());
