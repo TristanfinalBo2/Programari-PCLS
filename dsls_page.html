@@ -999,6 +999,10 @@ input[type="number"] {
                     </div>
                     <div class="field full">
                       <label for="discord-id">Discord ID</label>
+                      <div class="discord-connect-row">
+                        <button type="button" id="discord-trigger" class="btn-discord-connect">Conectează-te cu Discord</button>
+                        <span class="form-hint">Completează automat ID-ul</span>
+                      </div>
                       <div class="input-shell"><input id="discord-id" type="text" name="EMAIL" placeholder="Doar DISCORD ID" required></div>
                     </div>
                     <div class="field full">
@@ -1041,6 +1045,17 @@ input[type="number"] {
     </section>
   </main>
 
+  <div id="discord-modal-overlay" class="discord-modal-overlay">
+    <div class="discord-modal">
+      <h3>Conectare Discord</h3>
+      <p>Conectează-te cu Discord pentru a completa automat ID-ul în formular.</p>
+      <div class="discord-modal-actions">
+        <button id="discord-modal-connect" class="btn-discord-connect" type="button">Conectează-te cu Discord</button>
+        <button id="discord-modal-close" class="btn-discord-cancel" type="button">Închide</button>
+      </div>
+    </div>
+  </div>
+
   <div id="alert-overlay"></div>
   <div id="alert-box">
     <div class="alert-icon"><svg viewBox="0 0 52 52"><circle class="circle" cx="26" cy="26" r="25" /><path class="check" d="M14 27 L22 35 L38 18" /></svg></div>
@@ -1057,8 +1072,62 @@ input[type="number"] {
 
 
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { auth, db } from "./firebase-config.js";
+    import { OAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { collection, addDoc, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const discordTrigger = document.getElementById("discord-trigger");
+    const discordModalOverlay = document.getElementById("discord-modal-overlay");
+    const discordModalConnect = document.getElementById("discord-modal-connect");
+    const discordModalClose = document.getElementById("discord-modal-close");
+    const discordInput = document.getElementById("discord-id");
+    let currentDiscordValue = "";
+
+    function showDiscordModal() {
+        if (discordModalOverlay) discordModalOverlay.classList.add("show");
+    }
+
+    function hideDiscordModal() {
+        if (discordModalOverlay) discordModalOverlay.classList.remove("show");
+    }
+
+    async function connectDiscord() {
+        try {
+            const provider = new OAuthProvider("oidc.oidc.discord");
+            provider.addScope("identify");
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            const discordProvider = user.providerData.find(p => p.providerId === "oidc.discord" || p.providerId.includes("discord"));
+            const discordId = discordProvider?.uid || user?.reloadUserInfo?.uid || user?.uid || "";
+            const discordName = user?.reloadUserInfo?.screenName || discordProvider?.displayName || user?.displayName || user?.email || "";
+
+            if (!discordId) {
+                throw new Error("Nu s-a putut obține ID-ul Discord.");
+            }
+
+            currentDiscordValue = discordId;
+            if (discordInput) discordInput.value = discordId;
+            await setDoc(doc(db, "utilizatori", user.uid), {
+                discordId,
+                numeDiscord: discordName,
+                ultimaLogare: serverTimestamp()
+            }, { merge: true });
+            hideDiscordModal();
+        } catch (error) {
+            console.error("Eroare conectare Discord:", error);
+            showError("Nu s-a putut conecta profilul Discord.");
+        }
+    }
+
+    if (discordTrigger) discordTrigger.addEventListener("click", (event) => {
+        event.preventDefault();
+        showDiscordModal();
+    });
+    if (discordModalConnect) discordModalConnect.addEventListener("click", connectDiscord);
+    if (discordModalClose) discordModalClose.addEventListener("click", hideDiscordModal);
+    if (discordModalOverlay) discordModalOverlay.addEventListener("click", (event) => {
+        if (event.target === discordModalOverlay) hideDiscordModal();
+    });
 
     // Securitate bază
     document.addEventListener("contextmenu", e => e.preventDefault());
@@ -1152,7 +1221,7 @@ input[type="number"] {
         }
 
         // Validare Discord ID
-        const discordId = (formData.get("EMAIL") || "").trim();
+        const discordId = (discordInput?.value || currentDiscordValue || formData.get("EMAIL") || "").trim();
         if (!/^\d{17,20}$/.test(discordId)) {
             showError("ID Discord invalid. Te rugăm să introduci doar cifrele ID-ului.");
             return;
