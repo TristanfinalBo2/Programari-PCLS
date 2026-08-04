@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cererile Mele | Portal PCLS</title>
+    <style>
+:root {
+    color-scheme: dark;
+    --bg: #05070c;
+    --glass: rgba(18, 25, 40, 0.48);
+    --glass-strong: rgba(22, 31, 49, 0.68);
+    --line: rgba(255, 255, 255, 0.11);
+    --text: #f7f9ff;
+    --muted: #b8c0d0;
+    --quiet: #7f8aa0;
+    --accent: #64d2ff;
+    --accent-2: #0a84ff;
+    --mint: #63e6be;
+    --gold: #ffd60a;
+    --danger: #ff6961;
+    --radius: 24px;
+    --blur: blur(28px) saturate(155%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at 14% 9%, rgba(10, 132, 255, 0.24), transparent 29%),
+                radial-gradient(circle at 86% 13%, rgba(191, 90, 242, 0.18), transparent 28%),
+                linear-gradient(145deg, #070b14 0%, #090d18 38%, #05070c 100%);
+    background-attachment: fixed;
+    padding: 100px 20px 40px;
+}
+
+.page-shell { max-width: 1100px; margin: 0 auto; }
+.header-title { margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
+.header-title h1 { font-size: 2.2rem; font-weight: 780; background: linear-gradient(180deg, #fff, #a7b5ca); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.btn-back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,0.06); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+.btn-back:hover { background: rgba(255,255,255,0.12); }
+
+.requests-grid { display: grid; gap: 16px; }
+.request-card {
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--glass);
+    backdrop-filter: var(--blur);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.dept-badge { padding: 4px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; border: 1px solid rgba(100,210,255,0.3); color: var(--accent); background: rgba(100,210,255,0.1); }
+.status-badge { padding: 5px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+.status-pending { background: rgba(255,214,10,0.15); color: var(--gold); border: 1px solid rgba(255,214,10,0.3); }
+.status-approved { background: rgba(99,230,190,0.15); color: var(--mint); border: 1px solid rgba(99,230,190,0.3); }
+.status-rejected { background: rgba(255,105,97,0.15); color: var(--danger); border: 1px solid rgba(255,105,97,0.3); }
+
+.card-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.9rem; color: var(--muted); }
+.card-details strong { color: var(--text); }
+.empty-state { text-align: center; padding: 50px; color: var(--quiet); font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<div class="page-shell">
+    <div class="header-title">
+        <h1>Cererile Mele</h1>
+        <a href="index.html" class="btn-back">← Înapoi la Portal</a>
+    </div>
+
+    <div id="requests-list" class="requests-grid">
+        <div class="empty-state">Se încarcă cererile...</div>
+    </div>
+</div>
+
+<script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const container = document.getElementById("requests-list");
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = "auth.html";
+            return;
+        }
+
+        try {
+            const collectionsToSearch = ["cereri_pcls", "cereri_inregistrare", "cereri_medici", "cereri"];
+            let userRequests = [];
+
+            for (const colName of collectionsToSearch) {
+                try {
+                    const q = query(collection(db, colName), where("userId", "==", user.uid));
+                    const snap = await getDocs(q);
+                    snap.forEach(docSnap => {
+                        userRequests.push({ id: docSnap.id, col: colName, ...docSnap.data() });
+                    });
+                } catch(e) {}
+            }
+
+            if (userRequests.length === 0) {
+                container.innerHTML = `<div class="empty-state">Nu ai depus nicio cerere până în prezent.</div>`;
+                return;
+            }
+
+            container.innerHTML = userRequests.map(req => {
+                const status = req.status || "În așteptare";
+                let statusClass = "status-pending";
+                if (status.toLowerCase().includes("aprobat")) statusClass = "status-approved";
+                if (status.toLowerCase().includes("respins")) statusClass = "status-rejected";
+
+                return `
+                    <div class="request-card">
+                        <div class="card-header">
+                            <span class="dept-badge">${req.tipCerere || req.col.replace('cereri_', '').toUpperCase()}</span>
+                            <span class="status-badge ${statusClass}">${status}</span>
+                        </div>
+                        <div class="card-details">
+                            <div><strong>Nume afacere/titular:</strong> ${req.numeAfacere || req.nume || 'N/A'}</div>
+                            <div><strong>Data depunerii:</strong> ${req.data ? new Date(req.data.seconds * 1000).toLocaleDateString('ro-RO') : 'Recenta'}</div>
+                            <div><strong>Cod / ID Cerere:</strong> ${req.id}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (err) {
+            console.error("Eroare încărcare cereri:", err);
+            container.innerHTML = `<div class="empty-state">A apărut o eroare la încărcarea cererilor.</div>`;
+        }
+    });
+</script>
+
+</body>
+</html>

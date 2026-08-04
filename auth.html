@@ -17,6 +17,7 @@
             --input-bg: #0d0f0e;
             --card-bg: #0a0c0b;
             --error: #ff3c64;
+            --discord-color: #5865F2;
         }
 
         * {
@@ -187,7 +188,7 @@
             gap: 12px;
         }
 
-        button.btn-main, button.btn-alt {
+        button.btn-main, button.btn-alt, button.btn-discord {
             width: 100%;
             padding: 14px;
             font-family: inherit;
@@ -197,6 +198,10 @@
             cursor: pointer;
             transition: all 0.2s ease;
             border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         button.btn-main {
@@ -222,6 +227,44 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
+        /* --- Discord Button & Divider --- */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 8px 0;
+        }
+        
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .divider span {
+            padding: 0 12px;
+        }
+
+        button.btn-discord {
+            background: linear-gradient(145deg, rgba(88, 101, 242, 0.15), rgba(88, 101, 242, 0.05));
+            border: 1px solid rgba(88, 101, 242, 0.3);
+            color: #fff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+        }
+
+        button.btn-discord:hover {
+            background: linear-gradient(145deg, rgba(88, 101, 242, 0.25), rgba(88, 101, 242, 0.1));
+            border-color: rgba(88, 101, 242, 0.6);
+            box-shadow: 0 8px 20px rgba(88, 101, 242, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
         a.back-link {
             color: var(--text-secondary);
             text-decoration: none;
@@ -241,8 +284,7 @@
             color: var(--accent-green);
         }
     
-
-        /* LIQUID GLASS — exclusiv efect vizual, fără modificări de structură */
+        /* LIQUID GLASS */
         body {
             background-color: #05070d;
             background-image:
@@ -320,7 +362,6 @@
             background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(124, 231, 255, 0.035));
             border-color: rgba(124, 231, 255, 0.20);
         }
-
     </style>
 </head>
 <body>
@@ -380,6 +421,17 @@
         <div class="actions">
             <button id="btnLogin" class="btn-main">Autentificare</button>
             <button id="btnRegister" class="btn-alt">Creează Cont Nou</button>
+            
+            <div class="divider">
+                <span>sau</span>
+            </div>
+
+            <button id="btnDiscordLogin" class="btn-discord">
+                <svg width="20" height="20" viewBox="0 0 127.14 96.36" fill="currentColor">
+                    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.2,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+                </svg>
+                Conectare cu Discord
+            </button>
         </div>
 
         <a href="index.html" class="back-link">
@@ -392,9 +444,11 @@
     </div>
 
     <script type="module">
-       import { auth, db } from "./firebase-config.js";
-        import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { doc, setDoc, getDocs, updateDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { auth, db } from "./firebase-config.js";
+        // Am adăugat importurile pentru OAuth și OIDC
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, OAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        // Am adăugat getDoc și serverTimestamp
+        import { doc, setDoc, getDoc, getDocs, updateDoc, collection, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const emailInput = document.getElementById('email');
         const parolaInput = document.getElementById('parola');
@@ -413,7 +467,7 @@
         });
 
         // ==========================================
-        // LOGICA DE ÎNREGISTRARE CU VERIFICARE COD
+        // LOGICA DE ÎNREGISTRARE (EMAIL/PAROLĂ)
         // ==========================================
         document.getElementById('btnRegister').addEventListener('click', async () => {
             try {
@@ -424,13 +478,11 @@
                 mesajDiv.style.color = "var(--accent-green)";
                 mesajDiv.textContent = "Se validează datele...";
 
-                let rolAtribuit = "user"; // Rolul standard dacă nu bagă cod
+                let rolAtribuit = "user"; 
                 let codId = null;
                 const codIntrodus = codInput.value.trim();
 
-                // 1. Verificăm codul dacă a fost introdus ceva în câmp
                 if (codIntrodus !== "") {
-                    // Căutăm în colecția "invite_codes" (Așa cum e în baza ta de date)
                     const q = query(
                         collection(db, "invite_codes"), 
                         where("code", "==", codIntrodus), 
@@ -442,30 +494,26 @@
                         throw new Error("Codul de acces este invalid sau a fost deja folosit!");
                     }
 
-                    // Dacă codul e bun, preluăm datele
                     const documentCod = querySnapshot.docs[0];
-                    rolAtribuit = documentCod.data().role; // Preluăm "role" (nu "rol")
+                    rolAtribuit = documentCod.data().role; 
                     codId = documentCod.id; 
                 }
 
-                // 2. Creăm contul în Firebase Auth
                 mesajDiv.textContent = "Se creează contul...";
                 const userCredential = await createUserWithEmailAndPassword(auth, emailInput.value, parolaInput.value);
                 const user = userCredential.user;
 
-                // 3. Salvăm profilul în baza de date cu rolul aferent
                 await setDoc(doc(db, "utilizatori", user.uid), {
                     email: user.email,
-                    role: rolAtribuit, // Aici îi dă gradul corect (ex: isuls, admin)
+                    role: rolAtribuit, 
                     stare: "Activ",
-                    createdAt: new Date().toISOString()
+                    createdAt: serverTimestamp()
                 });
 
-                // 4. Invalidăm codul în baza de date (dacă a fost folosit unul)
                 if (codId) {
                     await updateDoc(doc(db, "invite_codes", codId), {
                         used: true,
-                        used_by: user.email // Opțional: ca să vezi cine l-a folosit în consolă
+                        used_by: user.email 
                     });
                 }
 
@@ -476,9 +524,8 @@
             }
         });
         
-
         // ==========================================
-        // LOGICA DE CONECTARE
+        // LOGICA DE CONECTARE (EMAIL/PAROLĂ)
         // ==========================================
         document.getElementById('btnLogin').addEventListener('click', async () => {
             try {
@@ -495,6 +542,59 @@
                 mesajDiv.textContent = "Email sau parolă incorectă.";
             }
         });
+
+        // ==========================================
+        // LOGICA DE CONECTARE / ÎNREGISTRARE CU DISCORD
+        // ==========================================
+        const btnDiscordLogin = document.getElementById('btnDiscordLogin');
+        if (btnDiscordLogin) {
+            btnDiscordLogin.addEventListener('click', async () => {
+                // Aici apelăm providerul generat în Firebase
+                const provider = new OAuthProvider('oidc.oidc.discord');
+                    provider.addScope('identify');
+
+                try {
+                    mesajDiv.style.color = "var(--accent-green)";
+                    mesajDiv.textContent = "Se deschide Discord...";
+                    
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+
+                    // Extragem ID-ul de Discord
+                    const discordData = user.providerData.find(p => p.providerId === 'oidc.discord' || p.providerId.includes('discord'));
+                    const discordId = discordData ? discordData.uid : null;
+
+                    // Verificăm dacă utilizatorul există deja în baza de date
+                    const userRef = doc(db, "utilizatori", user.uid);
+                    const userSnap = await getDoc(userRef);
+
+                    if (!userSnap.exists()) {
+                        // Creăm profilul dacă e prima dată când intră pe site prin Discord
+                        await setDoc(userRef, {
+                            email: user.email || "",
+                            nume: user.displayName || "Utilizator Discord",
+                            discordId: discordId,
+                            role: "user", // Membru standard
+                            stare: "Activ",
+                            createdAt: serverTimestamp()
+                        });
+                    } else {
+                        // Dacă există, doar îi actualizăm Discord ID-ul și momentul logării (fără să-i stricăm rolul)
+                        await setDoc(userRef, {
+                            discordId: discordId,
+                            ultimaLogare: serverTimestamp()
+                        }, { merge: true });
+                    }
+
+                    mesajDiv.textContent = "Conectat cu succes!";
+                    window.location.href = "index.html";
+                } catch (error) {
+                    console.error("Eroare la autentificarea cu Discord:", error);
+                    mesajDiv.style.color = "var(--error)";
+                    mesajDiv.textContent = "A apărut o problemă la conectarea cu Discord.";
+                }
+            });
+        }
     </script>
 </body>
 </html>
