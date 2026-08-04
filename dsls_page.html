@@ -1219,9 +1219,9 @@ input[type="number"] {
 
 
 <script type="module">
-    import { auth, db } from "./firebase-config.js";
-    import { OAuthProvider, onAuthStateChanged, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { collection, addDoc, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from "./firebase-config.js";
+import { OAuthProvider, onAuthStateChanged, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const discordConnectedBox = document.getElementById("discord-connected-box");
 const discordLoginBox = document.getElementById("discord-login-box");
@@ -1248,20 +1248,20 @@ async function connectDiscord() {
 
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        const discordProvider = user.providerData.find(p => p.providerId === "oidc.discord" || p.providerId.includes("discord"));
+        const discordProvider = user.providerData?.find(p => p.providerId === "oidc.discord" || p.providerId?.includes("discord"));
         const discordId = discordProvider?.uid || user?.reloadUserInfo?.uid || user?.uid || "";
         const discordName = user?.reloadUserInfo?.screenName || discordProvider?.displayName || user?.displayName || user?.email || "";
 
         if (discordId) {
             currentDiscordValue = discordId;
-            discordInput.value = discordId;
-            discordConnectedBox.style.display = "flex";
-            discordLoginBox.style.display = "none";
+            if (discordInput) discordInput.value = discordId;
+            if (discordConnectedBox) discordConnectedBox.style.display = "flex";
+            if (discordLoginBox) discordLoginBox.style.display = "none";
             if (submitButton) submitButton.disabled = false;
 
             const userRef = doc(db, "utilizatori", user.uid);
             await setDoc(userRef, {
-                discordId,
+                discordId: discordId,
                 numeDiscord: discordName,
                 ultimaLogare: serverTimestamp()
             }, { merge: true });
@@ -1272,7 +1272,7 @@ async function connectDiscord() {
         hideDiscordModal();
     } catch (error) {
         console.error("Eroare conectare Discord:", error);
-        showErrorAlert("Nu s-a putut conecta profilul Discord.");
+        alert("Nu s-a putut conecta profilul Discord.");
     }
 }
 
@@ -1304,42 +1304,40 @@ onAuthStateChanged(auth, async (user) => {
 
         try {
             const userSnap = await getDoc(doc(db, "utilizatori", user.uid));
+            const discordProvider = user.providerData?.find(p => p.providerId?.includes("discord"));
+            
             if (userSnap.exists()) {
                 const data = userSnap.data();
-                discordVal = data.discordId || data.numeDiscord || data.nume || user.displayName || user.email;
+                // Extragem STRICT Discord ID (fără fallback la nume/email)
+                discordVal = data.discordId || discordProvider?.uid || user.uid;
             } else {
-                discordVal = user.displayName || user.email;
+                discordVal = discordProvider?.uid || user.uid;
             }
         } catch (error) {
             console.error("Eroare la preluarea datelor Discord:", error);
-            discordVal = user.displayName || user.email;
+            const discordProvider = user.providerData?.find(p => p.providerId?.includes("discord"));
+            discordVal = discordProvider?.uid || user.uid;
         }
 
-        // 1. Inserăm valoarea în câmp
+        // Preluare și afișare ID numeric
         currentDiscordValue = discordVal;
-        discordInput.value = discordVal;
+        if (discordInput) discordInput.value = discordVal;
 
-        // 2. Afișăm caseta de "Conectat" și o ascundem pe cea de "Conectează-te"
-        discordConnectedBox.style.display = "flex";
-        discordLoginBox.style.display = "none";
-
-        // 3. Activăm butonul de trimitere al formularului
+        if (discordConnectedBox) discordConnectedBox.style.display = "flex";
+        if (discordLoginBox) discordLoginBox.style.display = "none";
         if (submitButton) submitButton.disabled = false;
 
     } else {
         // --- UTILIZATOR NECONECTAT ---
-        // 1. Curățăm valoarea
         currentDiscordValue = "";
-        discordInput.value = "";
+        if (discordInput) discordInput.value = "";
 
-        // 2. Ascundem caseta de "Conectat" și afișăm butonul de conectare cu Discord
-        discordConnectedBox.style.display = "none";
-        discordLoginBox.style.display = "block";
-
-        // 3. Dezactivăm butonul de trimitere pentru a preveni cererile neautentificate
+        if (discordConnectedBox) discordConnectedBox.style.display = "none";
+        if (discordLoginBox) discordLoginBox.style.display = "block";
         if (submitButton) submitButton.disabled = true;
     }
 });
+
     // Securitate bază
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("keydown", function (e) {
