@@ -1217,7 +1217,7 @@ input[type="number"] {
 <script type="module">
     // 1. IMPORTĂM FIREBASE & SERVER TIMESTAMP
     import { auth, db } from "./firebase-config.js";
-    import { OAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { OAuthProvider, onAuthStateChanged, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const discordConnectedBox = document.getElementById("discord-connected-box");
