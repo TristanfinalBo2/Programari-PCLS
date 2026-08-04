@@ -860,7 +860,51 @@ textarea {
   }
 }
 
-  
+.discord-status-box.connected {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(88, 101, 242, 0.12);
+    border: 1px solid rgba(88, 101, 242, 0.35);
+    border-radius: 14px;
+}
+
+.discord-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 2;
+}
+
+.discord-badge input {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    outline: none !important;
+    width: 100%;
+}
+
+.discord-icon {
+    color: #5865F2;
+    flex-shrink: 0;
+}
+
+.status-tag.success {
+    color: #63e6be;
+    background: rgba(99, 230, 190, 0.12);
+    border: 1px solid rgba(99, 230, 190, 0.3);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Stil pentru starea neconectată */
 .btn-discord-connect {
     display: inline-flex;
     align-items: center;
@@ -882,8 +926,6 @@ textarea {
     background: #4752C4;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(88, 101, 242, 0.45);
-    border:none;
-    outline:none;
 }
 
 .form-hint.warning {
@@ -948,49 +990,6 @@ textarea {
   cursor: pointer;
 }
 
-.discord-status-box.connected {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 14px;
-    background: rgba(88, 101, 242, 0.12);
-    border: 1px solid rgba(88, 101, 242, 0.35);
-    border-radius: 14px;
-}
-
-.discord-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 2;
-}
-
-.discord-badge input {
-    background: transparent !important;
-    border: none !important;
-    color: #fff !important;
-    font-weight: 600;
-    font-size: 0.95rem;
-    outline: none !important;
-    width: 100%;
-}
-
-.discord-icon {
-    color: #5865F2;
-    flex-shrink: 0;
-}
-
-.status-tag.success {
-    color: #63e6be;
-    background: rgba(99, 230, 190, 0.12);
-    border: 1px solid rgba(99, 230, 190, 0.3);
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
 form input[type="date"] {
   width: 100%;
   border: 0;
@@ -1126,7 +1125,7 @@ input[type="number"] {
                       <div class="input-shell"><input type="date" name="DATA" id="dataProgramare" required></div>
                       <span class="date-hint">Programarea nu se poate face în aceeași zi.</span>
                     </div>
-                    <div class="form-group full">
+                    <div class="form-group" style="grid-column: 1 / -1">
                       <label>Identificare Discord</label>
                       
                       <div id="discord-connected-box" class="discord-status-box connected" style="display: none;">
