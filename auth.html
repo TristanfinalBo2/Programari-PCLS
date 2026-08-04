@@ -559,7 +559,7 @@
                     
                     const result = await signInWithPopup(auth, provider);
                     const user = result.user;
-
+                    console.log("Utilizator Discord autentificat:", user);
                     // Extragem ID-ul de Discord
                     const discordData = user.providerData.find(p => p.providerId === 'oidc.discord' || p.providerId.includes('discord'));
                     const discordId = discordData ? discordData.uid : null;
