@@ -85,56 +85,56 @@ body {
     const container = document.getElementById("requests-list");
 
     onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = "auth.html";
-        return;
-    }
-
-    try {
-        let userRequests = [];
-        
-        // Căutare directă doar în colecția "cereri"
-        const q = query(collection(db, "cereri"), where("userId", "==", user.uid));
-        const snap = await getDocs(q);
-        
-        console.log("Cereri din baza de date:", snap.docs.map(doc => doc.data()));
-        
-        snap.forEach(docSnap => {
-            userRequests.push({ id: docSnap.id, col: "cereri", ...docSnap.data() });
-        });
-
-        if (userRequests.length === 0) {
-            container.innerHTML = `<div class="empty-state">Nu ai depus nicio cerere până în prezent.</div>`;
+        if (!user) {
+            window.location.href = "auth.html";
             return;
         }
 
-        console.log("Cereri găsite:", userRequests);
-        container.innerHTML = userRequests.map(req => {
-            const status = req.status || "În așteptare";
-            let statusClass = "status-pending";
-            if (status.toLowerCase().includes("aprobat")) statusClass = "status-approved";
-            if (status.toLowerCase().includes("respins")) statusClass = "status-rejected";
+        try {
+            let userRequests = [];
+            
+            // Căutare directă doar în colecția "cereri"
+            const q = query(collection(db, "cereri"), where("discord", "==", user.uid));
+            const snap = await getDocs(q);
+            
+            console.log("Cereri din baza de date:", snap.docs.map(doc => doc.data()));
+            console.log(user.uid)
+            snap.forEach(docSnap => {
+                userRequests.push({ id: docSnap.id, col: "cereri", ...docSnap.data() });
+            });
 
-            return `
-                <div class="request-card">
-                    <div class="card-header">
-                        <span class="dept-badge">${req.tipCerere || 'CERERE'}</span>
-                        <span class="status-badge ${statusClass}">${status}</span>
-                    </div>
-                    <div class="card-details">
-                        <div><strong>Nume afacere/titular:</strong> ${req.numeAfacere || req.nume || 'N/A'}</div>
-                        <div><strong>Data depunerii:</strong> ${req.data ? new Date(req.data.seconds * 1000).toLocaleDateString('ro-RO') : 'Recenta'}</div>
-                        <div><strong>Cod / ID Cerere:</strong> ${req.id}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+            if (userRequests.length === 0) {
+                container.innerHTML = `<div class="empty-state">Nu ai depus nicio cerere până în prezent.</div>`;
+                return;
+            }
 
-    } catch (err) {
-        console.error("Eroare încărcare cereri:", err);
-        container.innerHTML = `<div class="empty-state">A apărut o eroare la încărcarea cererilor.</div>`;
-    }
-});
+            console.log("Cereri găsite:", userRequests);
+            container.innerHTML = userRequests.map(req => {
+                const status = req.status || "În așteptare";
+                let statusClass = "status-pending";
+                if (status.toLowerCase().includes("aprobat")) statusClass = "status-approved";
+                if (status.toLowerCase().includes("respins")) statusClass = "status-rejected";
+
+                return `
+                    <div class="request-card">
+                        <div class="card-header">
+                            <span class="dept-badge">${req.tipCerere || 'CERERE'}</span>
+                            <span class="status-badge ${statusClass}">${status}</span>
+                        </div>
+                        <div class="card-details">
+                            <div><strong>Nume afacere/titular:</strong> ${req.numeAfacere || req.nume || 'N/A'}</div>
+                            <div><strong>Data depunerii:</strong> ${req.data ? new Date(req.data.seconds * 1000).toLocaleDateString('ro-RO') : 'Recenta'}</div>
+                            <div><strong>Cod / ID Cerere:</strong> ${req.id}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (err) {
+            console.error("Eroare încărcare cereri:", err);
+            container.innerHTML = `<div class="empty-state">A apărut o eroare la încărcarea cererilor.</div>`;
+        }
+    });
 
 </script>
 
