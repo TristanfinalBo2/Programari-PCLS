@@ -466,6 +466,12 @@
             eyeIcon.innerHTML = isPassword ? eyeClosedSVG : eyeOpenSVG;
         });
 
+        const getDiscordDisplayName = (user) => {
+            const providerData = user?.providerData || [];
+            const discordProvider = providerData.find(p => p.providerId === 'oidc.discord' || p.providerId.includes('discord'));
+            return discordProvider?.displayName || user?.displayName || user?.email || 'Utilizator Discord';
+        };
+
         // ==========================================
         // LOGICA DE ÎNREGISTRARE (EMAIL/PAROLĂ)
         // ==========================================
@@ -559,7 +565,10 @@
                     
                     const result = await signInWithPopup(auth, provider);
                     const user = result.user;
+                    const numeDiscord = getDiscordDisplayName(user);
                     console.log("Utilizator Discord autentificat:", user);
+                    console.log("Nume Discord:", numeDiscord);
+
                     // Extragem ID-ul de Discord
                     const discordData = user.providerData.find(p => p.providerId === 'oidc.discord' || p.providerId.includes('discord'));
                     const discordId = discordData ? discordData.uid : null;
@@ -572,7 +581,7 @@
                         // Creăm profilul dacă e prima dată când intră pe site prin Discord
                         await setDoc(userRef, {
                             email: user.email || "",
-                            nume: user.displayName || "Utilizator Discord",
+                            nume: numeDiscord,
                             discordId: discordId,
                             role: "user", // Membru standard
                             stare: "Activ",
@@ -581,12 +590,13 @@
                     } else {
                         // Dacă există, doar îi actualizăm Discord ID-ul și momentul logării (fără să-i stricăm rolul)
                         await setDoc(userRef, {
+                            nume: numeDiscord,
                             discordId: discordId,
                             ultimaLogare: serverTimestamp()
                         }, { merge: true });
                     }
 
-                    mesajDiv.textContent = "Conectat cu succes!";
+                    mesajDiv.textContent = `Conectat cu succes! Bun venit, ${numeDiscord}`;
                     // window.location.href = "index.html";
                 } catch (error) {
                     console.error("Eroare la autentificarea cu Discord:", error);
