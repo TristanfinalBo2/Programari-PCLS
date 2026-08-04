@@ -120,7 +120,7 @@ body {
                     <div class="request-card">
                         <div class="card-header">
                             <span class="dept-badge">${req.tipCerere || 'CERERE'}</span>
-                            <span class="status-badge ${statusClass}">${status}</span>
+                            <span class="status-badge ${statusClass}">${status === "in_asteptare" ? "În așteptare" : status}</span>
                         </div>
                         <div class="card-details">
                             <div><strong>Nume afacere/titular:</strong> ${req.numeAfacere || req.nume || 'N/A'}</div>
