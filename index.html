@@ -1422,8 +1422,8 @@ h1 {
 
                 <div class="hero-meta" aria-label="Rezumat portal">
                     <div>
-                        <strong>4</strong>
-                        <span>direcții medicale conectate</span>
+                        <strong id="live-active-requests" style="transition: opacity 0.3s ease;">...</strong>
+                        <span>cereri active în așteptare</span>
                     </div>
                     <div>
                         <strong>24/7</strong>
@@ -1839,6 +1839,50 @@ onAuthStateChanged(auth, async (user) => {
     const revealOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
     const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
     revealElements.forEach(el => revealObserver.observe(el));
+
+    // ==========================================
+// 3. STATISTICI LIVE - CERERI ACTIVE EXACT CA ÎN ADMIN
+// ==========================================
+const liveRequestsEl = document.getElementById("live-active-requests");
+
+if (liveRequestsEl) {
+    const cereriRef = collection(db, "cereri");
+
+    // Ascultăm live modificările din baza de date
+    onSnapshot(cereriRef, (snapshot) => {
+        let activeCount = 0;
+
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const status = (data.status || "in_asteptare").toString().toLowerCase().trim();
+            
+            // Verificăm condițiile (la fel ca în admin.html)
+            const isDeleted = data.deleted === true;
+            const isArchived = data.arhivat === true || data.archived === true;
+            const isTrash = status === "in_cos" || status.includes("cos");
+            const isApproved = status.includes("aprobat") || status.includes("acceptat") || status === "acceptată";
+            const isRejected = status.includes("respins");
+
+            // Numărăm DOAR cererile care nu sunt șterse, arhivate, respinse sau aprobate
+            if (!isDeleted && !isArchived && !isTrash && !isApproved && !isRejected) {
+                activeCount++;
+            }
+        });
+
+        // Animăm ușor modificarea cifrei
+        liveRequestsEl.style.transition = "opacity 0.3s ease";
+        liveRequestsEl.style.opacity = 0;
+        
+        setTimeout(() => {
+            liveRequestsEl.textContent = activeCount;
+            liveRequestsEl.style.opacity = 1;
+        }, 300);
+
+    }, (error) => {
+        console.error("Eroare la citirea statisticilor live:", error);
+        liveRequestsEl.textContent = "-";
+    });
+}
 </script>
 </body>
 </html>
