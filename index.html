@@ -1633,7 +1633,15 @@ h1 {
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+    doc,
+    getDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authSection = document.getElementById("auth-section-premium");
 const adminNavContainer = document.getElementById("admin-nav-container");
@@ -1840,48 +1848,70 @@ onAuthStateChanged(auth, async (user) => {
     const revealObserver = new IntersectionObserver(revealCallback, revealOptions);
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // ==========================================
-// 3. STATISTICI LIVE - CERERI ACTIVE EXACT CA ÎN ADMIN
+// ==========================================
+// STATISTICI LIVE - CERERI ACTIVE
 // ==========================================
 const liveRequestsEl = document.getElementById("live-active-requests");
 
 if (liveRequestsEl) {
+
     const cereriRef = collection(db, "cereri");
 
-    // Ascultăm live modificările din baza de date
     onSnapshot(cereriRef, (snapshot) => {
+
         let activeCount = 0;
 
         snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const status = (data.status || "in_asteptare").toString().toLowerCase().trim();
-            
-            // Verificăm condițiile (la fel ca în admin.html)
-            const isDeleted = data.deleted === true;
-            const isArchived = data.arhivat === true || data.archived === true;
-            const isTrash = status === "in_cos" || status.includes("cos");
-            const isApproved = status.includes("aprobat") || status.includes("acceptat") || status === "acceptată";
-            const isRejected = status.includes("respins");
 
-            // Numărăm DOAR cererile care nu sunt șterse, arhivate, respinse sau aprobate
-            if (!isDeleted && !isArchived && !isTrash && !isApproved && !isRejected) {
+            const data = docSnap.data();
+
+            const status = String(data.status || "")
+                .toLowerCase()
+                .trim();
+
+            const deleted =
+                data.deleted === true;
+
+            const archived =
+                data.arhivat === true ||
+                data.archived === true;
+
+            const trash =
+                status.includes("cos");
+
+            const approved =
+                status.includes("aprobat") ||
+                status.includes("acceptat");
+
+            const rejected =
+                status.includes("respins");
+
+            if (
+                !deleted &&
+                !archived &&
+                !trash &&
+                !approved &&
+                !rejected
+            ) {
                 activeCount++;
             }
+
         });
 
-        // Animăm ușor modificarea cifrei
-        liveRequestsEl.style.transition = "opacity 0.3s ease";
-        liveRequestsEl.style.opacity = 0;
-        
+        liveRequestsEl.style.opacity = "0";
+
         setTimeout(() => {
             liveRequestsEl.textContent = activeCount;
-            liveRequestsEl.style.opacity = 1;
-        }, 300);
+            liveRequestsEl.style.opacity = "1";
+        }, 250);
 
     }, (error) => {
-        console.error("Eroare la citirea statisticilor live:", error);
-        liveRequestsEl.textContent = "-";
+
+        console.error(error);
+        liveRequestsEl.textContent = "0";
+
     });
+
 }
 </script>
 </body>
