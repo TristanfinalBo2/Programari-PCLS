@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBst9kibZtc9Cx-KgJ21XcZUkouRtDI1Sc",
@@ -71,12 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             ${isAdmin ? `
                             <a href="admin.html" class="dropdown-item-premium">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                                 Admin Panel
                             </a>` : ''}
                             
                             <a href="setari.html" class="dropdown-item-premium">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83 2 2 0 0 1-2.83-.33 1.65 1.65 0 0 0-1.51 1V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33 2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.4 15H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h1.09A1.65 1.65 0 0 0 4.6 9l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 8 6.5 1.65 1.65 0 0 0 9 4.99V3a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.09A1.65 1.65 0 0 0 16 5a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 1 20.99 6H21a2 2 0 0 1 2 2v2h-1.09A1.65 1.65 0 0 0 20.4 11H21a2 2 0 0 1 0 4h-1.09A1.65 1.65 0 0 0 19.4 15z"></path></svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0 2 2 0 0 1-.06-.06 1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.27.59.86 1 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09A1.65 1.65 0 0 0 19.4 15z"></path></svg>
                                 Setări cont
                             </a>
 
@@ -90,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
 
-                // Evenimente pentru deschidere/închidere dropdown
                 const profileToggle = document.getElementById("profileToggle");
                 const profileDropdown = document.getElementById("profileDropdown");
 
@@ -107,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                // Deconectare
                 const btnLogout = document.getElementById('btnLogout');
                 if (btnLogout) {
                     btnLogout.addEventListener('click', () => {
@@ -126,47 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Încarcă modulul de gestionare utilizatori doar pe pagina setari.html.
+// Modulele de administrare sunt încărcate doar pe setari.html.
 if (window.location.pathname.toLowerCase().endsWith("/setari.html")) {
     window.addEventListener("DOMContentLoaded", () => {
         import("./gestionare-utilizatori.js")
             .catch((error) => console.error("Nu s-a putut încărca modulul de gestionare utilizatori:", error));
+        import("./delete-user.js")
+            .catch((error) => console.error("Nu s-a putut încărca modulul de ștergere cont:", error));
     }, { once: true });
-
-    // Actualizează în timp real "Stare cont" pentru utilizatorul conectat.
-    onAuthStateChanged(auth, (user) => {
-        if (!user) return;
-
-        const statusElement = document.getElementById("userStatus");
-        if (!statusElement) return;
-
-        const userRef = doc(db, "utilizatori", user.uid);
-
-        onSnapshot(userRef, (snap) => {
-            const data = snap.exists() ? (snap.data() || {}) : {};
-
-            // Prioritate: activ -> active -> enabled -> status/status_cont.
-            let active;
-
-            if (typeof data.activ === "boolean") {
-                active = data.activ;
-            } else if (typeof data.active === "boolean") {
-                active = data.active;
-            } else if (typeof data.enabled === "boolean") {
-                active = data.enabled;
-            } else if (typeof data.status === "string") {
-                active = !["inactiv", "inactive", "dezactivat", "disabled"].includes(data.status.trim().toLowerCase());
-            } else if (typeof data.status_cont === "string") {
-                active = !["inactiv", "inactive", "dezactivat", "disabled"].includes(data.status_cont.trim().toLowerCase());
-            } else {
-                active = true;
-            }
-
-            statusElement.textContent = active ? "Activ" : "Inactiv";
-            statusElement.style.color = active ? "var(--mint)" : "var(--danger)";
-            statusElement.dataset.active = active ? "true" : "false";
-        }, (error) => {
-            console.error("Nu am putut sincroniza starea contului:", error);
-        });
-    });
 }
