@@ -70,6 +70,7 @@ window.addEventListener("DOMContentLoaded", () => {
   import("./notification-center.js").catch(error => console.error("Centrul de notificări:", error));
   if (document.getElementById("cereri-container")) {
     import("./admin-dashboard.js").catch(error => console.error("Dashboard admin:", error));
+    import("./admin-dashboard-skeleton.js").catch(error => console.error("Skeleton dashboard:", error));
     import("./admin-departments-v2.js").catch(error => console.error("Department dashboard V2:", error));
     import("./admin-dashboard-layout-guard.js").catch(error => console.error("Dashboard layout guard:", error));
     import("./admin-audit-monitor.js").catch(error => console.error("Audit monitor:", error));
@@ -80,4 +81,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-13-02-15";
+export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-00";
