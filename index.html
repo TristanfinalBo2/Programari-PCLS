@@ -151,6 +151,125 @@ section[id] { scroll-margin-top: 110px; }
     stroke-linejoin: round;
 }
 
+
+/* ================= NOTIFICARI ================= */
+.notification-center {
+    position: relative;
+    z-index: 1200;
+}
+.notification-bell {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 50%;
+    color: var(--text-primary);
+    background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.045));
+    backdrop-filter: var(--blur-soft);
+    -webkit-backdrop-filter: var(--blur-soft);
+    box-shadow: 0 10px 28px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.1);
+    cursor: pointer;
+    transition: all var(--transition-smooth);
+}
+.notification-bell:hover {
+    transform: translateY(-2px);
+    border-color: rgba(100,210,255,.35);
+    background: rgba(255,255,255,.12);
+}
+.notification-bell svg { width: 19px; height: 19px; }
+.notification-count {
+    position: absolute;
+    right: -3px;
+    top: -3px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #06101a;
+    background: var(--accent);
+    border: 2px solid #09101c;
+    font-size: .68rem;
+    font-weight: 850;
+    box-shadow: 0 0 18px rgba(100,210,255,.55);
+}
+.notification-count[hidden] { display:none; }
+
+.notification-bell.has-unread {
+    animation: notification-bell-pulse 2.2s ease-in-out infinite;
+}
+.notification-bell.has-unread::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 1px solid rgba(100,210,255,.28);
+    border-radius: 50%;
+    animation: notification-ring 2.2s ease-out infinite;
+    pointer-events: none;
+}
+@keyframes notification-bell-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.045); }
+}
+@keyframes notification-ring {
+    0% { opacity:.6; transform:scale(.92); }
+    75%,100% { opacity:0; transform:scale(1.18); }
+}
+.notification-mini {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: min(310px, calc(100vw - 24px));
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 18px;
+    background: linear-gradient(150deg, rgba(27,35,53,.96), rgba(12,17,29,.94));
+    backdrop-filter: blur(34px) saturate(175%);
+    -webkit-backdrop-filter: blur(34px) saturate(175%);
+    box-shadow: 0 20px 50px rgba(0,0,0,.48), 0 0 0 1px rgba(100,210,255,.04), inset 0 1px rgba(255,255,255,.11);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px) scale(.97);
+    transform-origin: top right;
+    transition: all .24s cubic-bezier(.2,.9,.25,1.12);
+}
+.notification-mini.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+.notification-mini-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding: 8px 10px 12px;
+}
+.notification-mini-header strong { font-size:.94rem; }
+.notification-mini-header span { color:var(--quiet); font-size:.74rem; }
+.notification-mini-list { display:grid; gap:8px; max-height:360px; overflow:auto; }
+.notification-mini-item {
+    display:block;
+    padding:10px 11px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.07);
+    background:rgba(255,255,255,.035);
+}
+.notification-mini-item.unread {
+    border-color:rgba(100,210,255,.2);
+    background:rgba(100,210,255,.055);
+}
+.notification-mini-item strong { display:block; font-size:.82rem; }
+.notification-mini-item p { margin-top:4px; color:var(--muted); font-size:.76rem; line-height:1.45; }
+.notification-mini-item small { display:block; margin-top:7px; color:var(--quiet); font-size:.68rem; }
+.notification-mini-empty { padding:24px 12px; text-align:center; color:var(--quiet); font-size:.82rem; }
+@media (max-width: 760px) {
+    .notification-mini { right:-56px; width:min(380px, calc(100vw - 20px)); }
+}
+
 /* Header glass */
 .topbar-modern {
     position: fixed;
@@ -287,195 +406,6 @@ section[id] { scroll-margin-top: 110px; }
 
 .user-profile-premium { position: relative; }
 
-#auth-section-premium {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.notification-center-premium { position: relative; }
-.notification-btn-premium {
-    position: relative;
-    width: 46px;
-    height: 46px;
-    display: grid;
-    place-items: center;
-    border: 1px solid rgba(255,255,255,.13);
-    border-radius: 50%;
-    color: var(--text-primary);
-    background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.045));
-    backdrop-filter: var(--blur-soft);
-    -webkit-backdrop-filter: var(--blur-soft);
-    box-shadow: 0 10px 28px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.1);
-    cursor: pointer;
-    transition: all var(--transition-smooth);
-}
-.notification-btn-premium:hover,
-.notification-btn-premium:focus-visible,
-.notification-btn-premium.active {
-    transform: translateY(-2px);
-    color: #fff;
-    border-color: rgba(100,210,255,.35);
-    background: rgba(255,255,255,.12);
-    box-shadow: 0 14px 34px rgba(0,0,0,.28), 0 0 0 4px rgba(100,210,255,.06);
-    outline: none;
-}
-.notification-btn-premium svg { width: 20px; height: 20px; }
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    min-width: 20px;
-    height: 20px;
-    display: grid;
-    place-items: center;
-    padding: 0 5px;
-    border: 2px solid #0a0f1b;
-    border-radius: 999px;
-    color: #071018;
-    background: linear-gradient(145deg, #bff7df, var(--mint));
-    box-shadow: 0 6px 18px rgba(99,230,190,.3);
-    font-size: .66rem;
-    font-weight: 820;
-    line-height: 1;
-}
-.notification-badge[hidden] { display: none; }
-.notification-dropdown-premium {
-    position: absolute;
-    top: calc(100% + 14px);
-    right: 0;
-    z-index: 1150;
-    width: min(420px, calc(100vw - 24px));
-    max-height: min(620px, calc(100vh - 110px));
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,.13);
-    border-radius: 24px;
-    background: linear-gradient(150deg, rgba(27,35,53,.94), rgba(12,17,29,.90));
-    backdrop-filter: blur(34px) saturate(175%);
-    -webkit-backdrop-filter: blur(34px) saturate(175%);
-    box-shadow: 0 28px 76px rgba(0,0,0,.55), inset 0 1px rgba(255,255,255,.11);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-8px) scale(.97);
-    transform-origin: top right;
-    transition: all .24s cubic-bezier(.2,.9,.25,1.12);
-}
-.notification-dropdown-premium.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-}
-.notification-dropdown-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 18px 18px 14px;
-    border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.notification-dropdown-head strong { display: block; color: #fff; font-size: 1rem; font-weight: 760; }
-.notification-dropdown-head span { display: block; margin-top: 4px; color: var(--quiet); font-size: .72rem; line-height: 1.4; }
-.notification-mark-all {
-    flex: 0 0 auto;
-    padding: 7px 10px;
-    border: 1px solid rgba(100,210,255,.16);
-    border-radius: 999px;
-    color: #cfefff;
-    background: rgba(100,210,255,.07);
-    cursor: pointer;
-    font-size: .69rem;
-    font-weight: 720;
-    transition: .18s ease;
-}
-.notification-mark-all:hover { background: rgba(100,210,255,.13); border-color: rgba(100,210,255,.28); }
-.notification-mark-all:disabled { opacity: .38; cursor: default; }
-.notification-list {
-    min-height: 86px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(100,210,255,.35) transparent;
-}
-.notification-item {
-    position: relative;
-    display: grid;
-    grid-template-columns: 42px minmax(0, 1fr) auto;
-    gap: 12px;
-    align-items: start;
-    padding: 15px 17px;
-    border-bottom: 1px solid rgba(255,255,255,.065);
-    transition: background .18s ease;
-}
-.notification-item:last-child { border-bottom: 0; }
-.notification-item:hover { background: rgba(255,255,255,.055); }
-.notification-item.unread { background: linear-gradient(90deg, rgba(100,210,255,.065), transparent 75%); }
-.notification-icon {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.1);
-    background: rgba(255,255,255,.055);
-}
-.notification-icon svg { width: 20px; height: 20px; }
-.notification-item.approved .notification-icon { color: var(--mint); background: rgba(99,230,190,.10); border-color: rgba(99,230,190,.18); }
-.notification-item.rejected .notification-icon { color: var(--danger); background: rgba(255,105,97,.10); border-color: rgba(255,105,97,.18); }
-.notification-copy { min-width: 0; }
-.notification-copy strong { display: block; color: #fff; font-size: .86rem; line-height: 1.35; font-weight: 730; }
-.notification-copy p { margin-top: 4px; color: var(--muted); font-size: .76rem; line-height: 1.48; overflow-wrap: anywhere; }
-.notification-copy small { display: block; margin-top: 7px; color: var(--quiet); font-size: .68rem; line-height: 1.4; }
-.notification-open {
-    align-self: center;
-    display: grid;
-    place-items: center;
-    width: 31px;
-    height: 31px;
-    border: 1px solid rgba(255,255,255,.09);
-    border-radius: 10px;
-    color: #dce9f8;
-    background: rgba(255,255,255,.045);
-    transition: .18s ease;
-}
-.notification-open:hover { color: var(--accent); background: rgba(100,210,255,.08); border-color: rgba(100,210,255,.2); }
-.notification-open svg { width: 15px; height: 15px; }
-.notification-unread-dot {
-    position: absolute;
-    top: 18px;
-    left: 7px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 10px rgba(100,210,255,.9);
-}
-.notification-empty {
-    padding: 30px 22px;
-    text-align: center;
-    color: var(--quiet);
-    font-size: .8rem;
-    line-height: 1.55;
-}
-.notification-footer {
-    padding: 10px;
-    border-top: 1px solid rgba(255,255,255,.08);
-}
-.notification-footer a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 40px;
-    border-radius: 13px;
-    color: #dff6ff;
-    background: linear-gradient(135deg, rgba(10,132,255,.14), rgba(100,210,255,.07));
-    border: 1px solid rgba(100,210,255,.15);
-    font-size: .78rem;
-    font-weight: 700;
-    transition: .18s ease;
-}
-.notification-footer a:hover { background: linear-gradient(135deg, rgba(10,132,255,.22), rgba(100,210,255,.11)); border-color: rgba(100,210,255,.28); }
-
 .profile-btn-premium,
 .btn-login-premium {
     min-height: 46px;
@@ -533,7 +463,7 @@ section[id] { scroll-margin-top: 110px; }
     background: linear-gradient(150deg, rgba(27,35,53,.88), rgba(12,17,29,.78));
     backdrop-filter: blur(34px) saturate(175%);
     -webkit-backdrop-filter: blur(34px) saturate(175%);
-    box-shadow: 0 26px 70px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.11);
+    box-shadow: 0 20px 50px rgba(0,0,0,.48), 0 0 0 1px rgba(100,210,255,.04), inset 0 1px rgba(255,255,255,.11);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px) scale(.97);
@@ -1508,8 +1438,6 @@ h1 {
     .brand-text span { font-size: .6rem; }
     .profile-btn-premium > span:first-child { display: none; }
     .profile-btn-premium { padding-left: 8px !important; }
-    .notification-btn-premium { width: 44px; height: 44px; }
-    .notification-dropdown-premium { position: fixed; top: 78px; right: 12px; width: calc(100vw - 24px); max-height: calc(100vh - 92px); }
     main { padding-top: 72px; }
     .portal-hero { min-height: auto; padding: 54px 0 34px; }
     h1 { font-size: clamp(3rem, 15vw, 4.5rem); }
@@ -1581,6 +1509,24 @@ h1 {
         </nav>
 
         <div class="header-actions-premium">
+            <div id="notification-center" class="notification-center">
+                <button id="notification-bell" class="notification-bell" type="button" aria-label="Notificări" title="Notificări">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span id="notification-count" class="notification-count" hidden>0</span>
+                </button>
+                <div id="notification-mini" class="notification-mini" aria-hidden="true">
+                    <div class="notification-mini-header">
+                        <strong>Notificări</strong>
+                        <span id="notification-mini-count">0 noi</span>
+                    </div>
+                    <div id="notification-mini-list" class="notification-mini-list">
+                        <div class="notification-mini-empty">Se încarcă...</div>
+                    </div>
+                </div>
+            </div>
             <div id="auth-section-premium"></div>
         </div>
     </div>
@@ -1831,218 +1777,113 @@ import {
     query,
     where,
     getDocs,
-    onSnapshot
+    onSnapshot,
+    updateDoc,
+    limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authSection = document.getElementById("auth-section-premium");
+
 const adminNavContainer = document.getElementById("admin-nav-container");
 
-
-let notificationUnsubscribers = [];
-let notificationRequestsBySource = { discord: new Map(), discord_id: new Map() };
-let notificationItems = [];
-let notificationUserKey = null;
+const notificationCenter = document.getElementById("notification-center");
+const notificationBell = document.getElementById("notification-bell");
+const notificationCount = document.getElementById("notification-count");
+const notificationMini = document.getElementById("notification-mini");
+const notificationMiniList = document.getElementById("notification-mini-list");
+const notificationMiniCount = document.getElementById("notification-mini-count");
+let notificationUnsubscribe = null;
 
 function escapeNotificationHtml(value) {
     return String(value ?? "").replace(/[&<>'"]/g, char => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;"
+        "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"
     })[char]);
 }
-
-function normalizeNotificationStatus(value) {
-    return String(value || "").trim().toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+function notificationDate(value) {
+    try {
+        const d = value?.toDate ? value.toDate() : new Date(value);
+        return Number.isNaN(d.getTime()) ? "-" : new Intl.DateTimeFormat("ro-RO", {
+            day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"
+        }).format(d);
+    } catch (_) { return "-"; }
 }
+function renderNotificationMini(items) {
+    const unread = items.filter(n => n.read !== true).length;
+    notificationCount.textContent = unread > 99 ? "99+" : String(unread);
+    notificationCount.hidden = unread === 0;
+    notificationBell?.classList.toggle("has-unread", unread > 0);
+    notificationMiniCount.textContent = `${unread} ${unread === 1 ? "nouă" : "noi"}`;
 
-function getNotificationStatusInfo(request) {
-    const normalized = normalizeNotificationStatus(request.status);
-    if (normalized.includes("aprob") || normalized.includes("accept")) {
-        return { kind: "approved", label: "Cerere aprobată", verb: "a fost aprobată" };
-    }
-    if (normalized.includes("respins") || normalized.includes("reject")) {
-        return { kind: "rejected", label: "Cerere respinsă", verb: "a fost respinsă" };
-    }
-    return null;
-}
-
-function getNotificationRequestType(request) {
-    return request.eveniment || request.tip_cerere || request.tipCerere || request.tip || request.departament || "Cerere";
-}
-
-function getNotificationSubject(request) {
-    return request.nume_afacere || request.numeAfacere || request.unitate || request.nume_proprietar || request.proprietar || request.nume || "cererea ta";
-}
-
-function parseNotificationDate(value) {
-    if (!value) return 0;
-    if (typeof value?.toDate === "function") return value.toDate().getTime();
-    if (typeof value === "object" && typeof value.seconds === "number") return value.seconds * 1000;
-    if (value instanceof Date) return value.getTime();
-    const text = String(value).trim();
-    const ro = text.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
-    if (ro) {
-        return new Date(Number(ro[3]), Number(ro[2]) - 1, Number(ro[1]), Number(ro[4] || 0), Number(ro[5] || 0), Number(ro[6] || 0)).getTime();
-    }
-    const parsed = new Date(text).getTime();
-    return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-function getNotificationTimestamp(request) {
-    return parseNotificationDate(request.data_procesare) ||
-        parseNotificationDate(request.updated_at) ||
-        parseNotificationDate(request.created_at || request.data_creare || request.createdAt || request.data);
-}
-
-function notificationSignature(request) {
-    return [normalizeNotificationStatus(request.status), String(request.data_procesare || ""), String(request.procesat_de || "")].join("|");
-}
-
-function notificationStorageKey() {
-    return notificationUserKey ? `pcls_notification_seen_${notificationUserKey}` : null;
-}
-
-function readSeenNotifications() {
-    const key = notificationStorageKey();
-    if (!key) return {};
-    try { return JSON.parse(localStorage.getItem(key) || "{}"); }
-    catch (_) { return {}; }
-}
-
-function writeSeenNotifications(seen) {
-    const key = notificationStorageKey();
-    if (!key) return;
-    try { localStorage.setItem(key, JSON.stringify(seen)); } catch (_) {}
-}
-
-function markNotificationRead(id) {
-    const item = notificationItems.find(entry => entry.id === id);
-    if (!item) return;
-    const seen = readSeenNotifications();
-    seen[id] = notificationSignature(item);
-    writeSeenNotifications(seen);
-    renderNotificationCenter();
-}
-
-function markAllNotificationsRead() {
-    const seen = readSeenNotifications();
-    notificationItems.forEach(item => { seen[item.id] = notificationSignature(item); });
-    writeSeenNotifications(seen);
-    renderNotificationCenter();
-}
-
-function formatNotificationDate(request) {
-    if (request.data_procesare) return String(request.data_procesare);
-    const ts = getNotificationTimestamp(request);
-    if (!ts) return "Dată indisponibilă";
-    return new Intl.DateTimeFormat("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(ts));
-}
-
-function renderNotificationCenter() {
-    const list = document.getElementById("notificationList");
-    const badge = document.getElementById("notificationBadge");
-    const markAll = document.getElementById("notificationMarkAll");
-    if (!list || !badge || !markAll) return;
-
-    const seen = readSeenNotifications();
-    const unreadCount = notificationItems.filter(item => seen[item.id] !== notificationSignature(item)).length;
-    badge.hidden = unreadCount === 0;
-    badge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
-    markAll.disabled = unreadCount === 0;
-
-    if (notificationItems.length === 0) {
-        list.innerHTML = `<div class="notification-empty">Nu ai încă răspunsuri procesate. Aici vor apărea cererile aprobate sau respinse.</div>`;
+    if (!items.length) {
+        notificationMiniList.innerHTML = `<div class="notification-mini-empty">Nu ai notificări.</div>`;
         return;
     }
-
-    list.innerHTML = notificationItems.slice(0, 12).map(item => {
-        const info = getNotificationStatusInfo(item);
-        const unread = seen[item.id] !== notificationSignature(item);
-        const type = getNotificationRequestType(item);
-        const subject = getNotificationSubject(item);
-        const processedBy = item.procesat_de ? String(item.procesat_de) : "PCLS";
-        const icon = info.kind === "approved"
-            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m5 12 4 4L19 6"></path></svg>`
-            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"></path></svg>`;
-        return `
-            <article class="notification-item ${info.kind} ${unread ? "unread" : ""}" data-notification-id="${escapeNotificationHtml(item.id)}">
-                ${unread ? '<span class="notification-unread-dot" aria-label="Necitită"></span>' : ''}
-                <div class="notification-icon" aria-hidden="true">${icon}</div>
-                <div class="notification-copy">
-                    <strong>${escapeNotificationHtml(info.label)}</strong>
-                    <p><b>${escapeNotificationHtml(type)}</b> pentru ${escapeNotificationHtml(subject)} ${escapeNotificationHtml(info.verb)}.</p>
-                    <small>${escapeNotificationHtml(formatNotificationDate(item))} · ${escapeNotificationHtml(processedBy)}</small>
-                </div>
-                <a class="notification-open" href="cererile_mele.html?cerere=${encodeURIComponent(item.id)}" data-open-notification="${escapeNotificationHtml(item.id)}" aria-label="Deschide cererea" title="Vezi toate detaliile">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>
-                </a>
-            </article>`;
-    }).join("");
+    notificationMiniList.innerHTML = items.slice(0, 3).map(n => `
+        <a class="notification-mini-item ${n.read === true ? "" : "unread"}"
+           data-notification-id="${escapeNotificationHtml(n.id)}"
+           href="${escapeNotificationHtml(n.requestUrl || `cererile_mele.html?cerere=${encodeURIComponent(n.requestId || "")}`)}">
+            <strong>${escapeNotificationHtml(n.title || "Notificare")}</strong>
+            <p>${escapeNotificationHtml(n.message || "")}</p>
+            <small>${escapeNotificationHtml(notificationDate(n.createdAt || n.created_at))}</small>
+        </a>
+    `).join("");
 }
+function startNotifications(user) {
+    if (notificationUnsubscribe) notificationUnsubscribe();
+    notificationUnsubscribe = null;
+    if (!user) return;
 
-function mergeNotificationRequests() {
-    const merged = new Map();
-    Object.values(notificationRequestsBySource).forEach(source => source.forEach((value, key) => merged.set(key, value)));
-    notificationItems = Array.from(merged.values())
-        .filter(item => Boolean(getNotificationStatusInfo(item)))
-        .sort((a, b) => getNotificationTimestamp(b) - getNotificationTimestamp(a));
-    renderNotificationCenter();
-}
-
-function stopNotificationListeners() {
-    notificationUnsubscribers.forEach(unsubscribe => unsubscribe());
-    notificationUnsubscribers = [];
-    notificationRequestsBySource = { discord: new Map(), discord_id: new Map() };
-    notificationItems = [];
-}
-
-function startNotificationListeners(user) {
-    stopNotificationListeners();
-    notificationUserKey = user.uid;
     const accountIdentifier = user.providerData?.[0]?.uid || user.uid;
-    [
-        { source: "discord", field: "discord" },
-        { source: "discord_id", field: "discord_id" }
-    ].forEach(definition => {
-        const qNotifications = query(collection(db, "cereri"), where(definition.field, "==", accountIdentifier));
-        const unsubscribe = onSnapshot(qNotifications, snapshot => {
-            const source = new Map();
-            snapshot.forEach(docSnap => source.set(docSnap.id, { id: docSnap.id, ...docSnap.data() }));
-            notificationRequestsBySource[definition.source] = source;
-            mergeNotificationRequests();
-        }, error => console.error(`Eroare notificări (${definition.field}):`, error));
-        notificationUnsubscribers.push(unsubscribe);
+    const q = query(
+        collection(db, "notificari"),
+        where("recipientId", "==", accountIdentifier),
+        limit(20)
+    );
+
+    notificationUnsubscribe = onSnapshot(q, snapshot => {
+        const items = snapshot.docs
+            .map(d => ({ id:d.id, ...d.data() }))
+            .sort((a,b) => {
+                const ad = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                const bd = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                return bd - ad;
+            });
+        renderNotificationMini(items);
+    }, error => {
+        console.error("Eroare notificări:", error);
+        renderNotificationMini([]);
     });
 }
+notificationMiniList?.addEventListener("click", async event => {
+    const link = event.target.closest("a[data-notification-id]");
+    if (!link) return;
+    const notificationId = link.dataset.notificationId;
+    if (!notificationId) return;
 
-function setupNotificationUi() {
-    const toggle = document.getElementById("notificationToggle");
-    const dropdown = document.getElementById("notificationDropdown");
-    const markAll = document.getElementById("notificationMarkAll");
-    const list = document.getElementById("notificationList");
-    if (!toggle || !dropdown || !markAll || !list) return;
+    event.preventDefault();
+    try {
+        await updateDoc(doc(db, "notificari", notificationId), { read: true });
+    } catch (error) {
+        console.error("Nu s-a putut marca notificarea drept citită:", error);
+    } finally {
+        window.location.href = link.href;
+    }
+});
 
-    toggle.addEventListener("click", event => {
-        event.stopPropagation();
-        const open = dropdown.classList.toggle("show");
-        toggle.classList.toggle("active", open);
-        toggle.setAttribute("aria-expanded", String(open));
-        const profileDropdown = document.getElementById("profileDropdown");
-        if (profileDropdown) profileDropdown.classList.remove("show");
-    });
-    dropdown.addEventListener("click", event => event.stopPropagation());
-    markAll.addEventListener("click", markAllNotificationsRead);
-    list.addEventListener("click", event => {
-        const link = event.target.closest("[data-open-notification]");
-        if (link) markNotificationRead(link.getAttribute("data-open-notification"));
-    });
-    document.addEventListener("click", () => {
-        dropdown.classList.remove("show");
-        toggle.classList.remove("active");
-        toggle.setAttribute("aria-expanded", "false");
-    });
-}
+notificationBell?.addEventListener("click", event => {
+    event.stopPropagation();
+    notificationMini?.classList.toggle("show");
+    notificationMini?.setAttribute("aria-hidden", notificationMini?.classList.contains("show") ? "false" : "true");
+});
+document.addEventListener("click", event => {
+    if (notificationCenter && !notificationCenter.contains(event.target)) {
+        notificationMini?.classList.remove("show");
+        notificationMini?.setAttribute("aria-hidden", "true");
+    }
+});
 
 onAuthStateChanged(auth, async (user) => {
+    startNotifications(user);
     if (user) {
         const emailPart = user.email ? user.email.split('@')[0] : "User";
         const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
@@ -2103,20 +1944,6 @@ onAuthStateChanged(auth, async (user) => {
         // ==========================================
         if (authSection) {
             authSection.innerHTML = `
-                <div class="notification-center-premium">
-                    <button class="notification-btn-premium" id="notificationToggle" type="button" aria-label="Notificări" aria-expanded="false">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                        <span id="notificationBadge" class="notification-badge" hidden>0</span>
-                    </button>
-                    <div class="notification-dropdown-premium" id="notificationDropdown">
-                        <div class="notification-dropdown-head">
-                            <div><strong>Notificări</strong><span>Răspunsuri la cererile tale</span></div>
-                            <button id="notificationMarkAll" class="notification-mark-all" type="button">Marchează citite</button>
-                        </div>
-                        <div id="notificationList" class="notification-list"><div class="notification-empty">Se încarcă notificările...</div></div>
-                        <div class="notification-footer"><a href="cererile_mele.html">Vezi toate cererile</a></div>
-                    </div>
-                </div>
                 <div class="user-profile-premium">
                     <button class="profile-btn-premium" id="profileToggle">
                         <span>Salut, ${displayName}</span>
@@ -2132,6 +1959,11 @@ onAuthStateChanged(auth, async (user) => {
                         
                         <div class="dropdown-divider"></div>
                         
+                        <a href="notificari.html" class="dropdown-item-premium">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            Centrul de notificări
+                        </a>
+
                         <a href="setari.html" class="dropdown-item-premium">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             Setări cont
@@ -2148,23 +1980,12 @@ onAuthStateChanged(auth, async (user) => {
             `;
             
 
-            setupNotificationUi();
-            startNotificationListeners(user);
-            renderNotificationCenter();
-
             const profileToggle = document.getElementById("profileToggle");
             const profileDropdown = document.getElementById("profileDropdown");
 
             profileToggle.addEventListener("click", (e) => {
                 e.stopPropagation(); 
                 profileDropdown.classList.toggle("show");
-                const notificationDropdown = document.getElementById("notificationDropdown");
-                const notificationToggle = document.getElementById("notificationToggle");
-                if (notificationDropdown) notificationDropdown.classList.remove("show");
-                if (notificationToggle) {
-                    notificationToggle.classList.remove("active");
-                    notificationToggle.setAttribute("aria-expanded", "false");
-                }
             });
 
             document.addEventListener("click", (e) => {
@@ -2178,8 +1999,6 @@ onAuthStateChanged(auth, async (user) => {
             });
         }
     } else {
-        stopNotificationListeners();
-        notificationUserKey = null;
         // Cazul în care userul e deconectat
         if (authSection) {
             authSection.innerHTML = `
