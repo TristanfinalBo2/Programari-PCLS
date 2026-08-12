@@ -4,6 +4,7 @@ import { collection, onSnapshot, getDoc, doc } from "https://www.gstatic.com/fir
 
 const ROLE_ACCESS = ["admin", "superadmin"];
 let currentRole = null;
+let currentUid = null;
 let requests = [];
 let users = [];
 let auditEvents = [];
@@ -15,6 +16,30 @@ let unsubscribeAudit = null;
 const esc = value => String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;");
 const norm = value => String(value || "").trim().toLowerCase();
 const deptOf = r => norm(r?.departament || r?.department || "necunoscut");
+const clearKey = uid => `pcls_recent_activity_cleared_${uid || "unknown"}`;
+
+function getActivityCutoff() {
+  if (!currentUid) return 0;
+  const raw = localStorage.getItem(clearKey(currentUid));
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function setActivityCutoff(value = Date.now()) {
+  if (!currentUid) return;
+  localStorage.setItem(clearKey(currentUid), String(value));
+}
+
+function eventTime(event) {
+  if (event?.createdAt?.toDate) return event.createdAt.toDate().getTime();
+  const date = new Date(event?.createdAt || 0);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function filteredRecentAudit() {
+  const cutoff = getActivityCutoff();
+  return auditEvents.filter(event => eventTime(event) > cutoff);
+}
 
 function activityIcon(event = {}) {
   const action = norm(event.action);
@@ -47,6 +72,22 @@ function relativeTime(value) {
   return date.toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" });
 }
 
+function bindClearRecentActivity() {
+  const button = document.getElementById("clear-recent-activity");
+  if (!button || button.dataset.bound === "true") return;
+  button.dataset.bound = "true";
+
+  // Exclusiv role=admin. Superadmin nu primește acest control în dashboard.
+  button.hidden = currentRole !== "admin";
+
+  button.addEventListener("click", () => {
+    if (currentRole !== "admin") return;
+    setActivityCutoff(Date.now());
+    auditEvents = auditEvents.filter(event => eventTime(event) > getActivityCutoff());
+    render();
+  });
+}
+
 function inject() {
   if (!document.getElementById("pcls-admin-dashboard-style")) {
     const style = document.createElement("style");
@@ -56,22 +97,21 @@ function inject() {
       .pcls-dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
       .pcls-dash-card{padding:17px 18px;border:1px solid rgba(255,255,255,.09);border-radius:20px;background:linear-gradient(145deg,rgba(18,25,40,.63),rgba(10,15,27,.48));box-shadow:inset 0 1px rgba(255,255,255,.04),0 16px 38px rgba(0,0,0,.14)}
       .pcls-dash-label{color:#7f8aa0;font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;font-weight:750}.pcls-dash-value{margin-top:6px;font-size:1.6rem;font-weight:780;color:#f7f9ff;letter-spacing:-.04em}.pcls-dash-sub{margin-top:5px;color:#aab5c7;font-size:.72rem}
-      .pcls-dash-main{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
-      .pcls-dash-panel{padding:18px;border:1px solid rgba(255,255,255,.09);border-radius:20px;background:linear-gradient(145deg,rgba(18,25,40,.55),rgba(10,15,27,.4));overflow:hidden}.pcls-dash-panel h3{font-size:.88rem;font-weight:750;margin-bottom:14px}.pcls-dash-row{display:grid;grid-template-columns:80px 1fr 38px;gap:10px;align-items:center;margin:10px 0}.pcls-dash-row span{font-size:.7rem;color:#b8c0d0;text-transform:uppercase}.pcls-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}.pcls-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#0a84ff,#64d2ff);min-width:3px}.pcls-dash-row strong{font-size:.72rem;text-align:right;color:#f7f9ff}
-      .pcls-activity-panel{min-height:230px;display:flex;flex-direction:column}
-      .pcls-activity-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+      .pcls-dash-main{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;align-items:stretch}
+      .pcls-dash-panel{height:320px;min-height:320px;padding:18px;border:1px solid rgba(255,255,255,.09);border-radius:20px;background:linear-gradient(145deg,rgba(18,25,40,.55),rgba(10,15,27,.4));overflow:hidden}.pcls-dash-panel h3{font-size:.88rem;font-weight:750;margin-bottom:14px}.pcls-dash-row{display:grid;grid-template-columns:80px 1fr 38px;gap:10px;align-items:center;margin:10px 0}.pcls-dash-row span{font-size:.7rem;color:#b8c0d0;text-transform:uppercase}.pcls-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}.pcls-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#0a84ff,#64d2ff);min-width:3px}.pcls-dash-row strong{font-size:.72rem;text-align:right;color:#f7f9ff}
+      .pcls-activity-panel{display:flex;flex-direction:column}
+      .pcls-activity-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.pcls-activity-head h3{margin:0}
+      .pcls-activity-head-actions{display:flex;align-items:center;gap:7px}
       .pcls-activity-count{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;background:rgba(124,231,255,.055);border:1px solid rgba(124,231,255,.11);color:#9ee9ff;font-size:.59rem;font-weight:750;text-transform:uppercase;letter-spacing:.07em}
-      .pcls-audit-mini{display:grid;gap:7px;max-height:210px;overflow:auto;padding-right:4px}
-      .pcls-audit-mini::-webkit-scrollbar{width:5px}.pcls-audit-mini::-webkit-scrollbar-thumb{background:rgba(255,255,255,.11);border-radius:999px}
+      .pcls-clear-activity{display:inline-flex;align-items:center;gap:5px;min-height:25px;padding:0 9px;border-radius:999px;border:1px solid rgba(255,105,97,.18);background:rgba(255,105,97,.055);color:#ffb3af;font:inherit;font-size:.59rem;font-weight:750;cursor:pointer;transition:all .18s ease}.pcls-clear-activity:hover{background:rgba(255,105,97,.11);border-color:rgba(255,105,97,.3);color:#ffd2cf;transform:translateY(-1px)}.pcls-clear-activity[hidden]{display:none}
+      .pcls-audit-mini{display:grid;gap:7px;height:238px;max-height:238px;overflow:auto;padding-right:4px}.pcls-audit-mini::-webkit-scrollbar{width:5px}.pcls-audit-mini::-webkit-scrollbar-thumb{background:rgba(255,255,255,.11);border-radius:999px}
       .pcls-audit-item{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.055)}.pcls-audit-item:last-child{border-bottom:0}
-      .pcls-audit-icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:.72rem;font-weight:850;border:1px solid transparent}
-      .pcls-audit-icon.info{color:#9ee9ff;background:rgba(100,210,255,.08);border-color:rgba(100,210,255,.12)}.pcls-audit-icon.success{color:#b8ffe7;background:rgba(99,230,190,.08);border-color:rgba(99,230,190,.12)}.pcls-audit-icon.warning{color:#ffe9a3;background:rgba(255,214,10,.07);border-color:rgba(255,214,10,.12)}.pcls-audit-icon.danger{color:#ffd1d0;background:rgba(255,105,97,.08);border-color:rgba(255,105,97,.12)}
-      .pcls-audit-main{min-width:0}.pcls-audit-actor{font-size:.74rem;color:#f7f9ff;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcls-audit-action{margin-top:2px;font-size:.68rem;color:#aeb9ca;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcls-audit-target{font-size:.64rem;color:#7f8aa0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .pcls-audit-time{font-size:.6rem;color:#7f8aa0;white-space:nowrap}
+      .pcls-audit-icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:.72rem;font-weight:850;border:1px solid transparent}.pcls-audit-icon.info{color:#9ee9ff;background:rgba(100,210,255,.08);border-color:rgba(100,210,255,.12)}.pcls-audit-icon.success{color:#b8ffe7;background:rgba(99,230,190,.08);border-color:rgba(99,230,190,.12)}.pcls-audit-icon.warning{color:#ffe9a3;background:rgba(255,214,10,.07);border-color:rgba(255,214,10,.12)}.pcls-audit-icon.danger{color:#ffd1d0;background:rgba(255,105,97,.08);border-color:rgba(255,105,97,.12)}
+      .pcls-audit-main{min-width:0}.pcls-audit-actor{font-size:.74rem;color:#f7f9ff;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcls-audit-action{margin-top:2px;font-size:.68rem;color:#aeb9ca;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcls-audit-target{font-size:.64rem;color:#7f8aa0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcls-audit-time{font-size:.6rem;color:#7f8aa0;white-space:nowrap}
       .pcls-audit-empty{padding:24px 6px;text-align:center;color:#8894a8;font-size:.73rem;line-height:1.5}.pcls-audit-empty strong{display:block;color:#dfe8f5;font-size:.8rem;margin-bottom:4px}
       .pcls-audit-link{display:inline-flex;align-items:center;gap:5px;margin-top:auto;padding-top:12px;color:#9ee9ff;font-size:.7rem;font-weight:750;text-decoration:none}.pcls-audit-link:hover{text-decoration:underline}
-      @media(max-width:1000px){.pcls-dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pcls-dash-main{grid-template-columns:1fr}}
-      @media(max-width:560px){.pcls-dash-grid{grid-template-columns:1fr}.pcls-dash-row{grid-template-columns:70px 1fr 30px}.pcls-audit-item{grid-template-columns:30px minmax(0,1fr)}.pcls-audit-time{display:none}}
+      @media(max-width:1000px){.pcls-dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pcls-dash-main{grid-template-columns:1fr}.pcls-dash-panel{height:auto;min-height:320px}}
+      @media(max-width:560px){.pcls-dash-grid{grid-template-columns:1fr}.pcls-dash-row{grid-template-columns:70px 1fr 30px}.pcls-audit-item{grid-template-columns:30px minmax(0,1fr)}.pcls-audit-time{display:none}.pcls-activity-head{align-items:flex-start}.pcls-activity-head-actions{flex-wrap:wrap;justify-content:flex-end}}
     `;
     document.head.appendChild(style);
   }
@@ -91,13 +131,20 @@ function inject() {
       <div class="pcls-dash-main">
         <div class="pcls-dash-panel"><h3>Cereri pe departamente</h3><div id="dash-departments"></div></div>
         <div class="pcls-dash-panel pcls-activity-panel">
-          <div class="pcls-activity-head"><h3>Activitate recentă</h3><span id="dash-audit-count" class="pcls-activity-count">live</span></div>
+          <div class="pcls-activity-head">
+            <h3>Activitate recentă</h3>
+            <div class="pcls-activity-head-actions">
+              <span id="dash-audit-count" class="pcls-activity-count">live</span>
+              <button id="clear-recent-activity" class="pcls-clear-activity" type="button" hidden aria-label="Curăță activitatea recentă">✕ Curăță</button>
+            </div>
+          </div>
           <div id="dash-audit-mini" class="pcls-audit-mini"><div class="pcls-audit-empty"><strong>Activitate recentă</strong>Se încarcă evenimentele administratorilor…</div></div>
           <a class="pcls-audit-link" href="audit.html">Deschide Audit Log <span>→</span></a>
         </div>
       </div>`;
     target.parentElement.insertBefore(dashboard, target);
   }
+  bindClearRecentActivity();
 }
 
 function render() {
@@ -130,15 +177,18 @@ function render() {
     `).join("");
   }
 
+  bindClearRecentActivity();
+
   const auditHost = document.getElementById("dash-audit-mini");
   const auditCount = document.getElementById("dash-audit-count");
-  if (auditCount) auditCount.textContent = auditEvents.length ? `${Math.min(auditEvents.length, 5)} recente` : "live";
+  const recentAudit = filteredRecentAudit();
+  if (auditCount) auditCount.textContent = recentAudit.length ? `${Math.min(recentAudit.length, 5)} recente` : "live";
 
   if (auditHost) {
-    if (!auditEvents.length) {
-      auditHost.innerHTML = `<div class="pcls-audit-empty"><strong>Nu există încă activitate</strong>Acțiunile importante vor apărea aici automat după ce sunt înregistrate în Audit Log.</div>`;
+    if (!recentAudit.length) {
+      auditHost.innerHTML = `<div class="pcls-audit-empty"><strong>Nu există activitate recentă</strong>${getActivityCutoff() ? "Activitatea a fost curățată. Evenimentele noi vor apărea aici automat." : "Acțiunile importante vor apărea aici automat după ce sunt înregistrate în Audit Log."}</div>`;
     } else {
-      auditHost.innerHTML = auditEvents.slice(0, 5).map(e => {
+      auditHost.innerHTML = recentAudit.slice(0, 5).map(e => {
         const tone = activityTone(e);
         const icon = activityIcon(e);
         const actor = e.actorName || e.actorRole || "Sistem";
@@ -169,6 +219,7 @@ async function startForUser(user) {
     if (!ROLE_ACCESS.includes(role) && user.email !== "tsplayer18@gmail.com") return;
 
     currentRole = role;
+    currentUid = user.uid;
     inject();
     stopListeners();
 
@@ -195,12 +246,8 @@ async function startForUser(user) {
       snap => {
         auditEvents = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => {
-            const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
-            const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
-            return tb - ta;
-          })
-          .slice(0, 10);
+          .sort((a, b) => eventTime(b) - eventTime(a))
+          .slice(0, 50);
         render();
       },
       err => {
