@@ -287,11 +287,7 @@ section[id] { scroll-margin-top: 110px; }
 
 .user-profile-premium { position: relative; }
 
-#auth-section-premium {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+#notification-section-premium { display: flex; align-items: center; }
 
 .notification-center-premium { position: relative; }
 .notification-btn-premium {
@@ -1508,8 +1504,6 @@ h1 {
     .brand-text span { font-size: .6rem; }
     .profile-btn-premium > span:first-child { display: none; }
     .profile-btn-premium { padding-left: 8px !important; }
-    .notification-btn-premium { width: 44px; height: 44px; }
-    .notification-dropdown-premium { position: fixed; top: 78px; right: 12px; width: calc(100vw - 24px); max-height: calc(100vh - 92px); }
     main { padding-top: 72px; }
     .portal-hero { min-height: auto; padding: 54px 0 34px; }
     h1 { font-size: clamp(3rem, 15vw, 4.5rem); }
@@ -1581,6 +1575,7 @@ h1 {
         </nav>
 
         <div class="header-actions-premium">
+            <div id="notification-section-premium"></div>
             <div id="auth-section-premium"></div>
         </div>
     </div>
@@ -1837,11 +1832,12 @@ import {
 const authSection = document.getElementById("auth-section-premium");
 const adminNavContainer = document.getElementById("admin-nav-container");
 
-
+const notificationSection = document.getElementById("notification-section-premium");
 let notificationUnsubscribers = [];
 let notificationRequestsBySource = { discord: new Map(), discord_id: new Map() };
 let notificationItems = [];
 let notificationUserKey = null;
+let notificationDocumentClickHandler = null;
 
 function escapeNotificationHtml(value) {
     return String(value ?? "").replace(/[&<>'"]/g, char => ({
@@ -1873,7 +1869,7 @@ function getNotificationSubject(request) {
     return request.nume_afacere || request.numeAfacere || request.unitate || request.nume_proprietar || request.proprietar || request.nume || "cererea ta";
 }
 
-function parseNotificationDate(value) {
+function notificationDateToMs(value) {
     if (!value) return 0;
     if (typeof value?.toDate === "function") return value.toDate().getTime();
     if (typeof value === "object" && typeof value.seconds === "number") return value.seconds * 1000;
@@ -1888,13 +1884,25 @@ function parseNotificationDate(value) {
 }
 
 function getNotificationTimestamp(request) {
-    return parseNotificationDate(request.data_procesare) ||
-        parseNotificationDate(request.updated_at) ||
-        parseNotificationDate(request.created_at || request.data_creare || request.createdAt || request.data);
+    return notificationDateToMs(request.data_procesare) ||
+        notificationDateToMs(request.updated_at) ||
+        notificationDateToMs(request.created_at || request.data_creare || request.createdAt || request.data);
+}
+
+function formatNotificationDate(request) {
+    const ts = getNotificationTimestamp(request);
+    if (!ts) return "Dată indisponibilă";
+    return new Intl.DateTimeFormat("ro-RO", {
+        day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+    }).format(new Date(ts));
 }
 
 function notificationSignature(request) {
-    return [normalizeNotificationStatus(request.status), String(request.data_procesare || ""), String(request.procesat_de || "")].join("|");
+    return [
+        normalizeNotificationStatus(request.status),
+        getNotificationTimestamp(request),
+        String(request.procesat_de || "")
+    ].join("|");
 }
 
 function notificationStorageKey() {
@@ -1928,13 +1936,6 @@ function markAllNotificationsRead() {
     notificationItems.forEach(item => { seen[item.id] = notificationSignature(item); });
     writeSeenNotifications(seen);
     renderNotificationCenter();
-}
-
-function formatNotificationDate(request) {
-    if (request.data_procesare) return String(request.data_procesare);
-    const ts = getNotificationTimestamp(request);
-    if (!ts) return "Dată indisponibilă";
-    return new Intl.DateTimeFormat("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(ts));
 }
 
 function renderNotificationCenter() {
@@ -1981,7 +1982,9 @@ function renderNotificationCenter() {
 
 function mergeNotificationRequests() {
     const merged = new Map();
-    Object.values(notificationRequestsBySource).forEach(source => source.forEach((value, key) => merged.set(key, value)));
+    Object.values(notificationRequestsBySource).forEach(source => {
+        source.forEach((value, key) => merged.set(key, value));
+    });
     notificationItems = Array.from(merged.values())
         .filter(item => Boolean(getNotificationStatusInfo(item)))
         .sort((a, b) => getNotificationTimestamp(b) - getNotificationTimestamp(a));
@@ -1989,43 +1992,22 @@ function mergeNotificationRequests() {
 }
 
 function stopNotificationListeners() {
-    notificationUnsubscribers.forEach(unsubscribe => unsubscribe());
+    notificationUnsubscribers.forEach(unsubscribe => {
+        try { unsubscribe(); } catch (_) {}
+    });
     notificationUnsubscribers = [];
     notificationRequestsBySource = { discord: new Map(), discord_id: new Map() };
     notificationItems = [];
 }
 
-function startNotificationListeners(user) {
+function destroyNotificationCenter() {
     stopNotificationListeners();
-    notificationUserKey = user.uid;
-    const accountIdentifier = user.providerData?.[0]?.uid || user.uid;
-    [
-        { source: "discord", field: "discord" },
-        { source: "discord_id", field: "discord_id" }
-    ].forEach(definition => {
-        const qNotifications = query(collection(db, "cereri"), where(definition.field, "==", accountIdentifier));
-        const unsubscribe = onSnapshot(qNotifications, snapshot => {
-            const source = new Map();
-            snapshot.forEach(docSnap => source.set(docSnap.id, { id: docSnap.id, ...docSnap.data() }));
-            notificationRequestsBySource[definition.source] = source;
-            mergeNotificationRequests();
-        }, error => console.error(`Eroare notificări (${definition.field}):`, error));
-        notificationUnsubscribers.push(unsubscribe);
-    });
-}
-
-function isDiscordAuthenticated(user) {
-    if (!user || user.isAnonymous) return false;
-
-    const providerIds = (user.providerData || [])
-        .map(provider => String(provider?.providerId || "").toLowerCase());
-
-    // Acoperă provider Discord/OIDC dacă este expus explicit de Firebase.
-    if (providerIds.some(providerId => providerId.includes("discord"))) return true;
-
-    // În portal, conturile Discord sunt autentificate fără adresă de e-mail.
-    // Păstrăm acest fallback pentru autentificarea Discord prin custom token.
-    return !user.email;
+    notificationUserKey = null;
+    if (notificationDocumentClickHandler) {
+        document.removeEventListener("click", notificationDocumentClickHandler);
+        notificationDocumentClickHandler = null;
+    }
+    if (notificationSection) notificationSection.innerHTML = "";
 }
 
 function setupNotificationUi() {
@@ -2049,16 +2031,79 @@ function setupNotificationUi() {
         const link = event.target.closest("[data-open-notification]");
         if (link) markNotificationRead(link.getAttribute("data-open-notification"));
     });
-    document.addEventListener("click", () => {
+
+    if (notificationDocumentClickHandler) {
+        document.removeEventListener("click", notificationDocumentClickHandler);
+    }
+    notificationDocumentClickHandler = () => {
         dropdown.classList.remove("show");
         toggle.classList.remove("active");
         toggle.setAttribute("aria-expanded", "false");
+    };
+    document.addEventListener("click", notificationDocumentClickHandler);
+}
+
+function startNotificationListeners(user) {
+    stopNotificationListeners();
+    notificationUserKey = user.uid;
+
+    // Exact aceeași identificare folosită de pagina Cererile Mele.
+    const accountIdentifier = user.providerData?.[0]?.uid || user.uid;
+    const definitions = [
+        { source: "discord", field: "discord" },
+        { source: "discord_id", field: "discord_id" }
+    ];
+
+    definitions.forEach(definition => {
+        const qNotifications = query(collection(db, "cereri"), where(definition.field, "==", accountIdentifier));
+        const unsubscribe = onSnapshot(qNotifications, snapshot => {
+            const source = new Map();
+            snapshot.forEach(docSnap => source.set(docSnap.id, { id: docSnap.id, ...docSnap.data() }));
+            notificationRequestsBySource[definition.source] = source;
+            mergeNotificationRequests();
+        }, error => {
+            console.error(`Eroare notificări (${definition.field}):`, error);
+        });
+        notificationUnsubscribers.push(unsubscribe);
     });
 }
 
+function mountDiscordNotificationCenter(user) {
+    if (!notificationSection) return;
+
+    notificationSection.innerHTML = `
+        <div class="notification-center-premium">
+            <button class="notification-btn-premium" id="notificationToggle" type="button" aria-label="Notificări" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                <span id="notificationBadge" class="notification-badge" hidden>0</span>
+            </button>
+            <div class="notification-dropdown-premium" id="notificationDropdown">
+                <div class="notification-dropdown-head">
+                    <div><strong>Notificări</strong><span>Răspunsuri la cererile tale PCLS</span></div>
+                    <button id="notificationMarkAll" class="notification-mark-all" type="button">Marchează citite</button>
+                </div>
+                <div id="notificationList" class="notification-list">
+                    <div class="notification-empty">Se încarcă notificările...</div>
+                </div>
+                <div class="notification-footer"><a href="cererile_mele.html">Vezi toate cererile</a></div>
+            </div>
+        </div>`;
+
+    setupNotificationUi();
+    startNotificationListeners(user);
+    renderNotificationCenter();
+}
+
+// Centrul de notificări NU modifică authSection. Este afișat exclusiv
+// pentru sesiunea pe care portalul o tratează deja ca autentificare Discord: user fără email.
+onAuthStateChanged(auth, user => {
+    destroyNotificationCenter();
+    const isDiscordSession = Boolean(user && !user.isAnonymous && !user.email);
+    if (isDiscordSession) mountDiscordNotificationCenter(user);
+});
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        const isDiscordUser = isDiscordAuthenticated(user);
         const emailPart = user.email ? user.email.split('@')[0] : "User";
         const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
         const initial = displayName.charAt(0).toUpperCase();
@@ -2118,21 +2163,6 @@ onAuthStateChanged(auth, async (user) => {
         // ==========================================
         if (authSection) {
             authSection.innerHTML = `
-                ${isDiscordUser ? `
-                <div class="notification-center-premium">
-                    <button class="notification-btn-premium" id="notificationToggle" type="button" aria-label="Notificări" aria-expanded="false">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                        <span id="notificationBadge" class="notification-badge" hidden>0</span>
-                    </button>
-                    <div class="notification-dropdown-premium" id="notificationDropdown">
-                        <div class="notification-dropdown-head">
-                            <div><strong>Notificări</strong><span>Răspunsuri la cererile tale</span></div>
-                            <button id="notificationMarkAll" class="notification-mark-all" type="button">Marchează citite</button>
-                        </div>
-                        <div id="notificationList" class="notification-list"><div class="notification-empty">Se încarcă notificările...</div></div>
-                        <div class="notification-footer"><a href="cererile_mele.html">Vezi toate cererile</a></div>
-                    </div>
-                </div>` : ""}
                 <div class="user-profile-premium">
                     <button class="profile-btn-premium" id="profileToggle">
                         <span>Salut, ${displayName}</span>
@@ -2164,28 +2194,12 @@ onAuthStateChanged(auth, async (user) => {
             `;
             
 
-            if (isDiscordUser) {
-                setupNotificationUi();
-                startNotificationListeners(user);
-                renderNotificationCenter();
-            } else {
-                stopNotificationListeners();
-                notificationUserKey = null;
-            }
-
             const profileToggle = document.getElementById("profileToggle");
             const profileDropdown = document.getElementById("profileDropdown");
 
             profileToggle.addEventListener("click", (e) => {
                 e.stopPropagation(); 
                 profileDropdown.classList.toggle("show");
-                const notificationDropdown = document.getElementById("notificationDropdown");
-                const notificationToggle = document.getElementById("notificationToggle");
-                if (notificationDropdown) notificationDropdown.classList.remove("show");
-                if (notificationToggle) {
-                    notificationToggle.classList.remove("active");
-                    notificationToggle.setAttribute("aria-expanded", "false");
-                }
             });
 
             document.addEventListener("click", (e) => {
@@ -2199,8 +2213,6 @@ onAuthStateChanged(auth, async (user) => {
             });
         }
     } else {
-        stopNotificationListeners();
-        notificationUserKey = null;
         // Cazul în care userul e deconectat
         if (authSection) {
             authSection.innerHTML = `
