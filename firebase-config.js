@@ -3,7 +3,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBst9kibTzc9Cx-KgJ21XcZUkouRtDI1Sc",
+  apiKey: "AIzaSyBst9kibZtc9Cx-KgJ21XcZUkouRtDI1Sc",
   authDomain: "pcls-portal.firebaseapp.com",
   projectId: "pcls-portal",
   storageBucket: "pcls-portal.firebasestorage.app",
@@ -79,3 +79,5 @@ window.addEventListener("DOMContentLoaded", () => {
     import("./gestionare-utilizatori-v2.js").catch(error => console.error("Gestionare utilizatori:", error));
   }
 });
+
+export const FIREBASE_CONFIG_VERSION = "2026-08-13-02-15";
