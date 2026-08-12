@@ -1,7 +1,16 @@
 import { auth, db } from "./firebase-config.js";
-import { collection, onSnapshot, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  getDoc,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+const requestBaseline = new Map();
 const userBaseline = new Map();
+let initializedRequests = false;
 let initializedUsers = false;
 let running = false;
 
@@ -9,137 +18,222 @@ const norm = value => String(value || "").trim().toLowerCase();
 const nameOf = d => String(d?.nume || d?.name || d?.displayName || d?.email || "Sistem").trim();
 const roleOf = d => norm(d?.role || d?.rol);
 const activeOf = d => d?.activ !== false && d?.active !== false && d?.enabled !== false;
-const fingerprint = d => JSON.stringify({ active: activeOf(d), role: roleOf(d), name: nameOf(d) });
 
-function hash(value) {
-  let h = 2166136261;
-  for (let i = 0; i < value.length; i += 1) {
-    h ^= value.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0).toString(16);
-}
+const requestFingerprint = d => JSON.stringify({
+  status: norm(d?.status),
+  archived: d?.arhivat === true || d?.archived === true,
+  deleted: d?.deleted === true,
+  processedBy: String(d?.procesat_de || ""),
+  processedAt: String(d?.data_procesare || "")
+});
 
-async function actor() {
+const userFingerprint = d => JSON.stringify({
+  active: activeOf(d),
+  role: roleOf(d),
+  name: nameOf(d)
+});
+
+async function currentActor() {
   const u = auth.currentUser;
   if (!u) return { uid: "system", name: "Sistem", role: "system" };
+
   try {
-    const s = await getDoc(doc(db, "utilizatori", u.uid));
-    const d = s.exists() ? s.data() || {} : {};
-    return { uid: u.uid, name: nameOf({ ...d, email: u.email }), role: roleOf(d) || "user" };
+    const snap = await getDoc(doc(db, "utilizatori", u.uid));
+    const data = snap.exists() ? snap.data() || {} : {};
+    return {
+      uid: u.uid,
+      name: nameOf({ ...data, email: u.email }),
+      role: roleOf(data) || "user"
+    };
   } catch {
     return { uid: u.uid, name: u.email || "Utilizator", role: "user" };
   }
 }
 
-async function writeAudit(key, data) {
+function actorFromProcessedBy(value, fallback) {
+  const raw = String(value || "").trim();
+  const match = raw.match(/^(.+?)\s*\(([^)]+)\)$/);
+  if (!match) return fallback;
+  return { ...fallback, name: match[1].trim() || fallback.name };
+}
+
+function requestName(data) {
+  return String(
+    data?.nume_proprietar ||
+    data?.proprietar ||
+    data?.reprezentant ||
+    data?.nume ||
+    "Cerere"
+  ).trim();
+}
+
+function departmentName(data) {
+  return String(
+    data?.departament ||
+    data?.departament_medical ||
+    data?.department ||
+    data?.dept ||
+    ""
+  ).trim();
+}
+
+function actionFromRequestChange(oldData, newData) {
+  const oldFp = JSON.parse(requestFingerprint(oldData));
+  const newFp = JSON.parse(requestFingerprint(newData));
+  const processed = String(newData?.procesat_de || "").toLowerCase();
+
+  if (oldFp.deleted !== newFp.deleted) {
+    return newFp.deleted ? "Cerere mutată în Coș" : "Cerere restaurată";
+  }
+
+  if (oldFp.archived !== newFp.archived) {
+    return newFp.archived ? "Cerere arhivată" : "Cerere dezarhivată";
+  }
+
+  if (oldFp.status !== newFp.status) {
+    if (processed.includes("aprobat")) return "Cerere aprobată";
+    if (processed.includes("respins")) return "Cerere respinsă";
+    if (processed.includes("restaurat")) return "Cerere restaurată";
+    if (processed.includes("coș") || processed.includes("cos")) return "Cerere mutată în Coș";
+    return `Status cerere schimbat: ${newData?.status || "modificat"}`;
+  }
+
+  if (oldFp.processedBy !== newFp.processedBy || oldFp.processedAt !== newFp.processedAt) {
+    if (processed.includes("aprobat")) return "Cerere aprobată";
+    if (processed.includes("respins")) return "Cerere respinsă";
+    if (processed.includes("arhivat")) return processed.includes("desarhivat") ? "Cerere dezarhivată" : "Cerere arhivată";
+    if (processed.includes("restaurat")) return "Cerere restaurată";
+    if (processed.includes("coș") || processed.includes("cos")) return "Cerere mutată în Coș";
+    return "Cerere procesată";
+  }
+
+  return null;
+}
+
+async function writeAudit(data) {
   try {
-    await setDoc(doc(db, "audit_log", key), { ...data, createdAt: serverTimestamp() }, { merge: false });
+    await addDoc(collection(db, "audit_log"), {
+      ...data,
+      createdAt: serverTimestamp()
+    });
   } catch (error) {
     console.error("AUDIT LOG ERROR:", error);
   }
 }
 
-function getRequestTarget(button) {
-  return String(button?.dataset?.id || button?.getAttribute?.("data-id") || "").trim();
-}
+async function writeRequestAudit(targetId, oldData, newData, explicitDeleted = false) {
+  const action = explicitDeleted
+    ? "Cerere ștearsă definitiv"
+    : actionFromRequestChange(oldData, newData);
 
-function actionForButton(button) {
-  const classes = button?.classList;
-  if (!classes) return null;
-  if (classes.contains("btn-approve")) return "Cerere aprobată";
-  if (classes.contains("btn-reject")) return "Cerere respinsă";
-  if (classes.contains("btn-archive")) return "Cerere arhivată";
-  if (classes.contains("btn-unarchive")) return "Cerere dezarhivată";
-  if (classes.contains("btn-restore")) return "Cerere restaurată";
-  if (classes.contains("btn-trash")) return "Acțiune coș/ștergere cerere";
-  return null;
-}
+  if (!action) return;
 
-function requestTargetNameFromCard(button) {
-  const card = button?.closest?.(".card");
-  if (!card) return "Cerere";
-  return [...card.querySelectorAll(".card-body p span")]
-    .map(el => String(el.textContent || "").trim())
-    .filter(Boolean)[0] || "Cerere";
-}
+  let a = await currentActor();
+  a = actorFromProcessedBy(newData?.procesat_de, a);
 
-async function auditAdminAction(button) {
-  const action = actionForButton(button);
-  const targetId = getRequestTarget(button);
-  if (!action || !targetId || !auth.currentUser) return;
-
-  const a = await actor();
-  const targetName = requestTargetNameFromCard(button);
-  const key = `admin_action_${targetId}_${hash(`${action}|${a.uid}`)}`;
-
-  await writeAudit(key, {
+  await writeAudit({
     actorId: a.uid,
     actorName: a.name,
     actorRole: a.role,
     action,
     targetType: "cerere",
     targetId,
-    targetName,
-    department: "",
-    status: "",
-    source: "admin.html",
+    targetName: requestName(newData || oldData),
+    department: departmentName(newData || oldData),
+    status: newData?.status || oldData?.status || "",
+    source: "firestore_monitor",
     explicitAction: true
   });
 }
 
-function bindAdminActionAudit() {
-  if (window.__pclsAdminAuditActionsBound) return;
-  window.__pclsAdminAuditActionsBound = true;
-  document.addEventListener("click", event => {
-    const button = event.target?.closest?.("button[data-id]");
-    if (!button || !button.closest("#cereri-container")) return;
-    if (!actionForButton(button)) return;
-    void auditAdminAction(button);
-  }, true);
+function startRequests() {
+  onSnapshot(
+    collection(db, "cereri"),
+    async snap => {
+      if (!initializedRequests) {
+        snap.docs.forEach(d => requestBaseline.set(d.id, d.data() || {}));
+        initializedRequests = true;
+        return;
+      }
+
+      for (const change of snap.docChanges()) {
+        if (change.type === "added") {
+          requestBaseline.set(change.doc.id, change.doc.data() || {});
+          continue;
+        }
+
+        if (change.type === "modified") {
+          const oldData = requestBaseline.get(change.doc.id) || {};
+          const newData = change.doc.data() || {};
+          requestBaseline.set(change.doc.id, newData);
+
+          if (requestFingerprint(oldData) !== requestFingerprint(newData)) {
+            await writeRequestAudit(change.doc.id, oldData, newData, false);
+          }
+          continue;
+        }
+
+        if (change.type === "removed") {
+          const oldData = requestBaseline.get(change.doc.id) || {};
+          requestBaseline.delete(change.doc.id);
+          await writeRequestAudit(change.doc.id, oldData, oldData, true);
+        }
+      }
+    },
+    error => console.error("MONITOR AUDIT CERERI:", error)
+  );
 }
 
 function startUsers() {
-  onSnapshot(collection(db, "utilizatori"), async snap => {
-    for (const item of snap.docs) {
-      const data = item.data() || {};
-      const fp = fingerprint(data);
-      const prev = userBaseline.get(item.id);
-      const currentUid = auth.currentUser?.uid;
+  onSnapshot(
+    collection(db, "utilizatori"),
+    async snap => {
+      for (const item of snap.docs) {
+        const data = item.data() || {};
+        const fp = userFingerprint(data);
+        const prev = userBaseline.get(item.id);
 
-      if (initializedUsers && prev && prev !== fp && item.id !== currentUid) {
-        const old = JSON.parse(prev);
-        const current = JSON.parse(fp);
-        let action = "Cont utilizator actualizat";
-        if (old.role !== current.role) action = `Role schimbat: ${old.role || "—"} → ${current.role || "—"}`;
-        else if (old.active !== current.active) action = current.active ? "Cont reactivat" : "Cont dezactivat";
-        else if (old.name !== current.name) action = "Nume utilizator modificat";
+        if (initializedUsers && prev && prev !== fp) {
+          const old = JSON.parse(prev);
+          const current = JSON.parse(fp);
+          let action = "Cont utilizator actualizat";
 
-        const a = await actor();
-        await writeAudit(`user_change_${item.id}_${hash(fp + String(Date.now()))}`, {
-          actorId: a.uid,
-          actorName: a.name,
-          actorRole: a.role,
-          action,
-          targetType: "utilizator",
-          targetId: item.id,
-          targetName: nameOf(data),
-          targetRole: roleOf(data),
-          active: activeOf(data),
-          source: "firestore_monitor",
-          explicitAction: false
-        });
+          if (old.role !== current.role) {
+            action = `Role schimbat: ${old.role || "—"} → ${current.role || "—"}`;
+          } else if (old.active !== current.active) {
+            action = current.active ? "Cont reactivat" : "Cont dezactivat";
+          } else if (old.name !== current.name) {
+            action = "Nume utilizator modificat";
+          }
+
+          const a = await currentActor();
+          await writeAudit({
+            actorId: a.uid,
+            actorName: a.name,
+            actorRole: a.role,
+            action,
+            targetType: "utilizator",
+            targetId: item.id,
+            targetName: nameOf(data),
+            targetRole: roleOf(data),
+            active: activeOf(data),
+            source: "firestore_monitor",
+            explicitAction: true
+          });
+        }
+
+        userBaseline.set(item.id, fp);
       }
-      userBaseline.set(item.id, fp);
-    }
-    initializedUsers = true;
-  }, error => console.error("MONITOR AUDIT UTILIZATORI:", error));
+      initializedUsers = true;
+    },
+    error => console.error("MONITOR AUDIT UTILIZATORI:", error)
+  );
 }
 
 function init() {
   if (running) return;
   running = true;
-  bindAdminActionAudit();
+  startRequests();
   startUsers();
 }
 
