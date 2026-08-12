@@ -1,0 +1,65 @@
+function normalizeText(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function stabilizeLayout() {
+  const main = document.querySelector("#pcls-admin-dashboard .pcls-dash-main");
+  const panels = main?.querySelectorAll(":scope > .pcls-dash-panel");
+  if (main) {
+    main.style.alignItems = "start";
+  }
+  if (panels?.length >= 2) {
+    panels[0].style.alignSelf = "start";
+    panels[0].style.height = "fit-content";
+    panels[0].style.minHeight = "230px";
+    panels[1].style.alignSelf = "start";
+    panels[1].style.height = "320px";
+    panels[1].style.minHeight = "320px";
+    panels[1].style.maxHeight = "320px";
+  }
+}
+
+function dedupeActivity() {
+  const host = document.getElementById("dash-audit-mini");
+  if (!host) return;
+  const rows = [...host.querySelectorAll(".pcls-audit-item")];
+  if (rows.length < 2) return;
+
+  const seen = new Set();
+  rows.forEach(row => {
+    const actor = normalizeText(row.querySelector(".pcls-audit-actor")?.textContent);
+    const action = normalizeText(row.querySelector(".pcls-audit-action")?.textContent);
+    const target = normalizeText(row.querySelector(".pcls-audit-target")?.textContent);
+    const key = `${actor}|${action}|${target}`;
+    if (seen.has(key)) {
+      row.remove();
+      return;
+    }
+    seen.add(key);
+  });
+}
+
+function start() {
+  stabilizeLayout();
+  dedupeActivity();
+
+  const dashboard = document.getElementById("pcls-admin-dashboard");
+  if (!dashboard || dashboard.dataset.layoutGuard === "true") return;
+  dashboard.dataset.layoutGuard = "true";
+
+  const observer = new MutationObserver(() => {
+    stabilizeLayout();
+    dedupeActivity();
+  });
+  observer.observe(dashboard, { childList: true, subtree: true });
+
+  window.addEventListener("resize", stabilizeLayout);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", start, { once: true });
+} else {
+  start();
+}
+
+window.addEventListener("pageshow", start);
