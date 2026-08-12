@@ -5,141 +5,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notificări | Portal PCLS</title>
 <style>
-:root{
- color-scheme:dark;
- --bg:#05070c;--glass:rgba(18,25,40,.62);--line:rgba(255,255,255,.11);
- --text:#f7f9ff;--muted:#b8c0d0;--quiet:#7f8aa0;--accent:#64d2ff;
- --mint:#63e6be;--danger:#ff6961;--gold:#ffd60a;--violet:#bf5af2;
-}
+:root{color-scheme:dark;--bg:#05070c;--glass:rgba(18,25,40,.62);--line:rgba(255,255,255,.11);--text:#f7f9ff;--muted:#b8c0d0;--quiet:#7f8aa0;--accent:#64d2ff;--mint:#63e6be;--danger:#ff6961;--gold:#ffd60a;--violet:#bf5af2}
 *{box-sizing:border-box;margin:0;padding:0}
-body{
- min-height:100vh;padding:40px 16px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
- color:var(--text);background:radial-gradient(circle at 15% 10%,rgba(10,132,255,.24),transparent 30%),
- radial-gradient(circle at 85% 12%,rgba(191,90,242,.16),transparent 28%),linear-gradient(145deg,#070b14,#090d18 40%,#05070c);
-}
+body{min-height:100vh;padding:40px 16px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 15% 10%,rgba(10,132,255,.24),transparent 30%),radial-gradient(circle at 85% 12%,rgba(191,90,242,.16),transparent 28%),linear-gradient(145deg,#070b14,#090d18 40%,#05070c)}
 a{color:inherit;text-decoration:none}
 .page{width:min(980px,100%);margin:auto}
-.header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}
+.eyebrow{color:var(--accent);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
 .title{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.05em}
-.subtitle{margin-top:7px;color:var(--muted);font-size:.9rem}
+.subtitle{margin-top:7px;color:var(--muted);font-size:.9rem;line-height:1.5}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:11px 15px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:700}
+.btn{padding:11px 15px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:700;cursor:pointer}
 .btn:hover{background:rgba(255,255,255,.09)}
 .btn-primary{border-color:rgba(100,210,255,.3);background:linear-gradient(135deg,rgba(10,132,255,.2),rgba(100,210,255,.08))}
+.status-note{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03);color:var(--muted);font-size:.78rem}
+.status-count{color:var(--accent);font-weight:800}
 .notification-list{display:grid;gap:12px}
-.notification{
- padding:19px;border-radius:22px;border:1px solid var(--line);
- background:linear-gradient(145deg,rgba(18,25,40,.67),rgba(15,19,34,.48));
- box-shadow:inset 0 1px rgba(255,255,255,.04),0 18px 50px rgba(0,0,0,.12);
- transition:.22s ease;
-}
+.notification{position:relative;padding:19px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(145deg,rgba(18,25,40,.67),rgba(15,19,34,.48));box-shadow:inset 0 1px rgba(255,255,255,.04),0 18px 50px rgba(0,0,0,.12);transition:.22s ease}
 .notification:hover{transform:translateY(-2px);border-color:rgba(100,210,255,.25)}
-.notification[data-request-url]{cursor:pointer}
-.notification.unread{border-color:rgba(100,210,255,.25);box-shadow:inset 3px 0 0 var(--accent),0 18px 50px rgba(0,0,0,.12)}
-.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
-.badge{padding:6px 10px;border-radius:999px;font-size:.7rem;font-weight:800}
-.badge.approved{color:var(--mint);background:rgba(99,230,190,.12);border:1px solid rgba(99,230,190,.25)}
-.badge.rejected{color:var(--danger);background:rgba(255,105,97,.12);border:1px solid rgba(255,105,97,.25)}
-h2{font-size:1rem}
-.message{margin-top:8px;color:var(--muted);line-height:1.55;font-size:.9rem}
-.meta{margin-top:12px;color:var(--quiet);font-size:.73rem}
+.notification.unread{box-shadow:inset 3px 0 0 var(--accent),0 18px 50px rgba(0,0,0,.12)}
+.notification.success.unread{border-color:rgba(99,230,190,.23)}
+.notification.error.unread{border-color:rgba(255,105,97,.23)}
+.notification.warning.unread{border-color:rgba(255,214,10,.23)}
+.notification.info.unread{border-color:rgba(100,210,255,.23)}
+.top{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:start}
+.icon{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05)}
+.icon svg{width:21px;height:21px}
+.success .icon{color:var(--mint);background:rgba(99,230,190,.1);border-color:rgba(99,230,190,.2)}
+.error .icon{color:var(--danger);background:rgba(255,105,97,.1);border-color:rgba(255,105,97,.2)}
+.warning .icon{color:var(--gold);background:rgba(255,214,10,.1);border-color:rgba(255,214,10,.2)}
+.info .icon{color:var(--accent);background:rgba(100,210,255,.1);border-color:rgba(100,210,255,.2)}
+.copy h2{font-size:1rem;line-height:1.35}
+.copy p{margin-top:7px;color:var(--muted);line-height:1.55;font-size:.9rem}
+.copy small{display:block;margin-top:8px;color:var(--quiet);font-size:.7rem}
+.type-badge{padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.success .type-badge{color:var(--mint);background:rgba(99,230,190,.11);border:1px solid rgba(99,230,190,.22)}
+.error .type-badge{color:var(--danger);background:rgba(255,105,97,.11);border:1px solid rgba(255,105,97,.22)}
+.warning .type-badge{color:var(--gold);background:rgba(255,214,10,.11);border:1px solid rgba(255,214,10,.22)}
+.info .type-badge{color:var(--accent);background:rgba(100,210,255,.11);border:1px solid rgba(100,210,255,.22)}
 .notification-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
 .empty{padding:55px 22px;text-align:center;border:1px solid var(--line);border-radius:22px;background:rgba(18,25,40,.42);color:var(--quiet)}
-.status-note{color:var(--muted);font-size:.8rem;margin-bottom:14px}
-@media(max-width:650px){.header{align-items:flex-start;flex-direction:column}.actions,.btn{width:100%}.top{flex-direction:column}}
+@media(max-width:650px){.header{align-items:flex-start;flex-direction:column}.actions,.btn{width:100%}.top{grid-template-columns:40px minmax(0,1fr)}.type-badge{grid-column:2}.notification-actions{flex-direction:column}.notification-actions .btn{width:100%}}
 </style>
 </head>
 <body>
 <div class="page">
  <div class="header">
    <div>
+     <div class="eyebrow">Portal PCLS</div>
      <div class="title">Centrul de notificări</div>
-     <div class="subtitle">Aici apar imediat modificările făcute asupra cererilor tale.</div>
+     <div class="subtitle">Actualizările contului și ale cererilor tale apar aici în timp real.</div>
    </div>
    <div class="actions">
      <a class="btn" href="index.html">← Portal</a>
-     <button id="mark-all" class="btn" type="button">Marchează toate citite</button>
+     <button id="mark-all" class="btn btn-primary" type="button">Marchează toate citite</button>
    </div>
  </div>
- <div id="status" class="status-note">Se încarcă notificările...</div>
+ <div id="status" class="status-note"><span>Se încarcă notificările...</span><span id="unread-count" class="status-count"></span></div>
  <div id="notification-list" class="notification-list"></div>
 </div>
 
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import {
-  collection, query, where, onSnapshot, updateDoc, doc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, doc, onSnapshot, query, updateDoc, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const list = document.getElementById("notification-list");
-const status = document.getElementById("status");
-const markAllBtn = document.getElementById("mark-all");
-let unsubscribe = null;
-
-function esc(v){return String(v??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[c]));}
-function fmt(v){
- try{
-  const d=v?.toDate?v.toDate():new Date(v);
-  return Number.isNaN(d.getTime())?"-":new Intl.DateTimeFormat("ro-RO",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);
- }catch(_){return "-";}
-}
+const list=document.getElementById("notification-list");
+const status=document.getElementById("status");
+const unreadCount=document.getElementById("unread-count");
+const markAllBtn=document.getElementById("mark-all");
+let unsubscribe=null;
+const ICONS={
+ info:'<path d="M12 8h.01"></path><path d="M11 12h1v5h1"></path><circle cx="12" cy="12" r="9"></circle>',
+ success:'<path d="m8 12 2.5 2.5L16 9"></path><circle cx="12" cy="12" r="9"></circle>',
+ warning:'<path d="M12 8v4"></path><path d="M12 16h.01"></path><path d="m10.3 3.8-7 12.1A2 2 0 0 0 5 19h14a2 2 0 0 0 1.7-3.1l-7-12.1a2 2 0 0 0-3.4 0Z"></path>',
+ error:'<circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6"></path><path d="m15 9-6 6"></path>'
+};
+function esc(v){return String(v??"").replace(/[&<>\'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[c]));}
+function dateValue(v){try{if(!v)return null;if(typeof v.toDate==="function")return v.toDate();const d=new Date(v);return Number.isNaN(d.getTime())?null:d}catch{return null}}
+function relative(v){const d=dateValue(v);if(!d)return"acum";const m=Math.floor((Date.now()-d.getTime())/60000);if(m<1)return"acum";if(m<60)return`acum ${m} min`;const h=Math.floor(m/60);if(h<24)return`acum ${h} h`;const days=Math.floor(h/24);if(days<7)return`acum ${days} zile`;return new Intl.DateTimeFormat("ro-RO",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(d)}
+function typeLabel(type){return({success:"Succes",error:"Alertă",warning:"Atenție",info:"Info"}[type]||"Info")}
 function render(items){
  const unread=items.filter(x=>x.read!==true).length;
- status.textContent = unread ? `${unread} notificări necitite.` : `Nu ai notificări necitite.`;
- if(!items.length){
-   list.innerHTML='<div class="empty">Nu există notificări pentru contul tău.</div>';
-   return;
- }
+ status.querySelector("span:first-child").textContent=unread?`${items.length} notificări · ${unread} necitite`:`${items.length} notificări · totul este citit`;
+ unreadCount.textContent=unread?`${unread} necitite`:"";
+ markAllBtn.disabled=unread===0;
+ if(!items.length){list.innerHTML='<div class="empty">Nu ai notificări pentru contul tău.<br><small>Centrul se actualizează automat.</small></div>';return}
  list.innerHTML=items.map(n=>{
-   const approved=n.status==="aprobat"||n.status==="acceptat";
-   const badge=approved?"Aprobată":"Respinsă";
-   return `<article class="notification ${n.read===true?"":"unread"}" data-request-url="${esc(n.requestUrl||`cererile_mele.html?cerere=${encodeURIComponent(n.requestId||"")}`)}" data-notification-id="${esc(n.id)}">
-     <div class="top"><div><h2>${esc(n.title||"Notificare")}</h2></div><span class="badge ${approved?"approved":"rejected"}">${badge}</span></div>
-     <div class="message">${esc(n.message||"")}</div>
-     <div class="meta">Data: ${esc(fmt(n.createdAt||n.created_at))} · Cerere: ${esc(n.requestId||"-")}</div>
-     <div class="notification-actions">
-       ${n.read===true?"":`<button class="btn" data-read="${esc(n.id)}" type="button">Marchează citită</button>`}
-       <a class="btn btn-primary" href="${esc(n.requestUrl||`cererile_mele.html?cerere=${encodeURIComponent(n.requestId||"")}`)}">Deschide cererea</a>
-     </div>
-   </article>`;
+  const type=["info","success","warning","error"].includes(n.type)?n.type:"info";
+  const url=n.requestUrl||(n.requestId?`cererile_mele.html?cerere=${encodeURIComponent(n.requestId)}`:"index.html");
+  return `<article class="notification ${type} ${n.read===true?"":"unread"}" data-id="${esc(n.id)}" data-url="${esc(url)}">
+   <div class="top">
+    <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[type]}</svg></div>
+    <div class="copy"><h2>${esc(n.title||"Notificare")}</h2><p>${esc(n.message||"")}</p><small>${esc(relative(n.createdAt))}${n.actorName?` · ${esc(n.actorName)}`:""}${n.requestId?` · Cerere ${esc(n.requestId)}`:""}</small></div>
+    <span class="type-badge">${typeLabel(type)}</span>
+   </div>
+   <div class="notification-actions">
+    ${n.read===true?"":`<button class="btn" data-read="${esc(n.id)}" type="button">Marchează citită</button>`}
+    <a class="btn btn-primary" href="${esc(url)}">${n.requestId?"Deschide cererea":"Deschide"}</a>
+   </div>
+  </article>`;
  }).join("");
 }
+
 list.addEventListener("click",async e=>{
- const btn=e.target.closest("[data-read]");
- if(btn){
-   try{await updateDoc(doc(db,"notificari",btn.dataset.read),{read:true});}catch(err){console.error(err);}
-   return;
- }
- const card=e.target.closest(".notification[data-request-url]");
- if(!card || e.target.closest("a,button")) return;
- const notificationId=card.dataset.notificationId;
- const target=card.dataset.requestUrl;
- try{await updateDoc(doc(db,"notificari",notificationId),{read:true});}catch(err){console.error(err);}
- window.location.href=target;
+ const readBtn=e.target.closest("[data-read]");
+ if(readBtn){try{await updateDoc(doc(db,"notificari",readBtn.dataset.read),{read:true})}catch(err){console.error(err)};return}
+ const card=e.target.closest(".notification[data-id]");
+ if(!card||e.target.closest("a"))return;
+ try{await updateDoc(doc(db,"notificari",card.dataset.id),{read:true})}catch(err){console.error(err)}
+ window.location.href=card.dataset.url||"index.html";
 });
 markAllBtn.addEventListener("click",async()=>{
- const unread=[...list.querySelectorAll("[data-read]")].map(b=>b.dataset.read);
- await Promise.all(unread.map(id=>updateDoc(doc(db,"notificari",id),{read:true})));
+ const ids=[...list.querySelectorAll("[data-read]")].map(x=>x.dataset.read);
+ if(!ids.length)return;
+ const batch=writeBatch(db);ids.forEach(id=>batch.update(doc(db,"notificari",id),{read:true}));
+ try{await batch.commit()}catch(err){console.error(err)}
 });
+
 onAuthStateChanged(auth,user=>{
  if(unsubscribe)unsubscribe();
- if(!user){window.location.href="auth.html";return;}
- const accountIdentifier=user.providerData?.[0]?.uid||user.uid;
- const q=query(collection(db,"notificari"),where("recipientId","==",accountIdentifier));
+ if(!user){window.location.href="auth.html";return}
+ const q=query(collection(db,"notificari"),where("recipientId","==",user.uid));
  unsubscribe=onSnapshot(q,snap=>{
-   render(snap.docs
-     .map(d=>({id:d.id,...d.data()}))
-     .sort((a,b)=>{
-       const ad=a.createdAt?.toDate?a.createdAt.toDate():new Date(a.createdAt||0);
-       const bd=b.createdAt?.toDate?b.createdAt.toDate():new Date(b.createdAt||0);
-       return bd-ad;
-     }));
- },err=>{
-   console.error("Eroare notificari:",err);
-   status.textContent="Nu s-au putut încărca notificările.";
-   list.innerHTML='<div class="empty">Verifică regulile Firestore pentru colecția „notificari”.</div>';
- });
+  const items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(dateValue(b.createdAt)?.getTime()||0)-(dateValue(a.createdAt)?.getTime()||0));
+  render(items);
+ },err=>{console.error("Eroare notificari:",err);status.querySelector("span:first-child").textContent="Nu s-au putut încărca notificările.";list.innerHTML='<div class="empty">Verifică regulile Firestore pentru colecția „notificari”.</div>'});
 });
 </script>
 </body>
