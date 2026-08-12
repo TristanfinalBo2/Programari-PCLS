@@ -1642,11 +1642,65 @@
 
   async function updateStatus(id, newStatus, actionName) {
     try {
-      const updateData = { status: newStatus, procesat_de: `${getCurrentAdminName()} (${actionName})`, data_procesare: new Date().toLocaleString("ro-RO") };
-      if (newStatus === "in_cos") updateData.deleted = true; else updateData.deleted = false;
-      await updateDoc(doc(db, "cereri", id), updateData);
-      if (newStatus !== "in_cos") showToast(`Cererea a fost aprobată cu succes!`, "success");
-    } catch (e) { showToast("Eroare la salvare.", "error"); }
+      const requestRef = doc(db, "cereri", id);
+      const requestSnap = await getDoc(requestRef);
+      const requestData = requestSnap.exists() ? requestSnap.data() : {};
+
+      const updateData = {
+        status: newStatus,
+        procesat_de: `${getCurrentAdminName()} (${actionName})`,
+        data_procesare: new Date().toLocaleString("ro-RO")
+      };
+
+      if (newStatus === "in_cos") updateData.deleted = true;
+      else updateData.deleted = false;
+
+      await updateDoc(requestRef, updateData);
+
+      // Notificăm automat proprietarul cererii.
+      // Cererile existente folosesc discord / discord_id, deci păstrăm exact aceeași identificare.
+      const recipientId = String(
+        requestData.discord_id ||
+        requestData.discord ||
+        requestData.numeDiscord ||
+        requestData.userId ||
+        requestData.uid ||
+        ""
+      ).trim();
+
+      if (recipientId && (newStatus === "aprobat" || newStatus === "acceptat" || newStatus === "respins")) {
+        const isApproved = newStatus === "aprobat" || newStatus === "acceptat";
+        const requestType = requestData.eveniment || requestData.tip_cerere || requestData.tipCerere || requestData.tip || requestData.departament || "Cerere";
+        const title = isApproved ? "Cererea ta a fost acceptată" : "Cererea ta a fost respinsă";
+        const message = isApproved
+          ? `Cererea ta (${requestType}) a fost acceptată de ${getCurrentAdminName()}.`
+          : `Cererea ta (${requestType}) a fost respinsă de ${getCurrentAdminName()}.`;
+
+        await addDoc(collection(db, "notificari"), {
+          recipientId,
+          requestId: id,
+          requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(id)}`,
+          title,
+          message,
+          status: newStatus,
+          requestType: String(requestType),
+          read: false,
+          createdAt: new Date()
+        });
+      }
+
+      if (newStatus !== "in_cos") {
+        showToast(
+          newStatus === "respins"
+            ? "Cererea a fost respinsă și utilizatorul a fost notificat."
+            : "Cererea a fost aprobată și utilizatorul a fost notificat.",
+          "success"
+        );
+      }
+    } catch (e) {
+      console.error("Eroare updateStatus:", e);
+      showToast("Eroare la salvare / notificare.", "error");
+    }
   }
 
   function closeConfirmModal() { confirmModal.classList.remove("active"); pendingDeleteId = null; }

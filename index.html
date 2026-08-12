@@ -151,6 +151,125 @@ section[id] { scroll-margin-top: 110px; }
     stroke-linejoin: round;
 }
 
+
+/* ================= NOTIFICARI ================= */
+.notification-center {
+    position: relative;
+    z-index: 1200;
+}
+.notification-bell {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 50%;
+    color: var(--text-primary);
+    background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.045));
+    backdrop-filter: var(--blur-soft);
+    -webkit-backdrop-filter: var(--blur-soft);
+    box-shadow: 0 10px 28px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.1);
+    cursor: pointer;
+    transition: all var(--transition-smooth);
+}
+.notification-bell:hover {
+    transform: translateY(-2px);
+    border-color: rgba(100,210,255,.35);
+    background: rgba(255,255,255,.12);
+}
+.notification-bell svg { width: 19px; height: 19px; }
+.notification-count {
+    position: absolute;
+    right: -3px;
+    top: -3px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #06101a;
+    background: var(--accent);
+    border: 2px solid #09101c;
+    font-size: .68rem;
+    font-weight: 850;
+    box-shadow: 0 0 18px rgba(100,210,255,.55);
+}
+.notification-count[hidden] { display:none; }
+
+.notification-bell.has-unread {
+    animation: notification-bell-pulse 2.2s ease-in-out infinite;
+}
+.notification-bell.has-unread::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 1px solid rgba(100,210,255,.28);
+    border-radius: 50%;
+    animation: notification-ring 2.2s ease-out infinite;
+    pointer-events: none;
+}
+@keyframes notification-bell-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.045); }
+}
+@keyframes notification-ring {
+    0% { opacity:.6; transform:scale(.92); }
+    75%,100% { opacity:0; transform:scale(1.18); }
+}
+.notification-mini {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: min(310px, calc(100vw - 24px));
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 18px;
+    background: linear-gradient(150deg, rgba(27,35,53,.96), rgba(12,17,29,.94));
+    backdrop-filter: blur(34px) saturate(175%);
+    -webkit-backdrop-filter: blur(34px) saturate(175%);
+    box-shadow: 0 20px 50px rgba(0,0,0,.48), 0 0 0 1px rgba(100,210,255,.04), inset 0 1px rgba(255,255,255,.11);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px) scale(.97);
+    transform-origin: top right;
+    transition: all .24s cubic-bezier(.2,.9,.25,1.12);
+}
+.notification-mini.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+.notification-mini-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding: 8px 10px 12px;
+}
+.notification-mini-header strong { font-size:.94rem; }
+.notification-mini-header span { color:var(--quiet); font-size:.74rem; }
+.notification-mini-list { display:grid; gap:8px; max-height:360px; overflow:auto; }
+.notification-mini-item {
+    display:block;
+    padding:10px 11px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.07);
+    background:rgba(255,255,255,.035);
+}
+.notification-mini-item.unread {
+    border-color:rgba(100,210,255,.2);
+    background:rgba(100,210,255,.055);
+}
+.notification-mini-item strong { display:block; font-size:.82rem; }
+.notification-mini-item p { margin-top:4px; color:var(--muted); font-size:.76rem; line-height:1.45; }
+.notification-mini-item small { display:block; margin-top:7px; color:var(--quiet); font-size:.68rem; }
+.notification-mini-empty { padding:24px 12px; text-align:center; color:var(--quiet); font-size:.82rem; }
+@media (max-width: 760px) {
+    .notification-mini { right:-56px; width:min(380px, calc(100vw - 20px)); }
+}
+
 /* Header glass */
 .topbar-modern {
     position: fixed;
@@ -344,7 +463,7 @@ section[id] { scroll-margin-top: 110px; }
     background: linear-gradient(150deg, rgba(27,35,53,.88), rgba(12,17,29,.78));
     backdrop-filter: blur(34px) saturate(175%);
     -webkit-backdrop-filter: blur(34px) saturate(175%);
-    box-shadow: 0 26px 70px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.11);
+    box-shadow: 0 20px 50px rgba(0,0,0,.48), 0 0 0 1px rgba(100,210,255,.04), inset 0 1px rgba(255,255,255,.11);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-8px) scale(.97);
@@ -1390,6 +1509,24 @@ h1 {
         </nav>
 
         <div class="header-actions-premium">
+            <div id="notification-center" class="notification-center">
+                <button id="notification-bell" class="notification-bell" type="button" aria-label="Notificări" title="Notificări">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span id="notification-count" class="notification-count" hidden>0</span>
+                </button>
+                <div id="notification-mini" class="notification-mini" aria-hidden="true">
+                    <div class="notification-mini-header">
+                        <strong>Notificări</strong>
+                        <span id="notification-mini-count">0 noi</span>
+                    </div>
+                    <div id="notification-mini-list" class="notification-mini-list">
+                        <div class="notification-mini-empty">Se încarcă...</div>
+                    </div>
+                </div>
+            </div>
             <div id="auth-section-premium"></div>
         </div>
     </div>
@@ -1640,13 +1777,113 @@ import {
     query,
     where,
     getDocs,
-    onSnapshot
+    onSnapshot,
+    updateDoc,
+    limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const authSection = document.getElementById("auth-section-premium");
+
 const adminNavContainer = document.getElementById("admin-nav-container");
 
+const notificationCenter = document.getElementById("notification-center");
+const notificationBell = document.getElementById("notification-bell");
+const notificationCount = document.getElementById("notification-count");
+const notificationMini = document.getElementById("notification-mini");
+const notificationMiniList = document.getElementById("notification-mini-list");
+const notificationMiniCount = document.getElementById("notification-mini-count");
+let notificationUnsubscribe = null;
+
+function escapeNotificationHtml(value) {
+    return String(value ?? "").replace(/[&<>'"]/g, char => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"
+    })[char]);
+}
+function notificationDate(value) {
+    try {
+        const d = value?.toDate ? value.toDate() : new Date(value);
+        return Number.isNaN(d.getTime()) ? "-" : new Intl.DateTimeFormat("ro-RO", {
+            day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"
+        }).format(d);
+    } catch (_) { return "-"; }
+}
+function renderNotificationMini(items) {
+    const unread = items.filter(n => n.read !== true).length;
+    notificationCount.textContent = unread > 99 ? "99+" : String(unread);
+    notificationCount.hidden = unread === 0;
+    notificationBell?.classList.toggle("has-unread", unread > 0);
+    notificationMiniCount.textContent = `${unread} ${unread === 1 ? "nouă" : "noi"}`;
+
+    if (!items.length) {
+        notificationMiniList.innerHTML = `<div class="notification-mini-empty">Nu ai notificări.</div>`;
+        return;
+    }
+    notificationMiniList.innerHTML = items.slice(0, 3).map(n => `
+        <a class="notification-mini-item ${n.read === true ? "" : "unread"}"
+           data-notification-id="${escapeNotificationHtml(n.id)}"
+           href="${escapeNotificationHtml(n.requestUrl || `cererile_mele.html?cerere=${encodeURIComponent(n.requestId || "")}`)}">
+            <strong>${escapeNotificationHtml(n.title || "Notificare")}</strong>
+            <p>${escapeNotificationHtml(n.message || "")}</p>
+            <small>${escapeNotificationHtml(notificationDate(n.createdAt || n.created_at))}</small>
+        </a>
+    `).join("");
+}
+function startNotifications(user) {
+    if (notificationUnsubscribe) notificationUnsubscribe();
+    notificationUnsubscribe = null;
+    if (!user) return;
+
+    const accountIdentifier = user.providerData?.[0]?.uid || user.uid;
+    const q = query(
+        collection(db, "notificari"),
+        where("recipientId", "==", accountIdentifier),
+        limit(20)
+    );
+
+    notificationUnsubscribe = onSnapshot(q, snapshot => {
+        const items = snapshot.docs
+            .map(d => ({ id:d.id, ...d.data() }))
+            .sort((a,b) => {
+                const ad = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                const bd = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                return bd - ad;
+            });
+        renderNotificationMini(items);
+    }, error => {
+        console.error("Eroare notificări:", error);
+        renderNotificationMini([]);
+    });
+}
+notificationMiniList?.addEventListener("click", async event => {
+    const link = event.target.closest("a[data-notification-id]");
+    if (!link) return;
+    const notificationId = link.dataset.notificationId;
+    if (!notificationId) return;
+
+    event.preventDefault();
+    try {
+        await updateDoc(doc(db, "notificari", notificationId), { read: true });
+    } catch (error) {
+        console.error("Nu s-a putut marca notificarea drept citită:", error);
+    } finally {
+        window.location.href = link.href;
+    }
+});
+
+notificationBell?.addEventListener("click", event => {
+    event.stopPropagation();
+    notificationMini?.classList.toggle("show");
+    notificationMini?.setAttribute("aria-hidden", notificationMini?.classList.contains("show") ? "false" : "true");
+});
+document.addEventListener("click", event => {
+    if (notificationCenter && !notificationCenter.contains(event.target)) {
+        notificationMini?.classList.remove("show");
+        notificationMini?.setAttribute("aria-hidden", "true");
+    }
+});
+
 onAuthStateChanged(auth, async (user) => {
+    startNotifications(user);
     if (user) {
         const emailPart = user.email ? user.email.split('@')[0] : "User";
         const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
@@ -1722,6 +1959,11 @@ onAuthStateChanged(auth, async (user) => {
                         
                         <div class="dropdown-divider"></div>
                         
+                        <a href="notificari.html" class="dropdown-item-premium">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            Centrul de notificări
+                        </a>
+
                         <a href="setari.html" class="dropdown-item-premium">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             Setări cont

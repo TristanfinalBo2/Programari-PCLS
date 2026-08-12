@@ -351,6 +351,7 @@ body.modal-open { overflow: hidden; }
             sourceMap.forEach((value, key) => activeRequests.set(key, value));
         });
         renderRequests(Array.from(activeRequests.values()).sort((a, b) => requestTimestamp(b) - requestTimestamp(a)));
+        openRequestFromUrl();
     }
 
     function renderRequests(requests) {
@@ -454,6 +455,22 @@ body.modal-open { overflow: hidden; }
     modalDone.addEventListener("click", closeDetails);
     modal.addEventListener("click", event => { if (event.target === modal) closeDetails(); });
     document.addEventListener("keydown", event => { if (event.key === "Escape" && modal.classList.contains("open")) closeDetails(); });
+
+
+    let requestedUrlOpen = false;
+    function openRequestFromUrl() {
+        const requestId = new URLSearchParams(window.location.search).get("cerere");
+        if (!requestId || requestedUrlOpen) return;
+
+        const req = activeRequests.get(requestId);
+        if (req) {
+            requestedUrlOpen = true;
+            openDetails(req);
+            return;
+        }
+
+        setTimeout(openRequestFromUrl, 250);
+    }
 
     onAuthStateChanged(auth, user => {
         unsubscribeListeners.forEach(unsubscribe => unsubscribe());
