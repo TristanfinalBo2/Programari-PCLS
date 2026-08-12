@@ -1,19 +1,20 @@
 import { auth, db } from "./firebase-config.js";
-import { collection, onSnapshot, getDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, onSnapshot, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const ROLE_ACCESS = ["admin", "superadmin"];
 let currentRole = null;
 let requests = [];
 let users = [];
 let auditEvents = [];
-let requestsReady = false;
-let usersReady = false;
-let eventsReady = false;
+let started = false;
+let unsubscribeRequests = null;
+let unsubscribeUsers = null;
+let unsubscribeAudit = null;
 
-const esc = value => String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+const esc = value => String(value ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;");
 const norm = value => String(value || "").trim().toLowerCase();
-const activeOf = u => u?.activ !== false && u?.active !== false && u?.enabled !== false;
-const deptOf = r => norm(r?.departament || "necunoscut");
+const deptOf = r => norm(r?.departament || r?.department || "necunoscut");
 
 function inject() {
   if (!document.getElementById("pcls-admin-dashboard-style")) {
@@ -57,42 +58,129 @@ function render() {
   const pending = requests.filter(r => ["in_asteptare","în asteptare","în așteptare","pending"].includes(norm(r.status))).length;
   const approved = requests.filter(r => ["aprobat","aprobata","aprobată","acceptat","accepted"].includes(norm(r.status))).length;
   const rejected = requests.filter(r => ["respins","respinsa","respinsă","rejected"].includes(norm(r.status))).length;
+
   document.getElementById("dash-total")?.replaceChildren(document.createTextNode(String(total)));
   document.getElementById("dash-pending")?.replaceChildren(document.createTextNode(String(pending)));
   document.getElementById("dash-approved")?.replaceChildren(document.createTextNode(String(approved)));
   document.getElementById("dash-rejected")?.replaceChildren(document.createTextNode(String(rejected)));
 
   const deptCounts = {};
-  for (const r of requests) deptCounts[deptOf(r)] = (deptCounts[deptOf(r)] || 0) + 1;
+  for (const r of requests) {
+    const dept = deptOf(r);
+    deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+  }
+
   const depts = ["isuls","dsls","mmls","ssmls"];
   const max = Math.max(1, ...depts.map(d => deptCounts[d] || 0));
   const deptHost = document.getElementById("dash-departments");
-  if (deptHost) deptHost.innerHTML = depts.map(d => `<div class="pcls-dash-row"><span>${d}</span><div class="pcls-bar"><i style="width:${Math.round(((deptCounts[d]||0)/max)*100)}%"></i></div><strong>${deptCounts[d]||0}</strong></div>`).join("");
+  if (deptHost) {
+    deptHost.innerHTML = depts.map(d => `
+      <div class="pcls-dash-row">
+        <span>${d}</span>
+        <div class="pcls-bar"><i style="width:${Math.round(((deptCounts[d] || 0) / max) * 100)}%"></i></div>
+        <strong>${deptCounts[d] || 0}</strong>
+      </div>
+    `).join("");
+  }
 
   const auditHost = document.getElementById("dash-audit-mini");
   if (auditHost) {
-    if (!auditEvents.length) auditHost.innerHTML = `<div class="pcls-audit-text">Nu există încă evenimente de audit.</div>`;
-    else auditHost.innerHTML = auditEvents.slice(0,5).map(e => {
-      const date = e.createdAt?.toDate ? e.createdAt.toDate() : new Date(e.createdAt || 0);
-      const time = Number.isNaN(date.getTime()) ? "—" : date.toLocaleTimeString("ro-RO",{hour:"2-digit",minute:"2-digit"});
-      return `<div class="pcls-audit-item"><div class="pcls-audit-time">${esc(time)}</div><div class="pcls-audit-text"><b>${esc(e.actorName || e.actorRole || "Sistem")}</b> · ${esc(e.action || "Activitate")}</div></div>`;
-    }).join("");
+    if (!auditEvents.length) {
+      auditHost.innerHTML = `<div class="pcls-audit-text">Nu există încă evenimente de audit.</div>`;
+    } else {
+      auditHost.innerHTML = auditEvents.slice(0, 5).map(e => {
+        const date = e.createdAt?.toDate ? e.createdAt.toDate() : new Date(e.createdAt || 0);
+        const time = Number.isNaN(date.getTime()) ? "—" : date.toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
+        return `<div class="pcls-audit-item"><div class="pcls-audit-time">${esc(time)}</div><div class="pcls-audit-text"><b>${esc(e.actorName || e.actorRole || "Sistem")}</b> · ${esc(e.action || "Activitate")}</div></div>`;
+      }).join("");
+    }
   }
 }
 
-async function init() {
-  const user = auth.currentUser;
-  if (!user) return;
-  const snap = await getDoc(doc(db,"utilizatori",user.uid));
-  const role = norm(snap.data()?.role || snap.data()?.rol);
-  if (!ROLE_ACCESS.includes(role) && user.email !== "tsplayer18@gmail.com") return;
-  currentRole = role;
-  inject();
-
-  onSnapshot(collection(db,"cereri"), snap => { requests = snap.docs.map(d=>({id:d.id,...d.data()})); requestsReady = true; render(); }, err=>console.error("Dashboard cereri:",err));
-  onSnapshot(collection(db,"utilizatori"), snap => { users = snap.docs.map(d=>({uid:d.id,...d.data()})); usersReady = true; render(); }, err=>console.error("Dashboard utilizatori:",err));
-  onSnapshot(query(collection(db,"audit_log"),orderBy("createdAt","desc"),limit(10)), snap => { auditEvents = snap.docs.map(d=>({id:d.id,...d.data()})); eventsReady = true; render(); }, err => console.warn("Audit log indisponibil:",err));
+function stopListeners() {
+  unsubscribeRequests?.();
+  unsubscribeUsers?.();
+  unsubscribeAudit?.();
+  unsubscribeRequests = null;
+  unsubscribeUsers = null;
+  unsubscribeAudit = null;
 }
 
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, {once:true});
-else init();
+async function startForUser(user) {
+  if (!user) return;
+  if (!document.getElementById("cereri-container")) return;
+
+  try {
+    const snap = await getDoc(doc(db, "utilizatori", user.uid));
+    const role = norm(snap.data()?.role || snap.data()?.rol);
+    if (!ROLE_ACCESS.includes(role) && user.email !== "tsplayer18@gmail.com") return;
+
+    currentRole = role;
+    inject();
+    stopListeners();
+
+    unsubscribeRequests = onSnapshot(
+      collection(db, "cereri"),
+      snap => {
+        requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        render();
+      },
+      err => console.error("Dashboard cereri:", err)
+    );
+
+    unsubscribeUsers = onSnapshot(
+      collection(db, "utilizatori"),
+      snap => {
+        users = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        render();
+      },
+      err => console.error("Dashboard utilizatori:", err)
+    );
+
+    // Auditul nu trebuie să blocheze dashboard-ul dacă nu are încă date.
+    unsubscribeAudit = onSnapshot(
+      collection(db, "audit_log"),
+      snap => {
+        auditEvents = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => {
+            const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+            const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+            return tb - ta;
+          })
+          .slice(0, 10);
+        render();
+      },
+      err => {
+        console.warn("Audit log indisponibil:", err);
+        auditEvents = [];
+        render();
+      }
+    );
+  } catch (error) {
+    console.error("Inițializare dashboard admin:", error);
+  }
+}
+
+function initAuth() {
+  if (started) return;
+  started = true;
+
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      stopListeners();
+      return;
+    }
+    void startForUser(user);
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAuth, { once: true });
+} else {
+  initAuth();
+}
+
+window.addEventListener("pageshow", () => {
+  if (auth.currentUser) void startForUser(auth.currentUser);
+});
