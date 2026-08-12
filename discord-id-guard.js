@@ -1,20 +1,13 @@
-import { auth, db } from "./firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const EXEMPT_PATHS = [
-  "/auth.html",
-  "/setari.html"
-];
-
+const EXEMPT_PATHS = ["/auth.html", "/setari.html"];
 const normalizePath = () => {
   const path = window.location.pathname.toLowerCase();
   return path.endsWith("/") ? "/index.html" : path;
 };
-
-function isExempt() {
-  return EXEMPT_PATHS.includes(normalizePath());
-}
+const isExempt = () => EXEMPT_PATHS.includes(normalizePath());
 
 function injectStyles() {
   if (document.getElementById("discord-id-guard-style")) return;
@@ -37,41 +30,32 @@ function ensureOverlay() {
   if (overlay) return overlay;
   overlay = document.createElement("div");
   overlay.id = "discord-id-guard";
-  overlay.innerHTML = `
-    <div class="discord-id-guard-box" role="dialog" aria-modal="true" aria-labelledby="discord-id-guard-title">
-      <div class="discord-id-guard-icon">◎</div>
-      <div id="discord-id-guard-title" class="discord-id-guard-title">Completează Discord ID</div>
-      <div class="discord-id-guard-text">Pentru identificarea corectă a membrilor, contul tău trebuie să aibă un Discord ID salvat în profil. Completează-l în Setări înainte de a continua.</div>
-      <a class="discord-id-guard-button" href="setari.html">Deschide Setări</a>
-    </div>`;
+  overlay.innerHTML = `<div class="discord-id-guard-box" role="dialog" aria-modal="true"><div class="discord-id-guard-icon">◎</div><div class="discord-id-guard-title">Completează Discord ID</div><div class="discord-id-guard-text">Pentru identificarea corectă a membrilor, contul tău trebuie să aibă un Discord ID salvat în profil. Completează-l în Setări înainte de a continua.</div><a class="discord-id-guard-button" href="setari.html">Deschide Setări</a></div>`;
   document.body.appendChild(overlay);
   return overlay;
 }
 
-function showGuard() {
-  const overlay = ensureOverlay();
-  overlay.classList.add("show");
-  document.body.style.overflow = "hidden";
-}
-
-function hideGuard() {
-  const overlay = document.getElementById("discord-id-guard");
-  overlay?.classList.remove("show");
-  document.body.style.overflow = "";
-}
-
 async function verifyProfile(user) {
-  if (!user || isExempt()) return;
+  if (!user || isExempt() || !getApps().length) return;
   injectStyles();
   try {
+    const db = getFirestore(getApp());
     const snap = await getDoc(doc(db, "utilizatori", user.uid));
     const discordId = String(snap.data()?.discordId || snap.data()?.discord_id || "").trim();
+    const overlay = ensureOverlay();
     const valid = /^\d{17,20}$/.test(discordId);
-    if (!valid) showGuard();
-    else hideGuard();
+    overlay.classList.toggle("show", !valid);
+    document.body.style.overflow = valid ? "" : "hidden";
   } catch (error) {
     console.error("Discord ID guard:", error);
   }
 }
 
-onAuthStateChanged(auth, user => { void verifyProfile(user); });
+function boot() {
+  if (!getApps().length || isExempt()) return;
+  const auth = getAuth(getApp());
+  onAuthStateChanged(auth, user => { void verifyProfile(user); });
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
+else boot();
