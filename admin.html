@@ -1224,9 +1224,25 @@
   <div id="toast-container"></div>
 
   <script type="module">
-  import { db, auth } from "./firebase-config.js";
-  import { collection, onSnapshot, doc, updateDoc, deleteDoc, getDoc, getDocs, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { db, auth } from "./firebase-config.js";
+
+import {
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  addDoc,
+  query,
+  where,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   const ROLE_PERMISSIONS = {
     superadmin: ["all"], admin: ["all"],
@@ -1704,9 +1720,108 @@
     return '';
   }
 
-async function createRequestNotification(requestId, requestData, newStatus, adminName) {
-  const shouldNotify = ['aprobat', 'acceptat', 'respins']
-    .includes(String(newStatus || '').toLowerCase());
+async function resolveRequestOwnerUid(requestData) {
+  if (!requestData) return '';
+
+  // UID salvat direct în cerere
+  const directUid = String(
+    requestData.ownerUid ||
+    requestData.ownerUID ||
+    requestData.userUid ||
+    requestData.userUID ||
+    requestData.uid ||
+    requestData.user_id ||
+    requestData.userId ||
+    requestData.firebaseUid ||
+    requestData.firebaseUID ||
+    requestData.uid_firebase ||
+    requestData.uidFirebase ||
+    ''
+  ).trim();
+
+  if (directUid) {
+    return directUid;
+  }
+
+  // Discord ID
+  const discordId = String(
+    requestData.discord_id ||
+    requestData.discord ||
+    requestData.numeDiscord ||
+    requestData.discordId ||
+    requestData.discordUID ||
+    requestData.discordUid ||
+    ''
+  ).trim();
+
+  if (!discordId) {
+    return '';
+  }
+
+  const collectionsToCheck = ['utilizatori', 'users'];
+  const discordFields = [
+    'discord_id',
+    'discordId',
+    'discordUID',
+    'discordUid',
+    'discord'
+  ];
+
+  for (const collectionName of collectionsToCheck) {
+    for (const fieldName of discordFields) {
+      try {
+        const q = query(
+          collection(db, collectionName),
+          where(fieldName, '==', discordId)
+        );
+
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          const userDoc = snap.docs[0];
+          const userData = userDoc.data();
+
+          const uid = String(
+            userData.uid ||
+            userData.userUid ||
+            userData.userUID ||
+            userData.firebaseUid ||
+            userData.firebaseUID ||
+            userDoc.id ||
+            ''
+          ).trim();
+
+          if (uid) {
+            console.log('UID găsit:', uid);
+            return uid;
+          }
+        }
+      } catch (error) {
+        console.warn(
+          `Eroare căutare ${collectionName}.${fieldName}:`,
+          error
+        );
+      }
+    }
+  }
+
+  return '';
+}
+
+
+async function createRequestNotification(
+  requestId,
+  requestData,
+  newStatus,
+  adminName
+) {
+  const normalizedStatus = String(newStatus || '').toLowerCase();
+
+  const shouldNotify = [
+    'aprobat',
+    'acceptat',
+    'respins'
+  ].includes(normalizedStatus);
 
   if (!shouldNotify) {
     return {
@@ -1730,11 +1845,8 @@ async function createRequestNotification(requestId, requestData, newStatus, admi
   if (!ownerUid) {
     console.warn(
       'Nu am putut identifica UID-ul Firebase al proprietarului cererii.',
-      {
-        requestId,
-        ownerDiscordId,
-        requestData
-      }
+      requestId,
+      requestData
     );
 
     return {
@@ -1742,8 +1854,6 @@ async function createRequestNotification(requestId, requestData, newStatus, admi
       ownerUid: ''
     };
   }
-
-  const normalizedStatus = String(newStatus).toLowerCase();
 
   const isApproved =
     normalizedStatus === 'aprobat' ||
@@ -1781,17 +1891,79 @@ async function createRequestNotification(requestId, requestData, newStatus, admi
     createdAt: serverTimestamp()
   });
 
-  console.log('Notificare creată cu succes:', {
-    requestId,
-    ownerUid,
-    ownerDiscordId,
-    status: normalizedStatus
-  });
-
   return {
     created: true,
     ownerUid
   };
+}
+
+
+async function updateStatus(id, newStatus, actionName) {
+  const requestRef = doc(db, 'cereri', id);
+
+  try {
+    const requestSnap = await getDoc(requestRef);
+
+    if (!requestSnap.exists()) {
+      showToast('Cererea nu mai există.', 'error');
+      return;
+    }
+
+    const requestData = requestSnap.data();
+    const adminName = getCurrentAdminName();
+
+    const updateData = {
+      status: newStatus,
+      procesat_de: `${adminName} (${actionName})`,
+      data_procesare: new Date().toLocaleString('ro-RO'),
+      deleted: newStatus === 'in_cos'
+    };
+
+    // IMPORTANT:
+    // Salvăm statusul indiferent dacă notificarea eșuează.
+    await updateDoc(requestRef, updateData);
+
+    let notificationResult = {
+      created: false,
+      ownerUid: ''
+    };
+
+    try {
+      notificationResult = await createRequestNotification(
+        id,
+        requestData,
+        newStatus,
+        adminName
+      );
+    } catch (notificationError) {
+      console.error(
+        'Eroare la crearea notificării:',
+        notificationError
+      );
+    }
+
+    if (newStatus !== 'in_cos') {
+      if (notificationResult.created) {
+        showToast(
+          newStatus === 'respins'
+            ? 'Cererea a fost respinsă și notificarea a fost trimisă.'
+            : 'Cererea a fost aprobată și notificarea a fost trimisă.',
+          'success'
+        );
+      } else {
+        showToast(
+          newStatus === 'respins'
+            ? 'Cererea a fost respinsă. Notificarea nu a putut fi trimisă.'
+            : 'Cererea a fost aprobată. Notificarea nu a putut fi trimisă.',
+          'warning'
+        );
+      }
+    }
+
+  } catch (e) {
+    console.error('Eroare updateStatus:', e);
+    showToast('Eroare la salvarea cererii.', 'error');
+  }
 }
 
   function closeConfirmModal() { confirmModal.classList.remove("active"); pendingDeleteId = null; }
