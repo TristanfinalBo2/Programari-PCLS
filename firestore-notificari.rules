@@ -14,7 +14,8 @@ match /notificari/{notificationId} {
   allow delete: if false;
 }
 
-// Audit log: administratorii pot crea/citi evenimente; utilizatorii obișnuiți nu au acces.
+// Audit log: administratorii pot crea/citi evenimente; identitatea actorului
+// trebuie sa corespunda utilizatorului autentificat, pentru a preveni spoofing-ul.
 match /audit_log/{auditId} {
   allow read: if request.auth != null
               && get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role
@@ -22,7 +23,8 @@ match /audit_log/{auditId} {
 
   allow create: if request.auth != null
                 && get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role
-                   in ["superadmin", "admin"];
+                   in ["superadmin", "admin"]
+                && request.resource.data.actorId == request.auth.uid;
 
   allow update, delete: if false;
 }
