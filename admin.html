@@ -1223,7 +1223,7 @@
 
   <div id="toast-container"></div>
 
-  <script type="module">
+<script type="module">
 import { db, auth } from "./firebase-config.js";
 
 import {
@@ -1244,570 +1244,1964 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  const ROLE_PERMISSIONS = {
-    superadmin: ["all"], admin: ["all"],
-    conducere: ["isuls", "dsls", "mmls", "ssmls"],
-    isuls: ["isuls"], dsls: ["dsls"], mmls: ["mmls", "mm"], ssmls: ["ssmls", "ssmmls"]
-  };
 
-  let currentUserRole = null; 
-  let allCereri = [];
-  let currentFilter = "all";
-  let currentSearch = "";
-  let pendingDeleteId = null;
-  let pendingApproveId = null; 
-  let currentOpenItem = null;
+/* =========================================================
+   PERMISIUNI
+========================================================= */
 
-  const btnGenerateCode = document.getElementById("btn-generate-code");
-  const inviteRoleSelect = document.getElementById("invite-role-select");
-  const generatedCodeDisplay = document.getElementById("generated-code-display");
+const ROLE_PERMISSIONS = {
+  superadmin: ["all"],
+  admin: ["all"],
+  conducere: ["isuls", "dsls", "mmls", "ssmls"],
+  isuls: ["isuls"],
+  dsls: ["dsls"],
+  mmls: ["mmls", "mm"],
+  ssmls: ["ssmls", "ssmmls"]
+};
 
-  const cereriContainer = document.getElementById("cereri-container");
-  const totalCountEl = document.getElementById("total-count");
-  const filterButtons = document.querySelectorAll(".filter-btn");
-  const searchInput = document.getElementById("cereri-search");
-  const searchClearBtn = document.getElementById("cereri-search-clear");
 
-  // Elemente Modal Aprobare
-  const approveModal = document.getElementById("approve-modal");
-  const approveOkBtn = document.getElementById("approve-ok-btn");
-  const approveCancelBtn = document.getElementById("approve-cancel-btn");
-  const approveCloseBtn = document.getElementById("approve-close");
-  const approveCopyBtn = document.getElementById("approve-copy-btn"); // Buton Copiere Aprobare
+/* =========================================================
+   VARIABILE
+========================================================= */
 
-  // Elemente Modal Stergere
-  const confirmModal = document.getElementById("confirm-modal");
-  const confirmOkBtn = document.getElementById("confirm-ok-btn");
-  const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
-  const confirmCloseBtn = document.getElementById("confirm-close");
+let currentUserRole = null;
+let allCereri = [];
+let currentFilter = "all";
+let currentSearch = "";
+let pendingDeleteId = null;
+let pendingApproveId = null;
+let currentOpenItem = null;
 
-  // Elemente Modal Detalii
-  const detailsModal = document.getElementById("details-modal");
-  const detailsClose = document.getElementById("details-close");
-  const detailsCloseBtn = document.getElementById("details-close-btn");
-  const detailsTrashBtn = document.getElementById("details-trash-btn");
-  const detailsCopyBtn = document.getElementById("details-copy-btn"); // Buton Copiere Detalii
 
-  function getCurrentAdminName() {
-    if (auth && auth.currentUser) return auth.currentUser.email || auth.currentUser.displayName || "Admin PCLS";
-    return "Admin PCLS";
+/* =========================================================
+   ELEMENTE
+========================================================= */
+
+const btnGenerateCode =
+  document.getElementById("btn-generate-code");
+
+const inviteRoleSelect =
+  document.getElementById("invite-role-select");
+
+const generatedCodeDisplay =
+  document.getElementById("generated-code-display");
+
+const cereriContainer =
+  document.getElementById("cereri-container");
+
+const totalCountEl =
+  document.getElementById("total-count");
+
+const filterButtons =
+  document.querySelectorAll(".filter-btn");
+
+const searchInput =
+  document.getElementById("cereri-search");
+
+const searchClearBtn =
+  document.getElementById("cereri-search-clear");
+
+
+/* =========================================================
+   MODAL APROBARE
+========================================================= */
+
+const approveModal =
+  document.getElementById("approve-modal");
+
+const approveOkBtn =
+  document.getElementById("approve-ok-btn");
+
+const approveCancelBtn =
+  document.getElementById("approve-cancel-btn");
+
+const approveCloseBtn =
+  document.getElementById("approve-close");
+
+const approveCopyBtn =
+  document.getElementById("approve-copy-btn");
+
+
+/* =========================================================
+   MODAL STERGERE
+========================================================= */
+
+const confirmModal =
+  document.getElementById("confirm-modal");
+
+const confirmOkBtn =
+  document.getElementById("confirm-ok-btn");
+
+const confirmCancelBtn =
+  document.getElementById("confirm-cancel-btn");
+
+const confirmCloseBtn =
+  document.getElementById("confirm-close");
+
+
+/* =========================================================
+   MODAL DETALII
+========================================================= */
+
+const detailsModal =
+  document.getElementById("details-modal");
+
+const detailsClose =
+  document.getElementById("details-close");
+
+const detailsCloseBtn =
+  document.getElementById("details-close-btn");
+
+const detailsTrashBtn =
+  document.getElementById("details-trash-btn");
+
+const detailsCopyBtn =
+  document.getElementById("details-copy-btn");
+
+
+/* =========================================================
+   NUME ADMIN
+========================================================= */
+
+function getCurrentAdminName() {
+  if (auth && auth.currentUser) {
+    return (
+      auth.currentUser.email ||
+      auth.currentUser.displayName ||
+      "Admin PCLS"
+    );
   }
 
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "ssmls", "ssmmls"];
-        const userDocRef = doc(db, "utilizatori", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          const rawRole = (data.role || data.rol || "").toString().toLowerCase().trim();
-          const role = (rawRole === "ssmmls") ? "ssmls" : (rawRole === "mm" ? "mmls" : rawRole);
-          if (validRoles.includes(rawRole) || validRoles.includes(role)) {
-            currentUserRole = role;
-            
-            const generatorSection = document.getElementById("admin-generator-section");
-            if (generatorSection) {
-              if (["superadmin", "admin", "conducere"].includes(currentUserRole)) {
-                generatorSection.style.display = "block";
-              } else {
-                generatorSection.style.display = "none";
-              }
-            }
+  return "Admin PCLS";
+}
 
-            adjustFilterButtonsForRole(currentUserRole);
-            initFirestoreListener();
-          } else { window.location.href = "index.html"; }
-        } else { window.location.href = "index.html"; }
-      } catch (error) { console.error(error); }
-    } else { window.location.href = "auth.html"; }
-  });
 
-  function adjustFilterButtonsForRole(role) {
-    if (["superadmin", "admin"].includes(role)) return; 
-    filterButtons.forEach(btn => {
-      const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
-      if (role === "conducere") {
-        const conducereAllowedTabs = ["all", "toate", "in_asteptare", "în așteptare", "arhivat", "arhivă", "in_cos", "coș de gunoi", "isuls", "dsls", "mmls", "ssmls"];
-        if (!conducereAllowedTabs.includes(filterVal)) btn.style.display = "none";
+/* =========================================================
+   AUTENTIFICARE
+========================================================= */
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
+
+  try {
+    const validRoles = [
+      "superadmin",
+      "admin",
+      "conducere",
+      "isuls",
+      "dsls",
+      "mmls",
+      "ssmls",
+      "ssmmls"
+    ];
+
+    const userDocRef =
+      doc(db, "utilizatori", user.uid);
+
+    const userDoc =
+      await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      console.error(
+        "Documentul utilizatorului nu există:",
+        user.uid
+      );
+
+      window.location.href = "index.html";
+      return;
+    }
+
+    const data = userDoc.data();
+
+    const rawRole =
+      (data.role || data.rol || "")
+        .toString()
+        .toLowerCase()
+        .trim();
+
+    const role =
+      rawRole === "ssmmls"
+        ? "ssmls"
+        : rawRole === "mm"
+          ? "mmls"
+          : rawRole;
+
+    if (
+      !validRoles.includes(rawRole) &&
+      !validRoles.includes(role)
+    ) {
+      console.error("Rol invalid:", rawRole);
+      window.location.href = "index.html";
+      return;
+    }
+
+    currentUserRole = role;
+
+    const generatorSection =
+      document.getElementById(
+        "admin-generator-section"
+      );
+
+    if (generatorSection) {
+      if (
+        ["superadmin", "admin", "conducere"]
+          .includes(currentUserRole)
+      ) {
+        generatorSection.style.display = "block";
       } else {
-        const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls", "pcls"];
-        if (subdepartments.includes(filterVal) && filterVal !== role) btn.style.display = "none";
+        generatorSection.style.display = "none";
       }
-    });
+    }
+
+    adjustFilterButtonsForRole(currentUserRole);
+
+    initFirestoreListener();
+
+  } catch (error) {
+    console.error(
+      "Eroare autentificare/admin:",
+      error
+    );
   }
+});
 
-  if (btnGenerateCode) {
-    btnGenerateCode.addEventListener("click", async () => {
-      const selectedRole = inviteRoleSelect ? inviteRoleSelect.value : "isuls";
-      const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const newCode = `${selectedRole.toUpperCase()}-${randomStr}`;
-      
-      try {
-        const originalText = btnGenerateCode.textContent;
-        btnGenerateCode.textContent = "Se generează...";
-        btnGenerateCode.disabled = true;
 
-        await addDoc(collection(db, "invite_codes"), {
-          code: newCode, role: selectedRole, used: false,
-          created_at: new Date().toISOString(), created_by: getCurrentAdminName()
-        });
+/* =========================================================
+   FILTRE ÎN FUNCȚIE DE ROL
+========================================================= */
 
-        if (generatedCodeDisplay) {
-          generatedCodeDisplay.innerHTML = `Cod generat: <span style="background: rgba(0,255,163,0.1); padding: 4px 10px; border-radius: 8px; user-select: all; border: 1px solid rgba(0,255,163,0.2);">${newCode}</span> <br><span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal; margin-top: 5px; display: block;">(Copiază-l și oferă-l adminului nou)</span>`;
-        }
-        
-        showToast("Cod generat și salvat cu succes!", "success");
-        btnGenerateCode.textContent = originalText;
-        btnGenerateCode.disabled = false;
-
-      } catch (error) {
-        if (generatedCodeDisplay) generatedCodeDisplay.textContent = "A apărut o eroare la salvarea codului.";
-        showToast("Eroare la generarea codului.", "error");
-        btnGenerateCode.textContent = "Generează Cod";
-        btnGenerateCode.disabled = false;
-      }
-    });
-  }
-
-  function initFirestoreListener() {
-    onSnapshot(collection(db, "cereri"), (snapshot) => {
-      allCereri = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-      allCereri.sort((a, b) => {
-        const getTime = (x) => {
-          if (x.created_at?.toMillis) return x.created_at.toMillis();
-          if (x.created_at) return new Date(x.created_at).getTime();
-          return 0;
-        };
-        return getTime(b) - getTime(a);
-      });
-      renderCereri();
-    });
+function adjustFilterButtonsForRole(role) {
+  if (
+    ["superadmin", "admin"].includes(role)
+  ) {
+    return;
   }
 
   filterButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      filterButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentFilter = btn.getAttribute("data-filter") || btn.textContent.trim();
-      renderCereri();
-    });
+    const filterVal =
+      (
+        btn.getAttribute("data-filter") ||
+        btn.textContent.trim()
+      )
+        .toLowerCase()
+        .trim();
+
+    if (role === "conducere") {
+      const conducereAllowedTabs = [
+        "all",
+        "toate",
+        "in_asteptare",
+        "în așteptare",
+        "arhivat",
+        "arhivă",
+        "in_cos",
+        "coș de gunoi",
+        "isuls",
+        "dsls",
+        "mmls",
+        "ssmls"
+      ];
+
+      if (
+        !conducereAllowedTabs.includes(filterVal)
+      ) {
+        btn.style.display = "none";
+      }
+
+    } else {
+
+      const subdepartments = [
+        "isuls",
+        "dsls",
+        "mmls",
+        "ssmls",
+        "ssmmls",
+        "pcls"
+      ];
+
+      if (
+        subdepartments.includes(filterVal) &&
+        filterVal !== role
+      ) {
+        btn.style.display = "none";
+      }
+    }
   });
+}
 
-  function normalizeSearchText(value) {
-    return String(value || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .trim();
-  }
 
-  if (searchInput) {
-    searchInput.addEventListener("input", () => {
-      currentSearch = normalizeSearchText(searchInput.value);
-      if (searchClearBtn) searchClearBtn.hidden = currentSearch.length === 0;
+/* =========================================================
+   GENERARE COD INVITAȚIE
+========================================================= */
+
+if (btnGenerateCode) {
+
+  btnGenerateCode.addEventListener(
+    "click",
+    async () => {
+
+      const selectedRole =
+        inviteRoleSelect
+          ? inviteRoleSelect.value
+          : "isuls";
+
+      const randomStr =
+        Math.random()
+          .toString(36)
+          .substring(2, 8)
+          .toUpperCase();
+
+      const newCode =
+        `${selectedRole.toUpperCase()}-${randomStr}`;
+
+      try {
+
+        const originalText =
+          btnGenerateCode.textContent;
+
+        btnGenerateCode.textContent =
+          "Se generează...";
+
+        btnGenerateCode.disabled = true;
+
+        await addDoc(
+          collection(db, "invite_codes"),
+          {
+            code: newCode,
+            role: selectedRole,
+            used: false,
+            created_at:
+              new Date().toISOString(),
+            created_by:
+              getCurrentAdminName()
+          }
+        );
+
+        if (generatedCodeDisplay) {
+
+          generatedCodeDisplay.innerHTML =
+            `Cod generat:
+            <span
+              style="
+                background: rgba(0,255,163,0.1);
+                padding: 4px 10px;
+                border-radius: 8px;
+                user-select: all;
+                border: 1px solid rgba(0,255,163,0.2);
+              "
+            >${newCode}</span>
+
+            <br>
+
+            <span
+              style="
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                font-weight: normal;
+                margin-top: 5px;
+                display: block;
+              "
+            >
+              (Copiază-l și oferă-l adminului nou)
+            </span>`;
+        }
+
+        showToast(
+          "Cod generat și salvat cu succes!",
+          "success"
+        );
+
+        btnGenerateCode.textContent =
+          originalText;
+
+        btnGenerateCode.disabled = false;
+
+      } catch (error) {
+
+        console.error(
+          "Eroare generare cod:",
+          error
+        );
+
+        if (generatedCodeDisplay) {
+          generatedCodeDisplay.textContent =
+            "A apărut o eroare la salvarea codului.";
+        }
+
+        showToast(
+          "Eroare la generarea codului.",
+          "error"
+        );
+
+        btnGenerateCode.textContent =
+          "Generează Cod";
+
+        btnGenerateCode.disabled = false;
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   LISTENER FIRESTORE CERERI
+========================================================= */
+
+function initFirestoreListener() {
+
+  console.log(
+    "Pornesc listener-ul pentru colecția cereri..."
+  );
+
+  onSnapshot(
+
+    collection(db, "cereri"),
+
+    snapshot => {
+
+      console.log(
+        "CERERI FIRESTORE:",
+        snapshot.size
+      );
+
+      allCereri =
+        snapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+
+
+      allCereri.sort((a, b) => {
+
+        const getTime = x => {
+
+          if (
+            x.created_at &&
+            typeof x.created_at.toMillis === "function"
+          ) {
+            return x.created_at.toMillis();
+          }
+
+          if (x.created_at) {
+
+            const time =
+              new Date(x.created_at).getTime();
+
+            return Number.isNaN(time)
+              ? 0
+              : time;
+          }
+
+          if (
+            x.createdAt &&
+            typeof x.createdAt.toMillis === "function"
+          ) {
+            return x.createdAt.toMillis();
+          }
+
+          return 0;
+        };
+
+        return getTime(b) - getTime(a);
+      });
+
+
       renderCereri();
-    });
-  }
+    },
 
-  if (searchClearBtn) {
-    searchClearBtn.addEventListener("click", () => {
+    error => {
+
+      console.error(
+        "EROARE FIRESTORE CERERI:",
+        error
+      );
+
+      if (cereriContainer) {
+
+        cereriContainer.innerHTML = `
+          <div class="empty-state">
+            Nu s-au putut încărca cererile.
+            <br>
+            <small>
+              ${escapeHtml(
+                error.message || ""
+              )}
+            </small>
+          </div>
+        `;
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   FILTRE
+========================================================= */
+
+filterButtons.forEach(btn => {
+
+  btn.addEventListener(
+    "click",
+    () => {
+
+      filterButtons.forEach(b =>
+        b.classList.remove("active")
+      );
+
+      btn.classList.add("active");
+
+      currentFilter =
+        btn.getAttribute("data-filter") ||
+        btn.textContent.trim();
+
+      renderCereri();
+    }
+  );
+});
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function normalizeSearchText(value) {
+
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+
+if (searchInput) {
+
+  searchInput.addEventListener(
+    "input",
+    () => {
+
+      currentSearch =
+        normalizeSearchText(
+          searchInput.value
+        );
+
+      if (searchClearBtn) {
+
+        searchClearBtn.hidden =
+          currentSearch.length === 0;
+      }
+
+      renderCereri();
+    }
+  );
+}
+
+
+if (searchClearBtn) {
+
+  searchClearBtn.addEventListener(
+    "click",
+    () => {
+
       currentSearch = "";
+
       if (searchInput) {
         searchInput.value = "";
         searchInput.focus();
       }
+
       searchClearBtn.hidden = true;
+
       renderCereri();
-    });
+    }
+  );
+}
+
+
+/* =========================================================
+   AFIȘARE CERERI
+========================================================= */
+
+function renderCereri() {
+
+  if (!cereriContainer) {
+    return;
   }
 
-  function renderCereri() {
-    if (!cereriContainer) return;
-    cereriContainer.innerHTML = "";
+  cereriContainer.innerHTML = "";
 
-    const roleAllowedCereri = allCereri.filter(item => {
-      if (["superadmin", "admin"].includes(currentUserRole)) return true;
-      const dep = (item.departament || "").toString().toLowerCase().trim();
-      const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
-      if (currentUserRole === "conducere") {
-        const allowedDepts = ["isuls", "dsls", "mmls", "ssmls", "mm", "ssmmls"];
-        if (!allowedDepts.includes(dep) || tipCerere.includes("programare") || dep === "pcls") return false;
+
+  const roleAllowedCereri =
+    allCereri.filter(item => {
+
+      if (
+        ["superadmin", "admin"]
+          .includes(currentUserRole)
+      ) {
         return true;
       }
-      const allowedKeywords = ROLE_PERMISSIONS[currentUserRole.toLowerCase()] || [currentUserRole.toLowerCase()];
-      const itemText = [item.departament, item.tip_cerere, item.eveniment].filter(Boolean).join(" ").toLowerCase();
-      return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
-    });
 
-    const activeCount = roleAllowedCereri.filter(c => c.status !== "in_cos" && !c.arhivat && !c.deleted).length;
-    if (totalCountEl) totalCountEl.textContent = activeCount;
 
-    let filtered = roleAllowedCereri.filter(item => {
-      const rawStatus = (item.status || "in_asteptare").toString().toLowerCase().trim();
-      const isTrash = rawStatus === "in_cos" || item.deleted === true;
-      const isArhivat = item.arhivat === true || item.archived === true || rawStatus === "arhivat";
-      const filterNorm = (currentFilter || "all").toString().trim().toLowerCase();
-
-      if (filterNorm === "in_cos") return isTrash;
-      if (isTrash) return false;
-      if (filterNorm === "arhivat") return isArhivat;
-      if (isArhivat) return false;
-      if (filterNorm === "all") return true;
-      if (filterNorm === "in_asteptare") return rawStatus.includes("asteptare");
-      if (filterNorm === "pcls") {
-        const normalizePclsText = (value) => String(value || "")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
+      const dep =
+        (item.departament || "")
+          .toString()
           .toLowerCase()
           .trim();
 
-        const itemDept = normalizePclsText(item.departament);
-        const medicalDepartments = ["isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"];
-        if (medicalDepartments.includes(itemDept)) return false;
+      const tipCerere =
+        (item.tip_cerere || "")
+          .toString()
+          .toLowerCase()
+          .trim();
 
-        const requestText = normalizePclsText([
-          item.tip_cerere,
-          item.tip,
-          item.categorie,
-          item.eveniment
-        ].filter(Boolean).join(" "));
 
-        const hasEventRequest = Boolean(String(item.eveniment || "").trim()) || requestText.includes("eveniment") || requestText.includes("event");
-        const hasAppointmentRequest = requestText.includes("programare");
-        const hasRegistrationRequest = requestText.includes("inregistrare");
+      if (currentUserRole === "conducere") {
 
-        return itemDept === "pcls" || hasEventRequest || hasAppointmentRequest || hasRegistrationRequest;
+        const allowedDepts = [
+          "isuls",
+          "dsls",
+          "mmls",
+          "ssmls",
+          "mm",
+          "ssmmls"
+        ];
+
+        if (
+          !allowedDepts.includes(dep) ||
+          tipCerere.includes("programare") ||
+          dep === "pcls"
+        ) {
+          return false;
+        }
+
+        return true;
       }
-      
-      const itemDept = (item.departament || "").toString().toLowerCase();
+
+
+      const allowedKeywords =
+        ROLE_PERMISSIONS[
+          currentUserRole?.toLowerCase()
+        ] ||
+        [
+          currentUserRole?.toLowerCase()
+        ];
+
+
+      const itemText = [
+        item.departament,
+        item.tip_cerere,
+        item.eveniment
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+
+      return allowedKeywords.some(
+        kw =>
+          itemText.includes(
+            kw.toLowerCase()
+          )
+      );
+    });
+
+
+  const activeCount =
+    roleAllowedCereri.filter(
+      c =>
+        c.status !== "in_cos" &&
+        !c.arhivat &&
+        !c.deleted
+    ).length;
+
+
+  if (totalCountEl) {
+    totalCountEl.textContent =
+      activeCount;
+  }
+
+
+  let filtered =
+    roleAllowedCereri.filter(item => {
+
+      const rawStatus =
+        (
+          item.status ||
+          "in_asteptare"
+        )
+          .toString()
+          .toLowerCase()
+          .trim();
+
+
+      const isTrash =
+        rawStatus === "in_cos" ||
+        item.deleted === true;
+
+
+      const isArhivat =
+        item.arhivat === true ||
+        item.archived === true ||
+        rawStatus === "arhivat";
+
+
+      const filterNorm =
+        (
+          currentFilter ||
+          "all"
+        )
+          .toString()
+          .trim()
+          .toLowerCase();
+
+
+      if (filterNorm === "in_cos") {
+        return isTrash;
+      }
+
+
+      if (isTrash) {
+        return false;
+      }
+
+
+      if (filterNorm === "arhivat") {
+        return isArhivat;
+      }
+
+
+      if (isArhivat) {
+        return false;
+      }
+
+
+      if (filterNorm === "all") {
+        return true;
+      }
+
+
+      if (
+        filterNorm === "in_asteptare"
+      ) {
+        return rawStatus.includes(
+          "asteptare"
+        );
+      }
+
+
+      if (filterNorm === "pcls") {
+
+        const normalizePclsText =
+          value =>
+            String(value || "")
+              .normalize("NFD")
+              .replace(
+                /[\u0300-\u036f]/g,
+                ""
+              )
+              .toLowerCase()
+              .trim();
+
+
+        const itemDept =
+          normalizePclsText(
+            item.departament
+          );
+
+
+        const medicalDepartments = [
+          "isuls",
+          "dsls",
+          "mmls",
+          "mm",
+          "ssmls",
+          "ssmmls"
+        ];
+
+
+        if (
+          medicalDepartments.includes(
+            itemDept
+          )
+        ) {
+          return false;
+        }
+
+
+        const requestText =
+          normalizePclsText(
+            [
+              item.tip_cerere,
+              item.tip,
+              item.categorie,
+              item.eveniment
+            ]
+              .filter(Boolean)
+              .join(" ")
+          );
+
+
+        const hasEventRequest =
+          Boolean(
+            String(
+              item.eveniment || ""
+            ).trim()
+          ) ||
+          requestText.includes(
+            "eveniment"
+          ) ||
+          requestText.includes(
+            "event"
+          );
+
+
+        const hasAppointmentRequest =
+          requestText.includes(
+            "programare"
+          );
+
+
+        const hasRegistrationRequest =
+          requestText.includes(
+            "inregistrare"
+          );
+
+
+        return (
+          itemDept === "pcls" ||
+          hasEventRequest ||
+          hasAppointmentRequest ||
+          hasRegistrationRequest
+        );
+      }
+
+
+      const itemDept =
+        (item.departament || "")
+          .toString()
+          .toLowerCase()
+          .trim();
+
+
       return itemDept === filterNorm;
     });
 
-    if (currentSearch) {
-      filtered = filtered.filter(item => {
-        const personName = normalizeSearchText([
-          item.nume_proprietar,
-          item.proprietar,
-          item.reprezentant,
-          item.nume
-        ].filter(Boolean).join(" "));
 
-        const businessName = normalizeSearchText([
-          item.nume_afacere,
-          item.unitate,
-          item.denumire_afacere,
-          item.business_name
-        ].filter(Boolean).join(" "));
+  /* =======================================================
+     SEARCH
+  ======================================================= */
 
-        return personName.includes(currentSearch) || businessName.includes(currentSearch);
-      });
-    }
+  if (currentSearch) {
 
-    if (filtered.length === 0) {
-      const emptyMessage = currentSearch
-        ? `Nu am găsit nicio persoană sau afacere pentru „${escapeHtml(searchInput ? searchInput.value.trim() : currentSearch)}”.`
-        : "Nu există cereri vizibile pentru filtrul selectat.";
-      cereriContainer.innerHTML = `<div class="empty-state">${emptyMessage}</div>`;
-      return;
-    }
+    filtered =
+      filtered.filter(item => {
 
-    filtered.forEach(item => {
-      const tip = item.eveniment || item.tip_cerere || item.tip || "PROGRAMARE";
-      const status = item.status || "in_asteptare";
-      const badgeClass = tip.toLowerCase().includes("eveniment") ? "eveniment" : "programare";
-      const numeProprietar = escapeHtml(item.nume_proprietar || item.proprietar || item.nume || '-');
-      const numeAfacere = escapeHtml(item.nume_afacere || item.unitate || '-');
-      const dataOra = escapeHtml(item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : '-'));
-      const rawStatusNorm = status.toLowerCase();
+        const personName =
+          normalizeSearchText(
+            [
+              item.nume_proprietar,
+              item.proprietar,
+              item.reprezentant,
+              item.nume
+            ]
+              .filter(Boolean)
+              .join(" ")
+          );
 
-      let actionsHTML = "";
-      if (rawStatusNorm === "in_cos" || item.deleted === true) {
-        actionsHTML = `<button class="btn-action btn-restore" data-id="${item.id}">Restaurează</button><button class="btn-action btn-trash" data-id="${item.id}">Șterge Definitiv</button>`;
-      } else if (item.arhivat === true || rawStatusNorm === "arhivat") {
-        actionsHTML = `<button class="btn-action btn-unarchive" data-id="${item.id}">Desarhivează</button><button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>`;
-      } else {
-        actionsHTML = `
-          <button class="btn-action btn-details" data-id="${item.id}">Detalii</button>
-          <button class="btn-action btn-approve" data-id="${item.id}">Acceptă</button>
-          <button class="btn-action btn-reject" data-id="${item.id}">Respinge</button>
-          <button class="btn-action btn-archive" data-id="${item.id}">Arhivă</button>
-          <button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>
-        `;
-      }
 
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="card-header">
-          <span class="type-badge ${badgeClass}">${escapeHtml(tip)}</span>
-          <span class="status-badge ${status.includes("aprobat") ? 'aprobat' : (status.includes("respins") ? 'respins' : (status === "in_cos" ? 'in_cos' : 'in_asteptare'))}">${escapeHtml(status.replace("_", " "))}</span>
-        </div>
-        <div class="card-body">
-          <p><strong>Nume</strong><span>${numeProprietar}</span></p>
-          <p><strong>Afacere / Tip</strong><span>${numeAfacere}</span></p>
-          <p><strong>Data & Ora</strong><span>${dataOra}</span></p>
-        </div>
-        <div class="card-actions">${actionsHTML}</div>
-      `;
-      cereriContainer.appendChild(card);
-    });
-    attachActionListeners();
-  }
+        const businessName =
+          normalizeSearchText(
+            [
+              item.nume_afacere,
+              item.unitate,
+              item.denumire_afacere,
+              item.business_name
+            ]
+              .filter(Boolean)
+              .join(" ")
+          );
 
-  function attachActionListeners() {
-    document.querySelectorAll(".btn-details").forEach(btn => {
-      btn.addEventListener("click", () => openDetailsModal(allCereri.find(c => c.id === btn.getAttribute("data-id"))));
-    });
 
-    // ==================== LOGICA PENTRU POP-UP "ACCEPTĂ" ====================
-    document.querySelectorAll(".btn-approve").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
-        const item = allCereri.find(c => c.id === id);
-        if (item) {
-          pendingApproveId = id;
-          
-          const nume = item.nume_proprietar || item.proprietar || item.reprezentant || item.nume || '-';
-          const adresa = item.adresa || item.locatie || item.detalii || '-';
-          const tipControl = item.eveniment || item.tip_cerere || item.tip || "PROGRAMARE";
-          const dataOra = item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : (item.dataDorita ? `${item.dataDorita} la ${item.oraDorita}` : '-'));
-          
-          document.getElementById("app-nume").textContent = nume;
-          document.getElementById("app-adresa").textContent = adresa;
-          document.getElementById("app-tip").textContent = tipControl.toUpperCase();
-          document.getElementById("app-data").textContent = dataOra;
-          document.getElementById("app-admin").textContent = `@${getCurrentAdminName().split('@')[0]}`;
-          
-          approveModal.classList.add("active");
-        }
-      });
-    });
-
-    document.querySelectorAll(".btn-reject").forEach(btn => {
-      btn.addEventListener("click", async () => await updateStatus(btn.getAttribute("data-id"), "respins", "Respins cererea"));
-    });
-    document.querySelectorAll(".btn-archive").forEach(btn => {
-      btn.addEventListener("click", async () => await toggleArchive(btn.getAttribute("data-id"), true));
-    });
-    document.querySelectorAll(".btn-unarchive").forEach(btn => {
-      btn.addEventListener("click", async () => await toggleArchive(btn.getAttribute("data-id"), false));
-    });
-    document.querySelectorAll(".btn-trash").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-id");
-        const item = allCereri.find(c => c.id === id);
-        if (item && (item.status === "in_cos" || item.deleted === true)) { pendingDeleteId = id; confirmModal.classList.add("active"); } 
-        else { await updateStatus(id, "in_cos", "Mutat în Coș"); showToast("Cererea a fost mutată în Coș.", "warning"); }
-      });
-    });
-    document.querySelectorAll(".btn-restore").forEach(btn => {
-      btn.addEventListener("click", async () => { await updateStatus(btn.getAttribute("data-id"), "În Așteptare", "Restaurat cererea"); showToast("Cererea a fost restaurată!", "success"); });
-    });
-  }
-
-  // --- ACȚIUNI PENTRU MODALUL DE APROBARE ---
-  function closeApproveModal() { approveModal.classList.remove("active"); pendingApproveId = null; }
-  approveCloseBtn.addEventListener("click", closeApproveModal);
-  approveCancelBtn.addEventListener("click", closeApproveModal);
-  approveOkBtn.addEventListener("click", async () => {
-      if (pendingApproveId) {
-          await updateStatus(pendingApproveId, "aprobat", "Aprobat cererea");
-          closeApproveModal();
-      }
-  });
-
-  // --- ACȚIUNE COPIERE CONFIRMARE APROBARE ---
-  approveCopyBtn.addEventListener("click", () => {
-    const nume = document.getElementById("app-nume").textContent;
-    const adresa = document.getElementById("app-adresa").textContent;
-    const tip = document.getElementById("app-tip").textContent;
-    const data = document.getElementById("app-data").textContent;
-    const admin = document.getElementById("app-admin").textContent;
-    
-    const textDeCopiat = `=== CONFIRMARE APROBARE ===\nNume / Reprezentant: ${nume}\nAdresă / Locație: ${adresa}\nTip Control / Cerere: ${tip}\nData & Ora: ${data}\nProcesat și Acceptat de: ${admin}`;
-
-    navigator.clipboard.writeText(textDeCopiat).then(() => {
-      showToast("Datele de aprobare au fost copiate!", "success");
-      
-      const textOriginal = approveCopyBtn.innerHTML;
-      approveCopyBtn.innerHTML = "✓ Copiat!";
-      approveCopyBtn.style.background = "rgba(0, 255, 163, 0.15)";
-      approveCopyBtn.style.color = "var(--accent-primary)";
-      approveCopyBtn.style.borderColor = "rgba(0, 255, 163, 0.3)";
-      
-      setTimeout(() => {
-        approveCopyBtn.innerHTML = textOriginal;
-        approveCopyBtn.style.background = "rgba(0, 150, 255, 0.15)";
-        approveCopyBtn.style.color = "var(--accent-secondary)";
-        approveCopyBtn.style.borderColor = "rgba(0, 150, 255, 0.3)";
-      }, 2500);
-    }).catch(err => {
-      console.error("Eroare la copiere: ", err);
-      showToast("Eroare la copierea datelor.", "error");
-    });
-  });
-
-  async function toggleArchive(id, shouldArchive) {
-    try {
-      await updateDoc(doc(db, "cereri", id), { arhivat: shouldArchive, archived: shouldArchive, procesat_de: `${getCurrentAdminName()} (${shouldArchive ? 'Arhivat' : 'Desarhivat'})`, data_procesare: new Date().toLocaleString("ro-RO") });
-      showToast(shouldArchive ? "Cererea a fost arhivată." : "Cererea a fost desarhivată.", "success");
-    } catch (e) { showToast("Eroare.", "error"); }
-  }
-
-  async function resolveRequestOwnerUid(requestData) {
-    const directUidCandidates = [
-      requestData.recipientUid,
-      requestData.authUid,
-      requestData.firebaseUid,
-      requestData.firebase_uid,
-      requestData.ownerUid,
-      requestData.owner_uid,
-      requestData.requesterUid,
-      requestData.requester_uid,
-      requestData.createdByUid,
-      requestData.created_by_uid
-    ].map(value => String(value ?? '').trim()).filter(Boolean);
-
-    // Dacă cererea conține deja UID-ul Firebase, acesta este cel mai sigur.
-    for (const candidate of directUidCandidates) {
-      try {
-        const snap = await getDoc(doc(db, 'utilizatori', candidate));
-        if (snap.exists()) return candidate;
-      } catch (_) {}
-    }
-
-    const discordId = String(
-      requestData.discord_id ||
-      requestData.discord ||
-      requestData.numeDiscord ||
-      requestData.discordId ||
-      requestData.discordUID ||
-      requestData.discordUid ||
-      ''
-    ).trim();
-
-    // Încearcă toate denumirile de câmpuri Discord folosite frecvent în baza proiectului.
-    if (discordId) {
-      const discordFields = [
-        'discord_id', 'discord', 'discordId', 'discordUID', 'discordUid',
-        'discord_uid', 'discordUserId', 'discord_user_id', 'numeDiscord'
-      ];
-      for (const field of discordFields) {
-        try {
-          const snap = await getDocs(query(collection(db, 'utilizatori'), where(field, '==', discordId)));
-          if (!snap.empty) return snap.docs[0].id;
-        } catch (_) {}
-      }
-    }
-
-    // Fallback: dacă cererea păstrează emailul solicitantului, îl folosim pentru maparea la utilizator.
-    const emailCandidates = [
-      requestData.email_aplicant,
-      requestData.email,
-      requestData.emailSolicitant,
-      requestData.email_solicitant
-    ].map(value => String(value ?? '').trim().toLowerCase()).filter(value => value.includes('@'));
-
-    for (const email of [...new Set(emailCandidates)]) {
-      try {
-        const snap = await getDocs(query(collection(db, 'utilizatori'), where('email', '==', email)));
-        if (!snap.empty) return snap.docs[0].id;
-      } catch (_) {}
-    }
-
-    return '';
-  }
-
-async function resolveRequestOwnerUid(requestData) {
-  if (!requestData) return '';
-
-  // UID salvat direct în cerere
-  const directUid = String(
-    requestData.ownerUid ||
-    requestData.ownerUID ||
-    requestData.userUid ||
-    requestData.userUID ||
-    requestData.uid ||
-    requestData.user_id ||
-    requestData.userId ||
-    requestData.firebaseUid ||
-    requestData.firebaseUID ||
-    requestData.uid_firebase ||
-    requestData.uidFirebase ||
-    ''
-  ).trim();
-
-  if (directUid) {
-    return directUid;
-  }
-
-  // Discord ID
-  const discordId = String(
-    requestData.discord_id ||
-    requestData.discord ||
-    requestData.numeDiscord ||
-    requestData.discordId ||
-    requestData.discordUID ||
-    requestData.discordUid ||
-    ''
-  ).trim();
-
-  if (!discordId) {
-    return '';
-  }
-
-  const collectionsToCheck = ['utilizatori', 'users'];
-  const discordFields = [
-    'discord_id',
-    'discordId',
-    'discordUID',
-    'discordUid',
-    'discord'
-  ];
-
-  for (const collectionName of collectionsToCheck) {
-    for (const fieldName of discordFields) {
-      try {
-        const q = query(
-          collection(db, collectionName),
-          where(fieldName, '==', discordId)
+        return (
+          personName.includes(
+            currentSearch
+          ) ||
+          businessName.includes(
+            currentSearch
+          )
         );
+      });
+  }
 
-        const snap = await getDocs(q);
 
-        if (!snap.empty) {
-          const userDoc = snap.docs[0];
-          const userData = userDoc.data();
+  /* =======================================================
+     FĂRĂ REZULTATE
+  ======================================================= */
 
-          const uid = String(
-            userData.uid ||
-            userData.userUid ||
-            userData.userUID ||
-            userData.firebaseUid ||
-            userData.firebaseUID ||
-            userDoc.id ||
-            ''
-          ).trim();
+  if (filtered.length === 0) {
 
-          if (uid) {
-            console.log('UID găsit:', uid);
-            return uid;
+    const emptyMessage =
+      currentSearch
+        ? `Nu am găsit nicio persoană sau afacere pentru „${
+            escapeHtml(
+              searchInput
+                ? searchInput.value.trim()
+                : currentSearch
+            )
+          }”.`
+        : "Nu există cereri vizibile pentru filtrul selectat.";
+
+
+    cereriContainer.innerHTML =
+      `<div class="empty-state">
+        ${emptyMessage}
+      </div>`;
+
+    return;
+  }
+
+
+  /* =======================================================
+     CARDURI
+  ======================================================= */
+
+  filtered.forEach(item => {
+
+    const tip =
+      item.eveniment ||
+      item.tip_cerere ||
+      item.tip ||
+      "PROGRAMARE";
+
+
+    const status =
+      item.status ||
+      "in_asteptare";
+
+
+    const badgeClass =
+      tip
+        .toLowerCase()
+        .includes("eveniment")
+        ? "eveniment"
+        : "programare";
+
+
+    const numeProprietar =
+      escapeHtml(
+        item.nume_proprietar ||
+        item.proprietar ||
+        item.nume ||
+        "-"
+      );
+
+
+    const numeAfacere =
+      escapeHtml(
+        item.nume_afacere ||
+        item.unitate ||
+        "-"
+      );
+
+
+    const dataOra =
+      escapeHtml(
+        item.data_ora ||
+        (
+          item.dataProgramare
+            ? `${item.dataProgramare} la ${item.oraProgramare || ""}`
+            : "-"
+        )
+      );
+
+
+    const rawStatusNorm =
+      status
+        .toString()
+        .toLowerCase()
+        .trim();
+
+
+    let actionsHTML = "";
+
+
+    if (
+      rawStatusNorm === "in_cos" ||
+      item.deleted === true
+    ) {
+
+      actionsHTML = `
+        <button
+          class="btn-action btn-restore"
+          data-id="${item.id}"
+        >
+          Restaurează
+        </button>
+
+        <button
+          class="btn-action btn-trash"
+          data-id="${item.id}"
+        >
+          Șterge Definitiv
+        </button>
+      `;
+
+    } else if (
+      item.arhivat === true ||
+      rawStatusNorm === "arhivat"
+    ) {
+
+      actionsHTML = `
+        <button
+          class="btn-action btn-unarchive"
+          data-id="${item.id}"
+        >
+          Desarhivează
+        </button>
+
+        <button
+          class="btn-action btn-trash"
+          data-id="${item.id}"
+        >
+          Șterge
+        </button>
+      `;
+
+    } else {
+
+      actionsHTML = `
+        <button
+          class="btn-action btn-details"
+          data-id="${item.id}"
+        >
+          Detalii
+        </button>
+
+        <button
+          class="btn-action btn-approve"
+          data-id="${item.id}"
+        >
+          Acceptă
+        </button>
+
+        <button
+          class="btn-action btn-reject"
+          data-id="${item.id}"
+        >
+          Respinge
+        </button>
+
+        <button
+          class="btn-action btn-archive"
+          data-id="${item.id}"
+        >
+          Arhivă
+        </button>
+
+        <button
+          class="btn-action btn-trash"
+          data-id="${item.id}"
+        >
+          Șterge
+        </button>
+      `;
+    }
+
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+
+    const statusClass =
+      status.includes("aprobat")
+        ? "aprobat"
+        : status.includes("acceptat")
+          ? "aprobat"
+          : status.includes("respins")
+            ? "respins"
+            : status === "in_cos"
+              ? "in_cos"
+              : "in_asteptare";
+
+
+    card.innerHTML = `
+      <div class="card-header">
+
+        <span class="type-badge ${badgeClass}">
+          ${escapeHtml(tip)}
+        </span>
+
+        <span class="status-badge ${statusClass}">
+          ${escapeHtml(
+            status.replace("_", " ")
+          )}
+        </span>
+
+      </div>
+
+
+      <div class="card-body">
+
+        <p>
+          <strong>Nume</strong>
+          <span>${numeProprietar}</span>
+        </p>
+
+        <p>
+          <strong>Afacere / Tip</strong>
+          <span>${numeAfacere}</span>
+        </p>
+
+        <p>
+          <strong>Data & Ora</strong>
+          <span>${dataOra}</span>
+        </p>
+
+      </div>
+
+
+      <div class="card-actions">
+        ${actionsHTML}
+      </div>
+    `;
+
+
+    cereriContainer.appendChild(card);
+  });
+
+
+  attachActionListeners();
+}
+
+
+/* =========================================================
+   BUTOANE CERERI
+========================================================= */
+
+function attachActionListeners() {
+
+
+  /* DETALII */
+
+  document
+    .querySelectorAll(".btn-details")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        () => {
+
+          const item =
+            allCereri.find(
+              c =>
+                c.id ===
+                btn.getAttribute(
+                  "data-id"
+                )
+            );
+
+          if (item) {
+            openDetailsModal(item);
           }
         }
+      );
+    });
+
+
+  /* =======================================================
+     ACCEPTĂ
+  ======================================================= */
+
+  document
+    .querySelectorAll(".btn-approve")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        () => {
+
+          const id =
+            btn.getAttribute(
+              "data-id"
+            );
+
+          const item =
+            allCereri.find(
+              c => c.id === id
+            );
+
+
+          if (!item) {
+            return;
+          }
+
+
+          pendingApproveId = id;
+
+
+          const nume =
+            item.nume_proprietar ||
+            item.proprietar ||
+            item.reprezentant ||
+            item.nume ||
+            "-";
+
+
+          const adresa =
+            item.adresa ||
+            item.locatie ||
+            item.detalii ||
+            "-";
+
+
+          const tipControl =
+            item.eveniment ||
+            item.tip_cerere ||
+            item.tip ||
+            "PROGRAMARE";
+
+
+          const dataOra =
+            item.data_ora ||
+            (
+              item.dataProgramare
+                ? `${item.dataProgramare} la ${item.oraProgramare || ""}`
+                : (
+                    item.dataDorita
+                      ? `${item.dataDorita} la ${item.oraDorita || ""}`
+                      : "-"
+                  )
+            );
+
+
+          const appNume =
+            document.getElementById(
+              "app-nume"
+            );
+
+          const appAdresa =
+            document.getElementById(
+              "app-adresa"
+            );
+
+          const appTip =
+            document.getElementById(
+              "app-tip"
+            );
+
+          const appData =
+            document.getElementById(
+              "app-data"
+            );
+
+          const appAdmin =
+            document.getElementById(
+              "app-admin"
+            );
+
+
+          if (appNume) {
+            appNume.textContent =
+              nume;
+          }
+
+          if (appAdresa) {
+            appAdresa.textContent =
+              adresa;
+          }
+
+          if (appTip) {
+            appTip.textContent =
+              tipControl.toUpperCase();
+          }
+
+          if (appData) {
+            appData.textContent =
+              dataOra;
+          }
+
+          if (appAdmin) {
+            appAdmin.textContent =
+              `@${getCurrentAdminName()
+                .split("@")[0]}`;
+          }
+
+
+          if (approveModal) {
+            approveModal.classList.add(
+              "active"
+            );
+          }
+        }
+      );
+    });
+
+
+  /* =======================================================
+     RESPINGE
+  ======================================================= */
+
+  document
+    .querySelectorAll(".btn-reject")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        async () => {
+
+          const id =
+            btn.getAttribute(
+              "data-id"
+            );
+
+          await updateStatus(
+            id,
+            "respins",
+            "Respins cererea"
+          );
+        }
+      );
+    });
+
+
+  /* =======================================================
+     ARHIVĂ
+  ======================================================= */
+
+  document
+    .querySelectorAll(".btn-archive")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        async () => {
+
+          await toggleArchive(
+            btn.getAttribute(
+              "data-id"
+            ),
+            true
+          );
+        }
+      );
+    });
+
+
+  /* =======================================================
+     DEZARHIVARE
+  ======================================================= */
+
+  document
+    .querySelectorAll(".btn-unarchive")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        async () => {
+
+          await toggleArchive(
+            btn.getAttribute(
+              "data-id"
+            ),
+            false
+          );
+        }
+      );
+    });
+
+
+  /* =======================================================
+     COȘ
+  ======================================================= */
+
+  document
+    .querySelectorAll(".btn-trash")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        async () => {
+
+          const id =
+            btn.getAttribute(
+              "data-id"
+            );
+
+          const item =
+            allCereri.find(
+              c => c.id === id
+            );
+
+
+          if (
+            item &&
+            (
+              item.status === "in_cos" ||
+              item.deleted === true
+            )
+          ) {
+
+            pendingDeleteId = id;
+
+            if (confirmModal) {
+              confirmModal.classList.add(
+                "active"
+              );
+            }
+
+          } else {
+
+            await updateStatus(
+              id,
+              "in_cos",
+              "Mutat în Coș"
+            );
+
+            showToast(
+              "Cererea a fost mutată în Coș.",
+              "warning"
+            );
+          }
+        }
+      );
+    });
+
+
+  /* =======================================================
+     RESTAURARE
+  ======================================================= */
+
+  document
+    .querySelectorAll(".btn-restore")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        async () => {
+
+          await updateStatus(
+            btn.getAttribute(
+              "data-id"
+            ),
+            "În Așteptare",
+            "Restaurat cererea"
+          );
+
+          showToast(
+            "Cererea a fost restaurată!",
+            "success"
+          );
+        }
+      );
+    });
+}
+
+
+/* =========================================================
+   ÎNCHIDERE MODAL APROBARE
+========================================================= */
+
+function closeApproveModal() {
+
+  if (approveModal) {
+    approveModal.classList.remove(
+      "active"
+    );
+  }
+
+  pendingApproveId = null;
+}
+
+
+if (approveCloseBtn) {
+  approveCloseBtn.addEventListener(
+    "click",
+    closeApproveModal
+  );
+}
+
+
+if (approveCancelBtn) {
+  approveCancelBtn.addEventListener(
+    "click",
+    closeApproveModal
+  );
+}
+
+
+/* =========================================================
+   CONFIRMĂ ACCEPTAREA
+========================================================= */
+
+if (approveOkBtn) {
+
+  approveOkBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (!pendingApproveId) {
+        return;
+      }
+
+
+      const id =
+        pendingApproveId;
+
+
+      /*
+       * Închidem butonul temporar pentru a preveni
+       * apăsări multiple.
+       */
+
+      approveOkBtn.disabled = true;
+
+
+      try {
+
+        await updateStatus(
+          id,
+          "aprobat",
+          "Aprobat cererea"
+        );
+
+        closeApproveModal();
+
+      } finally {
+
+        approveOkBtn.disabled = false;
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   COPIERE APROBARE
+========================================================= */
+
+if (approveCopyBtn) {
+
+  approveCopyBtn.addEventListener(
+    "click",
+    () => {
+
+      const nume =
+        document.getElementById(
+          "app-nume"
+        )?.textContent || "-";
+
+      const adresa =
+        document.getElementById(
+          "app-adresa"
+        )?.textContent || "-";
+
+      const tip =
+        document.getElementById(
+          "app-tip"
+        )?.textContent || "-";
+
+      const data =
+        document.getElementById(
+          "app-data"
+        )?.textContent || "-";
+
+      const admin =
+        document.getElementById(
+          "app-admin"
+        )?.textContent || "-";
+
+
+      const textDeCopiat =
+        `=== CONFIRMARE APROBARE ===
+Nume / Reprezentant: ${nume}
+Adresă / Locație: ${adresa}
+Tip Control / Cerere: ${tip}
+Data & Ora: ${data}
+Procesat și Acceptat de: ${admin}`;
+
+
+      navigator.clipboard
+        .writeText(textDeCopiat)
+        .then(() => {
+
+          showToast(
+            "Datele de aprobare au fost copiate!",
+            "success"
+          );
+
+
+          const textOriginal =
+            approveCopyBtn.innerHTML;
+
+
+          approveCopyBtn.innerHTML =
+            "✓ Copiat!";
+
+          approveCopyBtn.style.background =
+            "rgba(0, 255, 163, 0.15)";
+
+          approveCopyBtn.style.color =
+            "var(--accent-primary)";
+
+          approveCopyBtn.style.borderColor =
+            "rgba(0, 255, 163, 0.3)";
+
+
+          setTimeout(() => {
+
+            approveCopyBtn.innerHTML =
+              textOriginal;
+
+            approveCopyBtn.style.background =
+              "rgba(0, 150, 255, 0.15)";
+
+            approveCopyBtn.style.color =
+              "var(--accent-secondary)";
+
+            approveCopyBtn.style.borderColor =
+              "rgba(0, 150, 255, 0.3)";
+
+          }, 2500);
+
+        })
+        .catch(error => {
+
+          console.error(
+            "Eroare copiere:",
+            error
+          );
+
+          showToast(
+            "Eroare la copierea datelor.",
+            "error"
+          );
+        });
+    }
+  );
+}
+
+
+/* =========================================================
+   ARHIVARE
+========================================================= */
+
+async function toggleArchive(
+  id,
+  shouldArchive
+) {
+
+  try {
+
+    await updateDoc(
+      doc(db, "cereri", id),
+      {
+        arhivat: shouldArchive,
+        archived: shouldArchive,
+
+        procesat_de:
+          `${getCurrentAdminName()} (${
+            shouldArchive
+              ? "Arhivat"
+              : "Desarhivat"
+          })`,
+
+        data_procesare:
+          new Date()
+            .toLocaleString("ro-RO")
+      }
+    );
+
+
+    showToast(
+      shouldArchive
+        ? "Cererea a fost arhivată."
+        : "Cererea a fost desarhivată.",
+      "success"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Eroare arhivare:",
+      error
+    );
+
+    showToast(
+      "Eroare la arhivare.",
+      "error"
+    );
+  }
+}
+
+
+/* =========================================================
+   IDENTIFICARE UID PROPRIETAR CERERE
+========================================================= */
+
+async function resolveRequestOwnerUid(
+  requestData
+) {
+
+  if (!requestData) {
+    return "";
+  }
+
+
+  /*
+   * 1. UID DIRECT ÎN CERERE
+   */
+
+  const directUidCandidates = [
+
+    requestData.uid,
+
+    requestData.userUid,
+    requestData.userUID,
+    requestData.userId,
+    requestData.user_id,
+
+    requestData.ownerUid,
+    requestData.ownerUID,
+    requestData.owner_uid,
+
+    requestData.requesterUid,
+    requestData.requester_uid,
+
+    requestData.authUid,
+
+    requestData.firebaseUid,
+    requestData.firebaseUID,
+    requestData.firebase_uid,
+
+    requestData.createdByUid,
+    requestData.created_by_uid
+  ];
+
+
+  for (
+    const value
+    of directUidCandidates
+  ) {
+
+    const uid =
+      String(value ?? "").trim();
+
+
+    if (uid) {
+
+      console.log(
+        "UID găsit direct în cerere:",
+        uid
+      );
+
+      return uid;
+    }
+  }
+
+
+  /*
+   * 2. DISCORD ID
+   */
+
+  const discordId =
+    String(
+
+      requestData.discord_id ||
+
+      requestData.discord ||
+
+      requestData.numeDiscord ||
+
+      requestData.discordId ||
+
+      requestData.discordUID ||
+
+      requestData.discordUid ||
+
+      requestData.discord_uid ||
+
+      requestData.discordUserId ||
+
+      requestData.discord_user_id ||
+
+      ""
+
+    ).trim();
+
+
+  if (discordId) {
+
+    const discordFields = [
+
+      "discord_id",
+      "discord",
+      "discordId",
+      "discordUID",
+      "discordUid",
+      "discord_uid",
+      "discordUserId",
+      "discord_user_id",
+      "numeDiscord"
+
+    ];
+
+
+    for (
+      const field
+      of discordFields
+    ) {
+
+      try {
+
+        const q =
+          query(
+            collection(
+              db,
+              "utilizatori"
+            ),
+            where(
+              field,
+              "==",
+              discordId
+            )
+          );
+
+
+        const snap =
+          await getDocs(q);
+
+
+        if (!snap.empty) {
+
+          const userDoc =
+            snap.docs[0];
+
+
+          console.log(
+            "UID găsit prin Discord:",
+            discordId,
+            "=>",
+            userDoc.id
+          );
+
+
+          return userDoc.id;
+        }
+
       } catch (error) {
+
         console.warn(
-          `Eroare căutare ${collectionName}.${fieldName}:`,
+          `Eroare căutare utilizator după ${field}:`,
           error
         );
       }
     }
   }
 
-  return '';
+
+  /*
+   * 3. EMAIL
+   */
+
+  const emailCandidates = [
+
+    requestData.email_aplicant,
+
+    requestData.email,
+
+    requestData.emailSolicitant,
+
+    requestData.email_solicitant
+
+  ]
+
+    .map(
+      value =>
+        String(
+          value ?? ""
+        )
+          .trim()
+          .toLowerCase()
+    )
+
+    .filter(
+      value =>
+        value.includes("@")
+    );
+
+
+  for (
+    const email
+    of [...new Set(emailCandidates)]
+  ) {
+
+    try {
+
+      const q =
+        query(
+          collection(
+            db,
+            "utilizatori"
+          ),
+          where(
+            "email",
+            "==",
+            email
+          )
+        );
+
+
+      const snap =
+        await getDocs(q);
+
+
+      if (!snap.empty) {
+
+        console.log(
+          "UID găsit prin email:",
+          email,
+          "=>",
+          snap.docs[0].id
+        );
+
+
+        return snap.docs[0].id;
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "Eroare căutare utilizator după email:",
+        error
+      );
+    }
+  }
+
+
+  console.warn(
+    "NU AM GĂSIT UID-UL PROPRIETARULUI.",
+    {
+      discordId,
+      emailCandidates,
+      requestData
+    }
+  );
+
+
+  return "";
 }
 
+
+/* =========================================================
+   CREARE NOTIFICARE
+========================================================= */
 
 async function createRequestNotification(
   requestId,
@@ -1815,263 +3209,1043 @@ async function createRequestNotification(
   newStatus,
   adminName
 ) {
-  const normalizedStatus = String(newStatus || '').toLowerCase();
 
-  const shouldNotify = [
-    'aprobat',
-    'acceptat',
-    'respins'
-  ].includes(normalizedStatus);
+  const normalizedStatus =
+    String(
+      newStatus || ""
+    )
+      .toLowerCase()
+      .trim();
+
+
+  const shouldNotify =
+    [
+      "aprobat",
+      "acceptat",
+      "respins"
+    ].includes(
+      normalizedStatus
+    );
+
 
   if (!shouldNotify) {
+
     return {
       created: false,
-      ownerUid: ''
+      ownerUid: ""
     };
   }
 
-  const ownerUid = await resolveRequestOwnerUid(requestData);
 
-  const ownerDiscordId = String(
-    requestData.discord_id ||
-    requestData.discord ||
-    requestData.numeDiscord ||
-    requestData.discordId ||
-    requestData.discordUID ||
-    requestData.discordUid ||
-    ''
-  ).trim();
+  /*
+   * Găsim UID-ul proprietarului.
+   */
 
-  if (!ownerUid) {
-    console.warn(
-      'Nu am putut identifica UID-ul Firebase al proprietarului cererii.',
-      requestId,
+  const ownerUid =
+    await resolveRequestOwnerUid(
       requestData
     );
 
+
+  /*
+   * Discord ID pentru recipientId.
+   */
+
+  const ownerDiscordId =
+    String(
+
+      requestData.discord_id ||
+
+      requestData.discord ||
+
+      requestData.numeDiscord ||
+
+      requestData.discordId ||
+
+      requestData.discordUID ||
+
+      requestData.discordUid ||
+
+      ""
+
+    ).trim();
+
+
+  if (!ownerUid) {
+
+    console.warn(
+      "Nu am putut identifica UID-ul Firebase al proprietarului cererii.",
+      {
+        requestId,
+        ownerDiscordId,
+        requestData
+      }
+    );
+
+
     return {
       created: false,
-      ownerUid: ''
+      ownerUid: ""
     };
   }
 
+
   const isApproved =
-    normalizedStatus === 'aprobat' ||
-    normalizedStatus === 'acceptat';
+    normalizedStatus === "aprobat" ||
+    normalizedStatus === "acceptat";
 
-  const requestType = String(
-    requestData.eveniment ||
-    requestData.tip_cerere ||
-    requestData.tipCerere ||
-    requestData.tip ||
-    requestData.departament ||
-    'Cerere'
-  );
 
-  await addDoc(collection(db, 'notificari'), {
-    recipientUid: ownerUid,
-    recipientId: ownerDiscordId,
+  const requestType =
+    String(
 
-    requestId: String(requestId),
+      requestData.eveniment ||
 
-    requestUrl:
-      `cererile_mele.html?cerere=${encodeURIComponent(requestId)}`,
+      requestData.tip_cerere ||
 
-    title: isApproved
-      ? 'Cererea ta a fost acceptată'
-      : 'Cererea ta a fost respinsă',
+      requestData.tipCerere ||
 
-    message: isApproved
-      ? `Cererea ta (${requestType}) a fost acceptată de ${adminName}.`
-      : `Cererea ta (${requestType}) a fost respinsă de ${adminName}.`,
+      requestData.tip ||
 
-    status: normalizedStatus,
-    requestType,
-    read: false,
-    createdAt: serverTimestamp()
-  });
+      requestData.departament ||
 
-  return {
-    created: true,
-    ownerUid
-  };
+      "Cerere"
+
+    );
+
+
+  try {
+
+    const notificationData = {
+
+      recipientUid:
+        ownerUid,
+
+      recipientId:
+        ownerDiscordId,
+
+      requestId:
+        String(requestId),
+
+      requestUrl:
+        `cererile_mele.html?cerere=${
+          encodeURIComponent(requestId)
+        }`,
+
+      title:
+        isApproved
+          ? "Cererea ta a fost acceptată"
+          : "Cererea ta a fost respinsă",
+
+      message:
+        isApproved
+          ? `Cererea ta (${requestType}) a fost acceptată de ${adminName}.`
+          : `Cererea ta (${requestType}) a fost respinsă de ${adminName}.`,
+
+      status:
+        normalizedStatus,
+
+      requestType:
+        requestType,
+
+      read:
+        false,
+
+      createdAt:
+        serverTimestamp()
+    };
+
+
+    const notificationRef =
+      await addDoc(
+        collection(
+          db,
+          "notificari"
+        ),
+        notificationData
+      );
+
+
+    console.log(
+      "NOTIFICARE CREATĂ CU SUCCES:",
+      notificationRef.id,
+      notificationData
+    );
+
+
+    return {
+      created: true,
+      ownerUid: ownerUid
+    };
+
+
+  } catch (error) {
+
+    console.error(
+      "EROARE LA CREAREA NOTIFICĂRII:",
+      error
+    );
+
+
+    return {
+      created: false,
+      ownerUid: ownerUid
+    };
+  }
 }
 
 
-async function updateStatus(id, newStatus, actionName) {
-  const requestRef = doc(db, 'cereri', id);
+/* =========================================================
+   UPDATE STATUS
+   ACCEPTĂ / RESPINGE / COȘ / RESTAURARE
+========================================================= */
+
+async function updateStatus(
+  id,
+  newStatus,
+  actionName
+) {
+
+  if (!id) {
+
+    console.error(
+      "updateStatus: ID lipsă."
+    );
+
+    return;
+  }
+
+
+  console.log(
+    "UPDATE STATUS:",
+    id,
+    newStatus,
+    actionName
+  );
+
+
+  const requestRef =
+    doc(
+      db,
+      "cereri",
+      id
+    );
+
 
   try {
-    const requestSnap = await getDoc(requestRef);
+
+    /*
+     * LUĂM CEREREA
+     */
+
+    const requestSnap =
+      await getDoc(
+        requestRef
+      );
+
 
     if (!requestSnap.exists()) {
-      showToast('Cererea nu mai există.', 'error');
+
+      showToast(
+        "Cererea nu mai există.",
+        "error"
+      );
+
       return;
     }
 
-    const requestData = requestSnap.data();
-    const adminName = getCurrentAdminName();
+
+    const requestData =
+      requestSnap.data();
+
+
+    const adminName =
+      getCurrentAdminName();
+
+
+    /*
+     * DATELE CARE SE SALVEAZĂ
+     */
 
     const updateData = {
-      status: newStatus,
-      procesat_de: `${adminName} (${actionName})`,
-      data_procesare: new Date().toLocaleString('ro-RO'),
-      deleted: newStatus === 'in_cos'
-    };
 
-    // IMPORTANT:
-    // Salvăm statusul indiferent dacă notificarea eșuează.
-    await updateDoc(requestRef, updateData);
-
-    let notificationResult = {
-      created: false,
-      ownerUid: ''
-    };
-
-    try {
-      notificationResult = await createRequestNotification(
-        id,
-        requestData,
+      status:
         newStatus,
-        adminName
-      );
-    } catch (notificationError) {
-      console.error(
-        'Eroare la crearea notificării:',
-        notificationError
-      );
-    }
 
-    if (newStatus !== 'in_cos') {
-      if (notificationResult.created) {
-        showToast(
-          newStatus === 'respins'
-            ? 'Cererea a fost respinsă și notificarea a fost trimisă.'
-            : 'Cererea a fost aprobată și notificarea a fost trimisă.',
-          'success'
+      procesat_de:
+        `${adminName} (${actionName})`,
+
+      data_procesare:
+        new Date()
+          .toLocaleString("ro-RO"),
+
+      deleted:
+        newStatus === "in_cos"
+    };
+
+
+    /*
+     * IMPORTANT:
+     * STATUSUL SE SALVEAZĂ ÎNAINTEA NOTIFICĂRII.
+     */
+
+    await updateDoc(
+      requestRef,
+      updateData
+    );
+
+
+    console.log(
+      "STATUS SALVAT:",
+      id,
+      newStatus
+    );
+
+
+    /*
+     * NOTIFICARE DOAR PENTRU
+     * APROBAT / ACCEPTAT / RESPINS
+     */
+
+    if (
+
+      newStatus === "aprobat" ||
+
+      newStatus === "acceptat" ||
+
+      newStatus === "respins"
+
+    ) {
+
+      try {
+
+        const notificationResult =
+          await createRequestNotification(
+            id,
+            requestData,
+            newStatus,
+            adminName
+          );
+
+
+        if (
+          notificationResult.created
+        ) {
+
+          showToast(
+
+            newStatus === "respins"
+
+              ? "Cererea a fost respinsă și notificarea a fost trimisă."
+
+              : "Cererea a fost aprobată și notificarea a fost trimisă.",
+
+            "success"
+          );
+
+        } else {
+
+          showToast(
+
+            newStatus === "respins"
+
+              ? "Cererea a fost respinsă. Notificarea nu a putut fi trimisă."
+
+              : "Cererea a fost aprobată. Notificarea nu a putut fi trimisă.",
+
+            "warning"
+          );
+        }
+
+
+      } catch (notificationError) {
+
+        console.error(
+          "EROARE NOTIFICARE:",
+          notificationError
         );
-      } else {
+
+
+        /*
+         * Cererea rămâne aprobată/respinsă
+         * chiar dacă notificarea eșuează.
+         */
+
         showToast(
-          newStatus === 'respins'
-            ? 'Cererea a fost respinsă. Notificarea nu a putut fi trimisă.'
-            : 'Cererea a fost aprobată. Notificarea nu a putut fi trimisă.',
-          'warning'
+
+          newStatus === "respins"
+
+            ? "Cererea a fost respinsă, dar notificarea nu a putut fi trimisă."
+
+            : "Cererea a fost aprobată, dar notificarea nu a putut fi trimisă.",
+
+          "warning"
         );
       }
     }
 
-  } catch (e) {
-    console.error('Eroare updateStatus:', e);
-    showToast('Eroare la salvarea cererii.', 'error');
+
+  } catch (error) {
+
+    console.error(
+      "EROARE UPDATE STATUS:",
+      error
+    );
+
+
+    showToast(
+      "Eroare la salvarea cererii.",
+      "error"
+    );
   }
 }
 
-  function closeConfirmModal() { confirmModal.classList.remove("active"); pendingDeleteId = null; }
-  confirmCancelBtn.addEventListener("click", closeConfirmModal);
-  confirmCloseBtn.addEventListener("click", closeConfirmModal);
-  confirmOkBtn.addEventListener("click", async () => {
-    if (pendingDeleteId) { await deleteDoc(doc(db, "cereri", pendingDeleteId)); showToast("Ștearsă definitiv.", "error"); closeConfirmModal(); }
-  });
 
-  function openDetailsModal(item) {
-    document.getElementById("details-code-tag").textContent = item.codEveniment || item.cod_eveniment || item.cod || "PCLS-CERERE";
-    const userAction = item.procesat_de ? `${item.procesat_de} pe ${item.data_procesare || '-'}` : "Nicio acțiune";
-    const fields = [
-      { label: "Departament", value: (item.departament || "ISULS").toUpperCase(), size: "third" },
-      { label: "Status Curent", value: item.status || "În Așteptare", size: "third" },
-      { label: "Data & Ora", value: item.data_ora || item.dataProgramare || '-', size: "third" },
-      { label: "Procesată de User", value: userAction, highlight: true, full: true },
-      { label: "Proprietar / Reprezentant", value: item.nume_proprietar || item.proprietar || item.nume || '-', size: "half" },
-      { label: "Telefon Contact", value: item.telefon || item.tel || '-', size: "half" },
-      { label: "Nume Afacere", value: item.nume_afacere || item.unitate || '-', size: "half" },
-      { label: "Tip Business", value: item.tip_afacere || item.tipSpatiu || '-', size: "half" },
-      { label: "Detalii Extra / Locație", value: item.detalii || item.adresa || '-', full: true }
-    ];
-    document.getElementById("details-container").innerHTML = fields.map(f => `
-      <div class="details-item ${f.full ? 'full-width' : ''} ${f.size === 'half' ? 'half-width' : ''} ${f.size === 'third' ? 'third-width' : ''} ${f.highlight ? 'highlight-user' : ''}">
-        <label>${f.label}</label><span>${escapeHtml(f.value || '-')}</span>
-      </div>
-    `).join('');
-    
-    if (detailsTrashBtn) {
-      if (item.status === "in_cos" || item.deleted === true) detailsTrashBtn.textContent = "Șterge Definitiv";
-      else detailsTrashBtn.textContent = "Mută în Coș";
-      
-      currentOpenItem = item;
-    }
-    
-    detailsModal.classList.add("active");
+/* =========================================================
+   MODAL CONFIRMARE ȘTERGERE
+========================================================= */
+
+function closeConfirmModal() {
+
+  if (confirmModal) {
+
+    confirmModal.classList.remove(
+      "active"
+    );
   }
 
-  function closeDetailsModal() { detailsModal.classList.remove("active"); currentOpenItem = null; }
-  detailsClose.addEventListener("click", closeDetailsModal);
-  detailsCloseBtn.addEventListener("click", closeDetailsModal);
+  pendingDeleteId = null;
+}
+
+
+if (confirmCancelBtn) {
+
+  confirmCancelBtn.addEventListener(
+    "click",
+    closeConfirmModal
+  );
+}
+
+
+if (confirmCloseBtn) {
+
+  confirmCloseBtn.addEventListener(
+    "click",
+    closeConfirmModal
+  );
+}
+
+
+if (confirmOkBtn) {
+
+  confirmOkBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (!pendingDeleteId) {
+        return;
+      }
+
+
+      try {
+
+        await deleteDoc(
+          doc(
+            db,
+            "cereri",
+            pendingDeleteId
+          )
+        );
+
+
+        showToast(
+          "Ștearsă definitiv.",
+          "success"
+        );
+
+
+        closeConfirmModal();
+
+      } catch (error) {
+
+        console.error(
+          "Eroare ștergere definitivă:",
+          error
+        );
+
+
+        showToast(
+          "Eroare la ștergerea cererii.",
+          "error"
+        );
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   MODAL DETALII
+========================================================= */
+
+function openDetailsModal(item) {
+
+  if (!item) {
+    return;
+  }
+
+
+  const codeTag =
+    document.getElementById(
+      "details-code-tag"
+    );
+
+
+  if (codeTag) {
+
+    codeTag.textContent =
+      item.codEveniment ||
+      item.cod_eveniment ||
+      item.cod ||
+      "PCLS-CERERE";
+  }
+
+
+  const userAction =
+    item.procesat_de
+      ? `${item.procesat_de} pe ${
+          item.data_procesare || "-"
+        }`
+      : "Nicio acțiune";
+
+
+  const fields = [
+
+    {
+      label: "Departament",
+      value:
+        (
+          item.departament ||
+          "ISULS"
+        ).toUpperCase(),
+      size: "third"
+    },
+
+    {
+      label: "Status Curent",
+      value:
+        item.status ||
+        "În Așteptare",
+      size: "third"
+    },
+
+    {
+      label: "Data & Ora",
+      value:
+        item.data_ora ||
+        item.dataProgramare ||
+        "-",
+      size: "third"
+    },
+
+    {
+      label: "Procesată de User",
+      value:
+        userAction,
+      highlight: true,
+      full: true
+    },
+
+    {
+      label:
+        "Proprietar / Reprezentant",
+      value:
+        item.nume_proprietar ||
+        item.proprietar ||
+        item.nume ||
+        "-",
+      size: "half"
+    },
+
+    {
+      label:
+        "Telefon Contact",
+      value:
+        item.telefon ||
+        item.tel ||
+        "-",
+      size: "half"
+    },
+
+    {
+      label:
+        "Nume Afacere",
+      value:
+        item.nume_afacere ||
+        item.unitate ||
+        "-",
+      size: "half"
+    },
+
+    {
+      label:
+        "Tip Business",
+      value:
+        item.tip_afacere ||
+        item.tipSpatiu ||
+        "-",
+      size: "half"
+    },
+
+    {
+      label:
+        "Detalii Extra / Locație",
+      value:
+        item.detalii ||
+        item.adresa ||
+        "-",
+      full: true
+    }
+
+  ];
+
+
+  const detailsContainer =
+    document.getElementById(
+      "details-container"
+    );
+
+
+  if (detailsContainer) {
+
+    detailsContainer.innerHTML =
+      fields
+        .map(f => {
+
+          return `
+            <div
+              class="
+                details-item
+                ${f.full ? "full-width" : ""}
+                ${
+                  f.size === "half"
+                    ? "half-width"
+                    : ""
+                }
+                ${
+                  f.size === "third"
+                    ? "third-width"
+                    : ""
+                }
+                ${
+                  f.highlight
+                    ? "highlight-user"
+                    : ""
+                }
+              "
+            >
+
+              <label>
+                ${f.label}
+              </label>
+
+              <span>
+                ${escapeHtml(
+                  f.value || "-"
+                )}
+              </span>
+
+            </div>
+          `;
+        })
+        .join("");
+  }
+
 
   if (detailsTrashBtn) {
-    detailsTrashBtn.addEventListener("click", async () => {
-      if (!currentOpenItem) return;
-      const id = currentOpenItem.id;
-      if (currentOpenItem.status === "in_cos" || currentOpenItem.deleted === true) {
-        pendingDeleteId = id; closeDetailsModal(); confirmModal.classList.add("active");
-      } else {
-        await updateStatus(id, "in_cos", "Mutat în Coș din Detalii");
-        closeDetailsModal(); showToast("Cererea a fost mutată în Coș.", "warning");
+
+    if (
+      item.status === "in_cos" ||
+      item.deleted === true
+    ) {
+
+      detailsTrashBtn.textContent =
+        "Șterge Definitiv";
+
+    } else {
+
+      detailsTrashBtn.textContent =
+        "Mută în Coș";
+    }
+  }
+
+
+  currentOpenItem = item;
+
+
+  if (detailsModal) {
+
+    detailsModal.classList.add(
+      "active"
+    );
+  }
+}
+
+
+/* =========================================================
+   ÎNCHIDERE MODAL DETALII
+========================================================= */
+
+function closeDetailsModal() {
+
+  if (detailsModal) {
+
+    detailsModal.classList.remove(
+      "active"
+    );
+  }
+
+  currentOpenItem = null;
+}
+
+
+if (detailsClose) {
+
+  detailsClose.addEventListener(
+    "click",
+    closeDetailsModal
+  );
+}
+
+
+if (detailsCloseBtn) {
+
+  detailsCloseBtn.addEventListener(
+    "click",
+    closeDetailsModal
+  );
+}
+
+
+/* =========================================================
+   COȘ DIN DETALII
+========================================================= */
+
+if (detailsTrashBtn) {
+
+  detailsTrashBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (!currentOpenItem) {
+        return;
       }
-    });
+
+
+      const id =
+        currentOpenItem.id;
+
+
+      if (
+
+        currentOpenItem.status ===
+          "in_cos" ||
+
+        currentOpenItem.deleted ===
+          true
+
+      ) {
+
+        pendingDeleteId = id;
+
+        closeDetailsModal();
+
+
+        if (confirmModal) {
+
+          confirmModal.classList.add(
+            "active"
+          );
+        }
+
+
+      } else {
+
+        await updateStatus(
+          id,
+          "in_cos",
+          "Mutat în Coș din Detalii"
+        );
+
+
+        closeDetailsModal();
+
+
+        showToast(
+          "Cererea a fost mutată în Coș.",
+          "warning"
+        );
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   COPIERE DETALII
+========================================================= */
+
+if (detailsCopyBtn) {
+
+  detailsCopyBtn.addEventListener(
+    "click",
+    () => {
+
+      const detailsItems =
+        document.querySelectorAll(
+          "#details-container .details-item"
+        );
+
+
+      const codElement =
+        document.getElementById(
+          "details-code-tag"
+        );
+
+
+      const codCerere =
+        codElement
+          ? codElement.textContent
+          : "PCLS-CERERE";
+
+
+      let textDeCopiat =
+        `=== DETALII CERERE: ${codCerere} ===\n\n`;
+
+
+      detailsItems.forEach(item => {
+
+        const label =
+          item.querySelector(
+            "label"
+          )?.textContent || "";
+
+
+        const valoare =
+          item.querySelector(
+            "span"
+          )?.textContent || "";
+
+
+        textDeCopiat +=
+          `${label}: ${valoare}\n`;
+      });
+
+
+      navigator.clipboard
+        .writeText(
+          textDeCopiat
+        )
+        .then(() => {
+
+          showToast(
+            "Toate detaliile au fost copiate cu succes!",
+            "success"
+          );
+
+
+          const textOriginal =
+            detailsCopyBtn.innerHTML;
+
+
+          detailsCopyBtn.innerHTML =
+            "✓ Copiat!";
+
+          detailsCopyBtn.style.background =
+            "rgba(0, 255, 163, 0.15)";
+
+          detailsCopyBtn.style.color =
+            "var(--accent-primary)";
+
+          detailsCopyBtn.style.borderColor =
+            "rgba(0, 255, 163, 0.3)";
+
+
+          setTimeout(() => {
+
+            detailsCopyBtn.innerHTML =
+              textOriginal;
+
+            detailsCopyBtn.style.background =
+              "rgba(0, 150, 255, 0.15)";
+
+            detailsCopyBtn.style.color =
+              "var(--accent-secondary)";
+
+            detailsCopyBtn.style.borderColor =
+              "rgba(0, 150, 255, 0.3)";
+
+          }, 2500);
+
+        })
+        .catch(error => {
+
+          console.error(
+            "Eroare copiere:",
+            error
+          );
+
+
+          showToast(
+            "Eroare la copierea detaliilor.",
+            "error"
+          );
+        });
+    }
+  );
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(str) {
+
+  return String(str)
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    );
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(
+  message,
+  type = "success"
+) {
+
+  const container =
+    document.getElementById(
+      "toast-container"
+    );
+
+
+  if (!container) {
+    return;
   }
 
-  // --- ACȚIUNE COPIERE DETALII ---
-  detailsCopyBtn.addEventListener("click", () => {
-    const detailsItems = document.querySelectorAll("#details-container .details-item");
-    const codCerere = document.getElementById("details-code-tag").textContent;
-    
-    let textDeCopiat = `=== DETALII CERERE: ${codCerere} ===\n\n`;
-    
-    detailsItems.forEach(item => {
-      const label = item.querySelector("label").textContent;
-      const valoare = item.querySelector("span").textContent;
-      textDeCopiat += `${label}: ${valoare}\n`;
-    });
 
-    navigator.clipboard.writeText(textDeCopiat).then(() => {
-      showToast("Toate detaliile au fost copiate cu succes!", "success");
-      
-      const textOriginal = detailsCopyBtn.innerHTML;
-      detailsCopyBtn.innerHTML = "✓ Copiat!";
-      detailsCopyBtn.style.background = "rgba(0, 255, 163, 0.15)";
-      detailsCopyBtn.style.color = "var(--accent-primary)";
-      detailsCopyBtn.style.borderColor = "rgba(0, 255, 163, 0.3)";
-      
-      setTimeout(() => {
-        detailsCopyBtn.innerHTML = textOriginal;
-        detailsCopyBtn.style.background = "rgba(0, 150, 255, 0.15)";
-        detailsCopyBtn.style.color = "var(--accent-secondary)";
-        detailsCopyBtn.style.borderColor = "rgba(0, 150, 255, 0.3)";
-      }, 2500);
-    }).catch(err => {
-      console.error("Eroare la copiere: ", err);
-      showToast("Eroare la copierea detaliilor.", "error");
-    });
-  });
+  const toast =
+    document.createElement(
+      "div"
+    );
 
-  function escapeHtml(str) { return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  
-  function showToast(message, type = "success") {
-    const container = document.getElementById("toast-container");
-    if (!container) return;
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<div class="toast-icon">${type === 'success' ? '✓' : '!'}</div><div class="toast-content"><div class="toast-title">${type === 'success' ? 'Succes' : 'Atenție'}</div><div class="toast-message">${escapeHtml(message)}</div></div><div class="toast-progress"></div>`;
-    container.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, 3500);
+
+  toast.className =
+    `toast ${type}`;
+
+
+  toast.innerHTML = `
+
+    <div class="toast-icon">
+      ${
+        type === "success"
+          ? "✓"
+          : "!"
+      }
+    </div>
+
+    <div class="toast-content">
+
+      <div class="toast-title">
+        ${
+          type === "success"
+            ? "Succes"
+            : "Atenție"
+        }
+      </div>
+
+      <div class="toast-message">
+        ${escapeHtml(message)}
+      </div>
+
+    </div>
+
+    <div class="toast-progress"></div>
+  `;
+
+
+  container.appendChild(
+    toast
+  );
+
+
+  setTimeout(
+    () => {
+      toast.remove();
+    },
+    3500
+  );
+}
+
+
+/* =========================================================
+   CLICK ÎN AFARA MODALURILOR
+========================================================= */
+
+window.addEventListener(
+  "click",
+  event => {
+
+    if (
+      detailsModal &&
+      event.target === detailsModal
+    ) {
+      closeDetailsModal();
+    }
+
+
+    if (
+      confirmModal &&
+      event.target === confirmModal
+    ) {
+      closeConfirmModal();
+    }
+
+
+    if (
+      approveModal &&
+      event.target === approveModal
+    ) {
+      closeApproveModal();
+    }
   }
+);
 
-  // ÎNCHIDERE LA CLICK ÎN AFARĂ
-  window.addEventListener('click', (event) => {
-    if (event.target === detailsModal) closeDetailsModal();
-    if (event.target === confirmModal) closeConfirmModal();
-    if (event.target === approveModal) closeApproveModal();
-  });
-  </script>
+
+/* =========================================================
+   FINAL
+========================================================= */
+
+console.log(
+  "admin.html JavaScript încărcat cu succes."
+);
+
+</script>
 </body>
 </html>
