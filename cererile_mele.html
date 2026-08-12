@@ -458,6 +458,7 @@ body.modal-open { overflow: hidden; }
 
 
     let requestedUrlOpen = false;
+    let requestedUrlAttempts = 0;
     function openRequestFromUrl() {
         const requestId = new URLSearchParams(window.location.search).get("cerere");
         if (!requestId || requestedUrlOpen) return;
@@ -469,7 +470,8 @@ body.modal-open { overflow: hidden; }
             return;
         }
 
-        setTimeout(openRequestFromUrl, 250);
+        requestedUrlAttempts += 1;
+        if (requestedUrlAttempts < 80) setTimeout(openRequestFromUrl, 250);
     }
 
     onAuthStateChanged(auth, user => {

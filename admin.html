@@ -1225,7 +1225,7 @@
 
   <script type="module">
   import { db, auth } from "./firebase-config.js";
-  import { collection, onSnapshot, doc, updateDoc, deleteDoc, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { collection, onSnapshot, doc, updateDoc, deleteDoc, getDoc, getDocs, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
   const ROLE_PERMISSIONS = {
@@ -1640,66 +1640,162 @@
     } catch (e) { showToast("Eroare.", "error"); }
   }
 
-  async function updateStatus(id, newStatus, actionName) {
-    try {
-      const requestRef = doc(db, "cereri", id);
-      const requestSnap = await getDoc(requestRef);
-      const requestData = requestSnap.exists() ? requestSnap.data() : {};
+  async function resolveRequestOwnerUid(requestData) {
+    const directUidCandidates = [
+      requestData.recipientUid,
+      requestData.authUid,
+      requestData.firebaseUid,
+      requestData.firebase_uid,
+      requestData.ownerUid,
+      requestData.owner_uid,
+      requestData.requesterUid,
+      requestData.requester_uid,
+      requestData.createdByUid,
+      requestData.created_by_uid
+    ].map(value => String(value ?? '').trim()).filter(Boolean);
 
+    // Dacă cererea conține deja UID-ul Firebase, acesta este cel mai sigur.
+    for (const candidate of directUidCandidates) {
+      try {
+        const snap = await getDoc(doc(db, 'utilizatori', candidate));
+        if (snap.exists()) return candidate;
+      } catch (_) {}
+    }
+
+    const discordId = String(
+      requestData.discord_id ||
+      requestData.discord ||
+      requestData.numeDiscord ||
+      requestData.discordId ||
+      requestData.discordUID ||
+      requestData.discordUid ||
+      ''
+    ).trim();
+
+    // Încearcă toate denumirile de câmpuri Discord folosite frecvent în baza proiectului.
+    if (discordId) {
+      const discordFields = [
+        'discord_id', 'discord', 'discordId', 'discordUID', 'discordUid',
+        'discord_uid', 'discordUserId', 'discord_user_id', 'numeDiscord'
+      ];
+      for (const field of discordFields) {
+        try {
+          const snap = await getDocs(query(collection(db, 'utilizatori'), where(field, '==', discordId)));
+          if (!snap.empty) return snap.docs[0].id;
+        } catch (_) {}
+      }
+    }
+
+    // Fallback: dacă cererea păstrează emailul solicitantului, îl folosim pentru maparea la utilizator.
+    const emailCandidates = [
+      requestData.email_aplicant,
+      requestData.email,
+      requestData.emailSolicitant,
+      requestData.email_solicitant
+    ].map(value => String(value ?? '').trim().toLowerCase()).filter(value => value.includes('@'));
+
+    for (const email of [...new Set(emailCandidates)]) {
+      try {
+        const snap = await getDocs(query(collection(db, 'utilizatori'), where('email', '==', email)));
+        if (!snap.empty) return snap.docs[0].id;
+      } catch (_) {}
+    }
+
+    return '';
+  }
+
+  async function createRequestNotification(requestId, requestData, newStatus, adminName) {
+    const shouldNotify = ['aprobat', 'acceptat', 'respins'].includes(String(newStatus || '').toLowerCase());
+    if (!shouldNotify) return { created: false, ownerUid: '' };
+
+    const ownerUid = await resolveRequestOwnerUid(requestData);
+    const ownerDiscordId = String(
+      requestData.discord_id || requestData.discord || requestData.numeDiscord ||
+      requestData.discordId || requestData.discordUID || requestData.discordUid || ''
+    ).trim();
+
+    if (!ownerUid) {
+      console.warn('Nu am putut identifica UID-ul Firebase al proprietarului cererii.', requestId, requestData);
+      return { created: false, ownerUid: '' };
+    }
+
+    const normalizedStatus = String(newStatus).toLowerCase();
+    const isApproved = normalizedStatus === 'aprobat' || normalizedStatus === 'acceptat';
+    const requestType = String(
+      requestData.eveniment || requestData.tip_cerere || requestData.tipCerere ||
+      requestData.tip || requestData.departament || 'Cerere'
+    );
+
+    await addDoc(collection(db, 'notificari'), {
+      recipientUid: ownerUid,
+      recipientId: ownerDiscordId,
+      requestId: String(requestId),
+      requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(requestId)}`,
+      title: isApproved ? 'Cererea ta a fost acceptată' : 'Cererea ta a fost respinsă',
+      message: isApproved
+        ? `Cererea ta (${requestType}) a fost acceptată de ${adminName}.`
+        : `Cererea ta (${requestType}) a fost respinsă de ${adminName}.`,
+      status: normalizedStatus,
+      requestType,
+      read: false,
+      createdAt: serverTimestamp()
+    });
+
+    return { created: true, ownerUid };
+  }
+
+  async function updateStatus(id, newStatus, actionName) {
+    const requestRef = doc(db, 'cereri', id);
+
+    try {
+      const requestSnap = await getDoc(requestRef);
+      if (!requestSnap.exists()) {
+        showToast('Cererea nu mai există.', 'error');
+        return;
+      }
+
+      const requestData = requestSnap.data();
+      const adminName = getCurrentAdminName();
       const updateData = {
         status: newStatus,
-        procesat_de: `${getCurrentAdminName()} (${actionName})`,
-        data_procesare: new Date().toLocaleString("ro-RO")
+        procesat_de: `${adminName} (${actionName})`,
+        data_procesare: new Date().toLocaleString('ro-RO')
       };
 
-      if (newStatus === "in_cos") updateData.deleted = true;
+      if (newStatus === 'in_cos') updateData.deleted = true;
       else updateData.deleted = false;
 
+      // 1. Salvăm ÎNTÂI statusul. O eroare la notificare nu mai anulează operațiunea adminului.
       await updateDoc(requestRef, updateData);
 
-      // Notificăm automat proprietarul cererii.
-      // Cererile existente folosesc discord / discord_id, deci păstrăm exact aceeași identificare.
-      const recipientId = String(
-        requestData.discord_id ||
-        requestData.discord ||
-        requestData.numeDiscord ||
-        requestData.userId ||
-        requestData.uid ||
-        ""
-      ).trim();
-
-      if (recipientId && (newStatus === "aprobat" || newStatus === "acceptat" || newStatus === "respins")) {
-        const isApproved = newStatus === "aprobat" || newStatus === "acceptat";
-        const requestType = requestData.eveniment || requestData.tip_cerere || requestData.tipCerere || requestData.tip || requestData.departament || "Cerere";
-        const title = isApproved ? "Cererea ta a fost acceptată" : "Cererea ta a fost respinsă";
-        const message = isApproved
-          ? `Cererea ta (${requestType}) a fost acceptată de ${getCurrentAdminName()}.`
-          : `Cererea ta (${requestType}) a fost respinsă de ${getCurrentAdminName()}.`;
-
-        await addDoc(collection(db, "notificari"), {
-          recipientId,
-          requestId: id,
-          requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(id)}`,
-          title,
-          message,
-          status: newStatus,
-          requestType: String(requestType),
-          read: false,
-          createdAt: new Date()
-        });
+      // 2. Doar aprobarea/respingerea generează notificare.
+      let notificationResult = { created: false };
+      try {
+        notificationResult = await createRequestNotification(id, requestData, newStatus, adminName);
+      } catch (notificationError) {
+        console.error('Eroare la crearea notificării:', notificationError);
       }
 
-      if (newStatus !== "in_cos") {
-        showToast(
-          newStatus === "respins"
-            ? "Cererea a fost respinsă și utilizatorul a fost notificat."
-            : "Cererea a fost aprobată și utilizatorul a fost notificat.",
-          "success"
-        );
+      if (newStatus !== 'in_cos') {
+        if (notificationResult.created) {
+          showToast(
+            newStatus === 'respins'
+              ? 'Cererea a fost respinsă și notificarea a fost trimisă.'
+              : 'Cererea a fost aprobată și notificarea a fost trimisă.',
+            'success'
+          );
+        } else {
+          showToast(
+            newStatus === 'respins'
+              ? 'Cererea a fost respinsă. Nu am putut identifica contul destinatar pentru notificare.'
+              : 'Cererea a fost aprobată. Nu am putut identifica contul destinatar pentru notificare.',
+            'warning'
+          );
+        }
       }
     } catch (e) {
-      console.error("Eroare updateStatus:", e);
-      showToast("Eroare la salvare / notificare.", "error");
+      console.error('Eroare updateStatus:', e);
+      showToast('Eroare la salvarea cererii.', 'error');
     }
   }
 
