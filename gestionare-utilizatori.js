@@ -13,6 +13,7 @@ const CARD_ID = "userManagementCard";
 const LIST_ID = "usersList";
 const LOADING_ID = "usersLoading";
 const SEARCH_ID = "userSearch";
+const STATUS_ID = "userStatus";
 
 const ALLOWED_ROLES = [
   "admin",
@@ -31,12 +32,25 @@ function normalizeRole(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function isUserActive(data = {}) {
+  return data.activ !== false && data.active !== false && data.enabled !== false;
+}
+
+function updateCurrentUserStatus(active) {
+  const statusElement = document.getElementById(STATUS_ID);
+  if (!statusElement) return;
+
+  statusElement.textContent = active ? "Activ" : "Inactiv";
+  statusElement.style.color = active ? "var(--mint)" : "var(--danger)";
+  statusElement.dataset.active = active ? "true" : "false";
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
 
@@ -70,18 +84,26 @@ function showMessage(message, success = true) {
   }, 6000);
 }
 
-async function getCurrentRole(user) {
-  if (!user) return "";
+async function getCurrentUserData(user) {
+  if (!user) return null;
 
   if (user.email === "tsplayer18@gmail.com") {
-    return "superadmin";
+    const snap = await getDoc(doc(db, "utilizatori", user.uid));
+    const data = snap.exists() ? (snap.data() || {}) : {};
+    return {
+      ...data,
+      role: normalizeRole(data.role || data.rol) || "superadmin"
+    };
   }
 
   const snap = await getDoc(doc(db, "utilizatori", user.uid));
-  if (!snap.exists()) return "";
+  if (!snap.exists()) return null;
 
   const data = snap.data() || {};
-  return normalizeRole(data.role || data.rol);
+  return {
+    ...data,
+    role: normalizeRole(data.role || data.rol)
+  };
 }
 
 async function loadUsers() {
@@ -129,6 +151,10 @@ function renderUsers() {
   const term = String(search?.value || "").trim().toLowerCase();
 
   const filtered = users.filter((user) => {
+    const role = normalizeRole(user.role || user.rol);
+
+    // Afișăm doar conturile care au un rol valid.
+    if (!ALLOWED_ROLES.includes(role)) return false;
     if (!term) return true;
 
     return [
@@ -137,8 +163,7 @@ function renderUsers() {
       user.nume,
       user.name,
       user.displayName,
-      user.role,
-      user.rol
+      role
     ]
       .filter(Boolean)
       .join(" ")
@@ -149,7 +174,7 @@ function renderUsers() {
   if (!filtered.length) {
     list.innerHTML = `
       <div class="user-management-empty">
-        Nu există utilizatori care corespund căutării.
+        Nu există utilizatori cu rol care corespund căutării.
       </div>
     `;
     return;
@@ -169,8 +194,8 @@ function renderUsers() {
 function renderUser(user) {
   const name = user.nume || user.name || user.displayName || "Fără nume";
   const email = user.email || "Fără email";
-  const role = normalizeRole(user.role || user.rol) || "utilizator";
-  const active = user.activ !== false && user.active !== false && user.enabled !== false;
+  const role = normalizeRole(user.role || user.rol);
+  const active = isUserActive(user);
   const isSelf = currentUid === user.uid;
 
   const roleOptions = ALLOWED_ROLES.map((item) => `
@@ -208,7 +233,7 @@ function renderUser(user) {
 
         <div class="user-management-field">
           <label>Status</label>
-          <select class="user-management-control managed-active">
+          <select class="user-management-control managed-active" ${isSelf ? "disabled" : ""}>
             <option value="true" ${active ? "selected" : ""}>ACTIV</option>
             <option value="false" ${!active ? "selected" : ""}>INACTIV</option>
           </select>
@@ -245,10 +270,20 @@ async function saveUser(uid, button) {
   }
 
   const existing = users.find((user) => user.uid === uid);
-  const oldRole = normalizeRole(existing?.role || existing?.rol);
+  if (!existing) {
+    showMessage("Utilizatorul nu mai există în listă.", false);
+    return;
+  }
+
+  const oldRole = normalizeRole(existing.role || existing.rol);
 
   if (uid === currentUid && role !== oldRole) {
     showMessage("Nu îți poți modifica propriul rol.", false);
+    return;
+  }
+
+  if (uid === currentUid && active !== isUserActive(existing)) {
+    showMessage("Nu îți poți modifica propria stare a contului.", false);
     return;
   }
 
@@ -277,6 +312,10 @@ async function saveUser(uid, button) {
       };
     }
 
+    if (uid === currentUid) {
+      updateCurrentUserStatus(active);
+    }
+
     renderUsers();
     showMessage(`Utilizatorul ${name} a fost actualizat cu succes.`);
   } catch (error) {
@@ -303,13 +342,15 @@ async function init() {
 
     try {
       currentUid = user.uid;
-      const role = await getCurrentRole(user);
+      const currentUserData = await getCurrentUserData(user);
+      const role = normalizeRole(currentUserData?.role || currentUserData?.rol);
 
       if (!["admin", "superadmin"].includes(role)) {
         card.style.display = "none";
         return;
       }
 
+      updateCurrentUserStatus(isUserActive(currentUserData || {}));
       card.style.display = "block";
       await loadUsers();
     } catch (error) {
