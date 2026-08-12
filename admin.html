@@ -1415,11 +1415,55 @@
       if (["superadmin", "admin"].includes(currentUserRole)) return true;
       const dep = (item.departament || "").toString().toLowerCase().trim();
       const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
-      if (currentUserRole === "conducere") {
-        const allowedDepts = ["isuls", "dsls", "mmls", "ssmls", "mm", "ssmmls"];
-        if (!allowedDepts.includes(dep) || tipCerere.includes("programare") || dep === "pcls") return false;
-        return true;
-      }
+if (currentUserRole === "conducere") {
+  const medicalDepartments = [
+    "isuls",
+    "dsls",
+    "mmls",
+    "mm",
+    "ssmls",
+    "ssmmls"
+  ];
+
+  const departmentText = String(
+    item.departament ||
+    item.departament_medical ||
+    item.department ||
+    item.dept ||
+    ""
+  )
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+  const requestText = [
+    item.departament,
+    item.departament_medical,
+    item.department,
+    item.dept,
+    item.tip_cerere,
+    item.tip,
+    item.eveniment
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  const isMedicalRequest =
+    medicalDepartments.some(dept => departmentText === dept) ||
+    requestText.includes("isuls") ||
+    requestText.includes("dsls") ||
+    requestText.includes("mmls") ||
+    requestText.includes("ssmls") ||
+    requestText.includes("ssmmls");
+
+  if (!isMedicalRequest) return false;
+
+  return true;
+}
       const allowedKeywords = ROLE_PERMISSIONS[currentUserRole.toLowerCase()] || [currentUserRole.toLowerCase()];
       const itemText = [item.departament, item.tip_cerere, item.eveniment].filter(Boolean).join(" ").toLowerCase();
       return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
