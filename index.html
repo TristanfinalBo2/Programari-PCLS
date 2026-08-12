@@ -2014,6 +2014,20 @@ function startNotificationListeners(user) {
     });
 }
 
+function isDiscordAuthenticated(user) {
+    if (!user || user.isAnonymous) return false;
+
+    const providerIds = (user.providerData || [])
+        .map(provider => String(provider?.providerId || "").toLowerCase());
+
+    // Acoperă provider Discord/OIDC dacă este expus explicit de Firebase.
+    if (providerIds.some(providerId => providerId.includes("discord"))) return true;
+
+    // În portal, conturile Discord sunt autentificate fără adresă de e-mail.
+    // Păstrăm acest fallback pentru autentificarea Discord prin custom token.
+    return !user.email;
+}
+
 function setupNotificationUi() {
     const toggle = document.getElementById("notificationToggle");
     const dropdown = document.getElementById("notificationDropdown");
@@ -2044,6 +2058,7 @@ function setupNotificationUi() {
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        const isDiscordUser = isDiscordAuthenticated(user);
         const emailPart = user.email ? user.email.split('@')[0] : "User";
         const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
         const initial = displayName.charAt(0).toUpperCase();
@@ -2103,6 +2118,7 @@ onAuthStateChanged(auth, async (user) => {
         // ==========================================
         if (authSection) {
             authSection.innerHTML = `
+                ${isDiscordUser ? `
                 <div class="notification-center-premium">
                     <button class="notification-btn-premium" id="notificationToggle" type="button" aria-label="Notificări" aria-expanded="false">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
@@ -2116,7 +2132,7 @@ onAuthStateChanged(auth, async (user) => {
                         <div id="notificationList" class="notification-list"><div class="notification-empty">Se încarcă notificările...</div></div>
                         <div class="notification-footer"><a href="cererile_mele.html">Vezi toate cererile</a></div>
                     </div>
-                </div>
+                </div>` : ""}
                 <div class="user-profile-premium">
                     <button class="profile-btn-premium" id="profileToggle">
                         <span>Salut, ${displayName}</span>
@@ -2148,9 +2164,14 @@ onAuthStateChanged(auth, async (user) => {
             `;
             
 
-            setupNotificationUi();
-            startNotificationListeners(user);
-            renderNotificationCenter();
+            if (isDiscordUser) {
+                setupNotificationUi();
+                startNotificationListeners(user);
+                renderNotificationCenter();
+            } else {
+                stopNotificationListeners();
+                notificationUserKey = null;
+            }
 
             const profileToggle = document.getElementById("profileToggle");
             const profileDropdown = document.getElementById("profileDropdown");
