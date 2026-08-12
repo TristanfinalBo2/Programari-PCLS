@@ -125,34 +125,21 @@ markAllBtn.addEventListener("click",async()=>{
 onAuthStateChanged(auth,user=>{
  if(unsubscribe)unsubscribe();
  if(!user){window.location.href="auth.html";return;}
-
- const byId = new Map();
- const unsubs = [];
- const renderCurrent = () => render(Array.from(byId.values()).sort((a,b)=>{
-   const ad=a.createdAt?.toDate?a.createdAt.toDate():new Date(a.createdAt||0);
-   const bd=b.createdAt?.toDate?b.createdAt.toDate():new Date(b.createdAt||0);
-   return bd-ad;
- }));
-
- const ownerQuery=query(collection(db,"notificari"),where("recipientUid","==",user.uid));
- unsubs.push(onSnapshot(ownerQuery,snap=>{
-   snap.docs.forEach(d=>byId.set(d.id,{id:d.id,...d.data()}));
-   renderCurrent();
+ const accountIdentifier=user.providerData?.[0]?.uid||user.uid;
+ const q=query(collection(db,"notificari"),where("recipientId","==",accountIdentifier));
+ unsubscribe=onSnapshot(q,snap=>{
+   render(snap.docs
+     .map(d=>({id:d.id,...d.data()}))
+     .sort((a,b)=>{
+       const ad=a.createdAt?.toDate?a.createdAt.toDate():new Date(a.createdAt||0);
+       const bd=b.createdAt?.toDate?b.createdAt.toDate():new Date(b.createdAt||0);
+       return bd-ad;
+     }));
  },err=>{
-   console.error("Eroare notificari recipientUid:",err);
+   console.error("Eroare notificari:",err);
    status.textContent="Nu s-au putut încărca notificările.";
- }));
-
- const legacyId=user.providerData?.[0]?.uid;
- if(legacyId && legacyId!==user.uid){
-   const legacyQuery=query(collection(db,"notificari"),where("recipientId","==",legacyId));
-   unsubs.push(onSnapshot(legacyQuery,snap=>{
-     snap.docs.forEach(d=>byId.set(d.id,{id:d.id,...d.data()}));
-     renderCurrent();
-   },err=>console.warn("Eroare notificari legacy:",err)));
- }
-
- unsubscribe=()=>{unsubs.forEach(fn=>fn());byId.clear();};
+   list.innerHTML='<div class="empty">Verifică regulile Firestore pentru colecția „notificari”.</div>';
+ });
 });
 </script>
 </body>
