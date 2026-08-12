@@ -71,6 +71,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("cereri-container")) {
     import("./admin-dashboard.js").catch(error => console.error("Dashboard admin:", error));
     import("./admin-departments-polish.js").catch(error => console.error("Department dashboard polish:", error));
+    import("./admin-dashboard-layout-guard.js").catch(error => console.error("Dashboard layout guard:", error));
     import("./admin-audit-monitor.js").catch(error => console.error("Audit monitor:", error));
     import("./admin-notification-monitor.js").catch(error => console.error("Monitor notificări admin:", error));
   }
