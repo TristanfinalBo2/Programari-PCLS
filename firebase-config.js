@@ -3,7 +3,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBst9kibZtc9Cx-KgJ21XcZUkouRtDI1Sc",
+  apiKey: "AIzaSyBst9kibTzc9Cx-KgJ21XcZUkouRtDI1Sc",
   authDomain: "pcls-portal.firebaseapp.com",
   projectId: "pcls-portal",
   storageBucket: "pcls-portal.firebasestorage.app",
@@ -70,7 +70,7 @@ window.addEventListener("DOMContentLoaded", () => {
   import("./notification-center.js").catch(error => console.error("Centrul de notificări:", error));
   if (document.getElementById("cereri-container")) {
     import("./admin-dashboard.js").catch(error => console.error("Dashboard admin:", error));
-    import("./admin-departments-polish.js").catch(error => console.error("Department dashboard polish:", error));
+    import("./admin-departments-v2.js").catch(error => console.error("Department dashboard V2:", error));
     import("./admin-dashboard-layout-guard.js").catch(error => console.error("Dashboard layout guard:", error));
     import("./admin-audit-monitor.js").catch(error => console.error("Audit monitor:", error));
     import("./admin-notification-monitor.js").catch(error => console.error("Monitor notificări admin:", error));
