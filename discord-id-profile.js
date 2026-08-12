@@ -30,10 +30,6 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-function findCard() {
-  return document.querySelector("#profileForm")?.closest(".settings-card") || null;
-}
-
 function createCard(existingId = "") {
   const card = document.createElement("section");
   card.className = "discord-id-required";
@@ -53,7 +49,7 @@ function createCard(existingId = "") {
   const reference = document.querySelector("#profileForm")?.parentElement;
   if (reference) reference.appendChild(card);
   const input = card.querySelector("#discordIdInput");
-  input.value = existingId;
+  if (input) input.value = existingId;
   return card;
 }
 
@@ -79,6 +75,7 @@ async function init() {
   const button = card.querySelector("#discordIdSave");
   const errorBox = card.querySelector("#discordIdError");
   const badge = card.querySelector("#discord-id-badge");
+  if (!input || !button || !errorBox || !badge) return;
 
   const paint = value => {
     const valid = DISCORD_ID_RE.test(String(value || "").trim());
@@ -94,7 +91,7 @@ async function init() {
   button.addEventListener("click", async () => {
     const value = String(input.value || "").trim();
     if (!DISCORD_ID_RE.test(value)) {
-      errorBox.textContent = "Discord ID invalid. Folosește doar ID-ul numeric de 17–20 cifre."];
+      errorBox.textContent = "Discord ID invalid. Folosește doar ID-ul numeric de 17–20 cifre.";
       errorBox.classList.add("show");
       paint(value);
       input.focus();
