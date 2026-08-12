@@ -177,6 +177,8 @@ body.modal-open { overflow: hidden; }
     let listenerErrors = 0;
     let listenerUpdates = 0;
     let unsubscribeListeners = [];
+    const requestedRequestId = new URLSearchParams(window.location.search).get("cerere");
+    let requestedRequestOpened = false;
 
     const friendlyLabels = {
         departament: "Departament",
@@ -351,6 +353,11 @@ body.modal-open { overflow: hidden; }
             sourceMap.forEach((value, key) => activeRequests.set(key, value));
         });
         renderRequests(Array.from(activeRequests.values()).sort((a, b) => requestTimestamp(b) - requestTimestamp(a)));
+
+        if (requestedRequestId && !requestedRequestOpened && activeRequests.has(requestedRequestId)) {
+            requestedRequestOpened = true;
+            requestAnimationFrame(() => openDetails(activeRequests.get(requestedRequestId)));
+        }
     }
 
     function renderRequests(requests) {
