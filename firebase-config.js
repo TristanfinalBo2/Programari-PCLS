@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("DOMContentLoaded", () => {
-  import("./presence-tracker.js").catch(error => console.error("Prezență cont:", error));
+  import("./notification-center.js").catch(error => console.error("Centrul de notificări:", error));
   if (document.getElementById("cereri-container")) {
     import("./admin-dashboard.js").catch(error => console.error("Dashboard admin:", error));
     import("./admin-departments-v2.js").catch(error => console.error("Department dashboard V2:", error));
@@ -77,8 +77,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   if (window.location.pathname.toLowerCase().endsWith("/setari.html")) {
     import("./gestionare-utilizatori-v2.js").catch(error => console.error("Gestionare utilizatori:", error));
-    import("./gestionare-utilizatori-presence.js").catch(error => console.error("Prezență utilizatori:", error));
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-13-02-55";
+export const FIREBASE_CONFIG_VERSION = "2026-08-13-02-15";
