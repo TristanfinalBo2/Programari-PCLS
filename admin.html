@@ -1246,7 +1246,7 @@ import {
 
 
 /* =========================================================
-   PERMISIUNI
+   CONFIG
 ========================================================= */
 
 const ROLE_PERMISSIONS = {
@@ -1258,11 +1258,6 @@ const ROLE_PERMISSIONS = {
   mmls: ["mmls", "mm"],
   ssmls: ["ssmls", "ssmmls"]
 };
-
-
-/* =========================================================
-   VARIABILE
-========================================================= */
 
 let currentUserRole = null;
 let allCereri = [];
@@ -1302,9 +1297,7 @@ const searchClearBtn =
   document.getElementById("cereri-search-clear");
 
 
-/* =========================================================
-   MODAL APROBARE
-========================================================= */
+/* MODAL APROBARE */
 
 const approveModal =
   document.getElementById("approve-modal");
@@ -1322,9 +1315,7 @@ const approveCopyBtn =
   document.getElementById("approve-copy-btn");
 
 
-/* =========================================================
-   MODAL STERGERE
-========================================================= */
+/* MODAL ȘTERGERE */
 
 const confirmModal =
   document.getElementById("confirm-modal");
@@ -1339,9 +1330,7 @@ const confirmCloseBtn =
   document.getElementById("confirm-close");
 
 
-/* =========================================================
-   MODAL DETALII
-========================================================= */
+/* MODAL DETALII */
 
 const detailsModal =
   document.getElementById("details-modal");
@@ -1360,7 +1349,7 @@ const detailsCopyBtn =
 
 
 /* =========================================================
-   NUME ADMIN
+   ADMIN
 ========================================================= */
 
 function getCurrentAdminName() {
@@ -1377,16 +1366,18 @@ function getCurrentAdminName() {
 
 
 /* =========================================================
-   AUTENTIFICARE
+   AUTH
 ========================================================= */
 
 onAuthStateChanged(auth, async (user) => {
+
   if (!user) {
     window.location.href = "auth.html";
     return;
   }
 
   try {
+
     const validRoles = [
       "superadmin",
       "admin",
@@ -1405,11 +1396,6 @@ onAuthStateChanged(auth, async (user) => {
       await getDoc(userDocRef);
 
     if (!userDoc.exists()) {
-      console.error(
-        "Documentul utilizatorului nu există:",
-        user.uid
-      );
-
       window.location.href = "index.html";
       return;
     }
@@ -1433,7 +1419,6 @@ onAuthStateChanged(auth, async (user) => {
       !validRoles.includes(rawRole) &&
       !validRoles.includes(role)
     ) {
-      console.error("Rol invalid:", rawRole);
       window.location.href = "index.html";
       return;
     }
@@ -1446,6 +1431,7 @@ onAuthStateChanged(auth, async (user) => {
       );
 
     if (generatorSection) {
+
       if (
         ["superadmin", "admin", "conducere"]
           .includes(currentUserRole)
@@ -1461,26 +1447,29 @@ onAuthStateChanged(auth, async (user) => {
     initFirestoreListener();
 
   } catch (error) {
+
     console.error(
-      "Eroare autentificare/admin:",
+      "Eroare autentificare admin:",
       error
     );
+
   }
+
 });
 
 
 /* =========================================================
-   FILTRE ÎN FUNCȚIE DE ROL
+   FILTRE PE ROL
 ========================================================= */
 
 function adjustFilterButtonsForRole(role) {
-  if (
-    ["superadmin", "admin"].includes(role)
-  ) {
+
+  if (["superadmin", "admin"].includes(role)) {
     return;
   }
 
   filterButtons.forEach(btn => {
+
     const filterVal =
       (
         btn.getAttribute("data-filter") ||
@@ -1490,6 +1479,7 @@ function adjustFilterButtonsForRole(role) {
         .trim();
 
     if (role === "conducere") {
+
       const conducereAllowedTabs = [
         "all",
         "toate",
@@ -1505,9 +1495,7 @@ function adjustFilterButtonsForRole(role) {
         "ssmls"
       ];
 
-      if (
-        !conducereAllowedTabs.includes(filterVal)
-      ) {
+      if (!conducereAllowedTabs.includes(filterVal)) {
         btn.style.display = "none";
       }
 
@@ -1528,13 +1516,16 @@ function adjustFilterButtonsForRole(role) {
       ) {
         btn.style.display = "none";
       }
+
     }
+
   });
+
 }
 
 
 /* =========================================================
-   GENERARE COD INVITAȚIE
+   GENERARE COD
 ========================================================= */
 
 if (btnGenerateCode) {
@@ -1573,10 +1564,8 @@ if (btnGenerateCode) {
             code: newCode,
             role: selectedRole,
             used: false,
-            created_at:
-              new Date().toISOString(),
-            created_by:
-              getCurrentAdminName()
+            created_at: new Date().toISOString(),
+            created_by: getCurrentAdminName()
           }
         );
 
@@ -1584,27 +1573,23 @@ if (btnGenerateCode) {
 
           generatedCodeDisplay.innerHTML =
             `Cod generat:
-            <span
-              style="
-                background: rgba(0,255,163,0.1);
-                padding: 4px 10px;
-                border-radius: 8px;
-                user-select: all;
-                border: 1px solid rgba(0,255,163,0.2);
-              "
-            >${newCode}</span>
-
+            <span style="
+              background: rgba(0,255,163,0.1);
+              padding: 4px 10px;
+              border-radius: 8px;
+              user-select: all;
+              border: 1px solid rgba(0,255,163,0.2);
+            ">
+              ${newCode}
+            </span>
             <br>
-
-            <span
-              style="
-                font-size: 0.85rem;
-                color: var(--text-muted);
-                font-weight: normal;
-                margin-top: 5px;
-                display: block;
-              "
-            >
+            <span style="
+              font-size:0.85rem;
+              color:var(--text-muted);
+              font-weight:normal;
+              margin-top:5px;
+              display:block;
+            ">
               (Copiază-l și oferă-l adminului nou)
             </span>`;
         }
@@ -1641,31 +1626,22 @@ if (btnGenerateCode) {
 
         btnGenerateCode.disabled = false;
       }
+
     }
   );
+
 }
 
 
 /* =========================================================
-   LISTENER FIRESTORE CERERI
+   FIRESTORE LISTENER
 ========================================================= */
 
 function initFirestoreListener() {
 
-  console.log(
-    "Pornesc listener-ul pentru colecția cereri..."
-  );
-
   onSnapshot(
-
     collection(db, "cereri"),
-
     snapshot => {
-
-      console.log(
-        "CERERI FIRESTORE:",
-        snapshot.size
-      );
 
       allCereri =
         snapshot.docs.map(docSnap => ({
@@ -1673,20 +1649,15 @@ function initFirestoreListener() {
           ...docSnap.data()
         }));
 
-
       allCereri.sort((a, b) => {
 
         const getTime = x => {
 
-          if (
-            x.created_at &&
-            typeof x.created_at.toMillis === "function"
-          ) {
+          if (x.created_at?.toMillis) {
             return x.created_at.toMillis();
           }
 
           if (x.created_at) {
-
             const time =
               new Date(x.created_at).getTime();
 
@@ -1695,10 +1666,7 @@ function initFirestoreListener() {
               : time;
           }
 
-          if (
-            x.createdAt &&
-            typeof x.createdAt.toMillis === "function"
-          ) {
+          if (x.createdAt?.toMillis) {
             return x.createdAt.toMillis();
           }
 
@@ -1706,35 +1674,30 @@ function initFirestoreListener() {
         };
 
         return getTime(b) - getTime(a);
+
       });
 
-
       renderCereri();
-    },
 
+    },
     error => {
 
       console.error(
-        "EROARE FIRESTORE CERERI:",
+        "Eroare listener cereri:",
         error
       );
 
       if (cereriContainer) {
 
-        cereriContainer.innerHTML = `
-          <div class="empty-state">
-            Nu s-au putut încărca cererile.
-            <br>
-            <small>
-              ${escapeHtml(
-                error.message || ""
-              )}
-            </small>
-          </div>
-        `;
+        cereriContainer.innerHTML =
+          `<div class="empty-state">
+            Eroare la încărcarea cererilor.
+          </div>`;
       }
+
     }
   );
+
 }
 
 
@@ -1748,8 +1711,8 @@ filterButtons.forEach(btn => {
     "click",
     () => {
 
-      filterButtons.forEach(b =>
-        b.classList.remove("active")
+      filterButtons.forEach(
+        b => b.classList.remove("active")
       );
 
       btn.classList.add("active");
@@ -1758,9 +1721,16 @@ filterButtons.forEach(btn => {
         btn.getAttribute("data-filter") ||
         btn.textContent.trim();
 
+      currentFilter =
+        currentFilter
+          .toLowerCase()
+          .trim();
+
       renderCereri();
+
     }
   );
+
 });
 
 
@@ -1776,6 +1746,7 @@ function normalizeSearchText(value) {
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
+
 }
 
 
@@ -1791,14 +1762,15 @@ if (searchInput) {
         );
 
       if (searchClearBtn) {
-
         searchClearBtn.hidden =
           currentSearch.length === 0;
       }
 
       renderCereri();
+
     }
   );
+
 }
 
 
@@ -1818,13 +1790,15 @@ if (searchClearBtn) {
       searchClearBtn.hidden = true;
 
       renderCereri();
+
     }
   );
+
 }
 
 
 /* =========================================================
-   AFIȘARE CERERI
+   RENDER CERERI
 ========================================================= */
 
 function renderCereri() {
@@ -1835,7 +1809,6 @@ function renderCereri() {
 
   cereriContainer.innerHTML = "";
 
-
   const roleAllowedCereri =
     allCereri.filter(item => {
 
@@ -1845,7 +1818,6 @@ function renderCereri() {
       ) {
         return true;
       }
-
 
       const dep =
         (item.departament || "")
@@ -1858,7 +1830,6 @@ function renderCereri() {
           .toString()
           .toLowerCase()
           .trim();
-
 
       if (currentUserRole === "conducere") {
 
@@ -1882,25 +1853,21 @@ function renderCereri() {
         return true;
       }
 
-
       const allowedKeywords =
         ROLE_PERMISSIONS[
           currentUserRole?.toLowerCase()
         ] ||
+        [currentUserRole?.toLowerCase()];
+
+      const itemText =
         [
-          currentUserRole?.toLowerCase()
-        ];
-
-
-      const itemText = [
-        item.departament,
-        item.tip_cerere,
-        item.eveniment
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
+          item.departament,
+          item.tip_cerere,
+          item.eveniment
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
       return allowedKeywords.some(
         kw =>
@@ -1908,17 +1875,16 @@ function renderCereri() {
             kw.toLowerCase()
           )
       );
+
     });
 
 
   const activeCount =
-    roleAllowedCereri.filter(
-      c =>
-        c.status !== "in_cos" &&
-        !c.arhivat &&
-        !c.deleted
+    roleAllowedCereri.filter(c =>
+      c.status !== "in_cos" &&
+      !c.arhivat &&
+      !c.deleted
     ).length;
-
 
   if (totalCountEl) {
     totalCountEl.textContent =
@@ -1930,31 +1896,22 @@ function renderCereri() {
     roleAllowedCereri.filter(item => {
 
       const rawStatus =
-        (
-          item.status ||
-          "in_asteptare"
-        )
+        (item.status || "in_asteptare")
           .toString()
           .toLowerCase()
           .trim();
 
-
       const isTrash =
         rawStatus === "in_cos" ||
         item.deleted === true;
-
 
       const isArhivat =
         item.arhivat === true ||
         item.archived === true ||
         rawStatus === "arhivat";
 
-
       const filterNorm =
-        (
-          currentFilter ||
-          "all"
-        )
+        (currentFilter || "all")
           .toString()
           .trim()
           .toLowerCase();
@@ -1963,7 +1920,6 @@ function renderCereri() {
       if (filterNorm === "in_cos") {
         return isTrash;
       }
-
 
       if (isTrash) {
         return false;
@@ -1974,22 +1930,27 @@ function renderCereri() {
         return isArhivat;
       }
 
-
       if (isArhivat) {
         return false;
       }
 
 
-      if (filterNorm === "all") {
+      if (
+        filterNorm === "all" ||
+        filterNorm === "toate"
+      ) {
         return true;
       }
 
 
       if (
-        filterNorm === "in_asteptare"
+        filterNorm === "in_asteptare" ||
+        filterNorm === "în așteptare"
       ) {
-        return rawStatus.includes(
-          "asteptare"
+
+        return (
+          rawStatus.includes("asteptare") ||
+          rawStatus.includes("așteptare")
         );
       }
 
@@ -2007,12 +1968,10 @@ function renderCereri() {
               .toLowerCase()
               .trim();
 
-
         const itemDept =
           normalizePclsText(
             item.departament
           );
-
 
         const medicalDepartments = [
           "isuls",
@@ -2023,7 +1982,6 @@ function renderCereri() {
           "ssmmls"
         ];
 
-
         if (
           medicalDepartments.includes(
             itemDept
@@ -2031,7 +1989,6 @@ function renderCereri() {
         ) {
           return false;
         }
-
 
         const requestText =
           normalizePclsText(
@@ -2045,32 +2002,20 @@ function renderCereri() {
               .join(" ")
           );
 
-
         const hasEventRequest =
           Boolean(
             String(
               item.eveniment || ""
             ).trim()
           ) ||
-          requestText.includes(
-            "eveniment"
-          ) ||
-          requestText.includes(
-            "event"
-          );
-
+          requestText.includes("eveniment") ||
+          requestText.includes("event");
 
         const hasAppointmentRequest =
-          requestText.includes(
-            "programare"
-          );
-
+          requestText.includes("programare");
 
         const hasRegistrationRequest =
-          requestText.includes(
-            "inregistrare"
-          );
-
+          requestText.includes("inregistrare");
 
         return (
           itemDept === "pcls" ||
@@ -2087,14 +2032,12 @@ function renderCereri() {
           .toLowerCase()
           .trim();
 
-
       return itemDept === filterNorm;
+
     });
 
 
-  /* =======================================================
-     SEARCH
-  ======================================================= */
+  /* SEARCH */
 
   if (currentSearch) {
 
@@ -2113,7 +2056,6 @@ function renderCereri() {
               .join(" ")
           );
 
-
         const businessName =
           normalizeSearchText(
             [
@@ -2126,22 +2068,15 @@ function renderCereri() {
               .join(" ")
           );
 
-
         return (
-          personName.includes(
-            currentSearch
-          ) ||
-          businessName.includes(
-            currentSearch
-          )
+          personName.includes(currentSearch) ||
+          businessName.includes(currentSearch)
         );
+
       });
+
   }
 
-
-  /* =======================================================
-     FĂRĂ REZULTATE
-  ======================================================= */
 
   if (filtered.length === 0) {
 
@@ -2156,7 +2091,6 @@ function renderCereri() {
           }”.`
         : "Nu există cereri vizibile pentru filtrul selectat.";
 
-
     cereriContainer.innerHTML =
       `<div class="empty-state">
         ${emptyMessage}
@@ -2166,9 +2100,7 @@ function renderCereri() {
   }
 
 
-  /* =======================================================
-     CARDURI
-  ======================================================= */
+  /* CARDURI */
 
   filtered.forEach(item => {
 
@@ -2178,11 +2110,14 @@ function renderCereri() {
       item.tip ||
       "PROGRAMARE";
 
-
     const status =
       item.status ||
       "in_asteptare";
 
+    const statusNorm =
+      String(status)
+        .toLowerCase()
+        .trim();
 
     const badgeClass =
       tip
@@ -2190,7 +2125,6 @@ function renderCereri() {
         .includes("eveniment")
         ? "eveniment"
         : "programare";
-
 
     const numeProprietar =
       escapeHtml(
@@ -2200,14 +2134,12 @@ function renderCereri() {
         "-"
       );
 
-
     const numeAfacere =
       escapeHtml(
         item.nume_afacere ||
         item.unitate ||
         "-"
       );
-
 
     const dataOra =
       escapeHtml(
@@ -2220,18 +2152,11 @@ function renderCereri() {
       );
 
 
-    const rawStatusNorm =
-      status
-        .toString()
-        .toLowerCase()
-        .trim();
-
-
     let actionsHTML = "";
 
 
     if (
-      rawStatusNorm === "in_cos" ||
+      statusNorm === "in_cos" ||
       item.deleted === true
     ) {
 
@@ -2251,9 +2176,12 @@ function renderCereri() {
         </button>
       `;
 
-    } else if (
+    }
+
+    else if (
       item.arhivat === true ||
-      rawStatusNorm === "arhivat"
+      item.archived === true ||
+      statusNorm === "arhivat"
     ) {
 
       actionsHTML = `
@@ -2272,7 +2200,9 @@ function renderCereri() {
         </button>
       `;
 
-    } else {
+    }
+
+    else {
 
       actionsHTML = `
         <button
@@ -2310,6 +2240,7 @@ function renderCereri() {
           Șterge
         </button>
       `;
+
     }
 
 
@@ -2318,17 +2249,15 @@ function renderCereri() {
 
     card.className = "card";
 
-
     const statusClass =
-      status.includes("aprobat")
+      statusNorm.includes("aprobat") ||
+      statusNorm.includes("acceptat")
         ? "aprobat"
-        : status.includes("acceptat")
-          ? "aprobat"
-          : status.includes("respins")
-            ? "respins"
-            : status === "in_cos"
-              ? "in_cos"
-              : "in_asteptare";
+        : statusNorm.includes("respins")
+          ? "respins"
+          : statusNorm === "in_cos"
+            ? "in_cos"
+            : "in_asteptare";
 
 
     card.innerHTML = `
@@ -2340,12 +2269,12 @@ function renderCereri() {
 
         <span class="status-badge ${statusClass}">
           ${escapeHtml(
-            status.replace("_", " ")
+            String(status)
+              .replace(/_/g, " ")
           )}
         </span>
 
       </div>
-
 
       <div class="card-body">
 
@@ -2366,23 +2295,23 @@ function renderCereri() {
 
       </div>
 
-
       <div class="card-actions">
         ${actionsHTML}
       </div>
     `;
 
-
     cereriContainer.appendChild(card);
+
   });
 
 
   attachActionListeners();
+
 }
 
 
 /* =========================================================
-   BUTOANE CERERI
+   BUTOANE
 ========================================================= */
 
 function attachActionListeners() {
@@ -2410,14 +2339,14 @@ function attachActionListeners() {
           if (item) {
             openDetailsModal(item);
           }
+
         }
       );
+
     });
 
 
-  /* =======================================================
-     ACCEPTĂ
-  ======================================================= */
+  /* ACCEPTĂ */
 
   document
     .querySelectorAll(".btn-approve")
@@ -2437,14 +2366,11 @@ function attachActionListeners() {
               c => c.id === id
             );
 
-
           if (!item) {
             return;
           }
 
-
           pendingApproveId = id;
-
 
           const nume =
             item.nume_proprietar ||
@@ -2453,13 +2379,11 @@ function attachActionListeners() {
             item.nume ||
             "-";
 
-
           const adresa =
             item.adresa ||
             item.locatie ||
             item.detalii ||
             "-";
-
 
           const tipControl =
             item.eveniment ||
@@ -2467,17 +2391,14 @@ function attachActionListeners() {
             item.tip ||
             "PROGRAMARE";
 
-
           const dataOra =
             item.data_ora ||
             (
               item.dataProgramare
                 ? `${item.dataProgramare} la ${item.oraProgramare || ""}`
-                : (
-                    item.dataDorita
-                      ? `${item.dataDorita} la ${item.oraDorita || ""}`
-                      : "-"
-                  )
+                : item.dataDorita
+                  ? `${item.dataDorita} la ${item.oraDorita || ""}`
+                  : "-"
             );
 
 
@@ -2508,45 +2429,39 @@ function attachActionListeners() {
 
 
           if (appNume) {
-            appNume.textContent =
-              nume;
+            appNume.textContent = nume;
           }
 
           if (appAdresa) {
-            appAdresa.textContent =
-              adresa;
+            appAdresa.textContent = adresa;
           }
 
           if (appTip) {
             appTip.textContent =
-              tipControl.toUpperCase();
+              String(tipControl).toUpperCase();
           }
 
           if (appData) {
-            appData.textContent =
-              dataOra;
+            appData.textContent = dataOra;
           }
 
           if (appAdmin) {
             appAdmin.textContent =
-              `@${getCurrentAdminName()
-                .split("@")[0]}`;
+              `@${getCurrentAdminName().split("@")[0]}`;
           }
 
 
           if (approveModal) {
-            approveModal.classList.add(
-              "active"
-            );
+            approveModal.classList.add("active");
           }
+
         }
       );
+
     });
 
 
-  /* =======================================================
-     RESPINGE
-  ======================================================= */
+  /* RESPINGE */
 
   document
     .querySelectorAll(".btn-reject")
@@ -2566,14 +2481,14 @@ function attachActionListeners() {
             "respins",
             "Respins cererea"
           );
+
         }
       );
+
     });
 
 
-  /* =======================================================
-     ARHIVĂ
-  ======================================================= */
+  /* ARHIVEAZĂ */
 
   document
     .querySelectorAll(".btn-archive")
@@ -2589,14 +2504,14 @@ function attachActionListeners() {
             ),
             true
           );
+
         }
       );
+
     });
 
 
-  /* =======================================================
-     DEZARHIVARE
-  ======================================================= */
+  /* DESARHIVEAZĂ */
 
   document
     .querySelectorAll(".btn-unarchive")
@@ -2612,14 +2527,14 @@ function attachActionListeners() {
             ),
             false
           );
+
         }
       );
+
     });
 
 
-  /* =======================================================
-     COȘ
-  ======================================================= */
+  /* COȘ */
 
   document
     .querySelectorAll(".btn-trash")
@@ -2638,7 +2553,6 @@ function attachActionListeners() {
             allCereri.find(
               c => c.id === id
             );
-
 
           if (
             item &&
@@ -2668,15 +2582,16 @@ function attachActionListeners() {
               "Cererea a fost mutată în Coș.",
               "warning"
             );
+
           }
+
         }
       );
+
     });
 
 
-  /* =======================================================
-     RESTAURARE
-  ======================================================= */
+  /* RESTAUREAZĂ */
 
   document
     .querySelectorAll(".btn-restore")
@@ -2690,7 +2605,7 @@ function attachActionListeners() {
             btn.getAttribute(
               "data-id"
             ),
-            "În Așteptare",
+            "in_asteptare",
             "Restaurat cererea"
           );
 
@@ -2698,14 +2613,17 @@ function attachActionListeners() {
             "Cererea a fost restaurată!",
             "success"
           );
+
         }
       );
+
     });
+
 }
 
 
 /* =========================================================
-   ÎNCHIDERE MODAL APROBARE
+   MODAL ACCEPTARE
 ========================================================= */
 
 function closeApproveModal() {
@@ -2717,6 +2635,7 @@ function closeApproveModal() {
   }
 
   pendingApproveId = null;
+
 }
 
 
@@ -2727,7 +2646,6 @@ if (approveCloseBtn) {
   );
 }
 
-
 if (approveCancelBtn) {
   approveCancelBtn.addEventListener(
     "click",
@@ -2737,7 +2655,7 @@ if (approveCancelBtn) {
 
 
 /* =========================================================
-   CONFIRMĂ ACCEPTAREA
+   BUTON CONFIRMARE ACCEPTARE
 ========================================================= */
 
 if (approveOkBtn) {
@@ -2750,18 +2668,9 @@ if (approveOkBtn) {
         return;
       }
 
-
-      const id =
-        pendingApproveId;
-
-
-      /*
-       * Închidem butonul temporar pentru a preveni
-       * apăsări multiple.
-       */
+      const id = pendingApproveId;
 
       approveOkBtn.disabled = true;
-
 
       try {
 
@@ -2776,9 +2685,12 @@ if (approveOkBtn) {
       } finally {
 
         approveOkBtn.disabled = false;
+
       }
+
     }
   );
+
 }
 
 
@@ -2795,31 +2707,31 @@ if (approveCopyBtn) {
       const nume =
         document.getElementById(
           "app-nume"
-        )?.textContent || "-";
+        )?.textContent || "";
 
       const adresa =
         document.getElementById(
           "app-adresa"
-        )?.textContent || "-";
+        )?.textContent || "";
 
       const tip =
         document.getElementById(
           "app-tip"
-        )?.textContent || "-";
+        )?.textContent || "";
 
       const data =
         document.getElementById(
           "app-data"
-        )?.textContent || "-";
+        )?.textContent || "";
 
       const admin =
         document.getElementById(
           "app-admin"
-        )?.textContent || "-";
+        )?.textContent || "";
 
 
       const textDeCopiat =
-        `=== CONFIRMARE APROBARE ===
+`=== CONFIRMARE APROBARE ===
 Nume / Reprezentant: ${nume}
 Adresă / Locație: ${adresa}
 Tip Control / Cerere: ${tip}
@@ -2836,38 +2748,15 @@ Procesat și Acceptat de: ${admin}`;
             "success"
           );
 
-
           const textOriginal =
             approveCopyBtn.innerHTML;
-
 
           approveCopyBtn.innerHTML =
             "✓ Copiat!";
 
-          approveCopyBtn.style.background =
-            "rgba(0, 255, 163, 0.15)";
-
-          approveCopyBtn.style.color =
-            "var(--accent-primary)";
-
-          approveCopyBtn.style.borderColor =
-            "rgba(0, 255, 163, 0.3)";
-
-
           setTimeout(() => {
-
             approveCopyBtn.innerHTML =
               textOriginal;
-
-            approveCopyBtn.style.background =
-              "rgba(0, 150, 255, 0.15)";
-
-            approveCopyBtn.style.color =
-              "var(--accent-secondary)";
-
-            approveCopyBtn.style.borderColor =
-              "rgba(0, 150, 255, 0.3)";
-
           }, 2500);
 
         })
@@ -2882,14 +2771,17 @@ Procesat și Acceptat de: ${admin}`;
             "Eroare la copierea datelor.",
             "error"
           );
+
         });
+
     }
   );
+
 }
 
 
 /* =========================================================
-   ARHIVARE
+   ARHIVĂ
 ========================================================= */
 
 async function toggleArchive(
@@ -2918,7 +2810,6 @@ async function toggleArchive(
       }
     );
 
-
     showToast(
       shouldArchive
         ? "Cererea a fost arhivată."
@@ -2937,12 +2828,15 @@ async function toggleArchive(
       "Eroare la arhivare.",
       "error"
     );
+
   }
+
 }
 
 
 /* =========================================================
-   IDENTIFICARE UID PROPRIETAR CERERE
+   IMPORTANT:
+   GĂSEȘTE UID-UL PROPRIETARULUI
 ========================================================= */
 
 async function resolveRequestOwnerUid(
@@ -2955,154 +2849,183 @@ async function resolveRequestOwnerUid(
 
 
   /*
-   * 1. UID DIRECT ÎN CERERE
+   * 1. UID DIRECT DIN CERERE
    */
 
   const directUidCandidates = [
 
-    requestData.uid,
+    requestData.ownerUid,
+    requestData.ownerUID,
 
     requestData.userUid,
     requestData.userUID,
-    requestData.userId,
+
+    requestData.uid,
+
     requestData.user_id,
-
-    requestData.ownerUid,
-    requestData.ownerUID,
-    requestData.owner_uid,
-
-    requestData.requesterUid,
-    requestData.requester_uid,
+    requestData.userId,
 
     requestData.authUid,
 
     requestData.firebaseUid,
     requestData.firebaseUID,
+
     requestData.firebase_uid,
+
+    requestData.uid_firebase,
+    requestData.uidFirebase,
+
+    requestData.recipientUid,
+
+    requestData.requesterUid,
+    requestData.requester_uid,
 
     requestData.createdByUid,
     requestData.created_by_uid
-  ];
+
+  ]
+    .map(
+      value =>
+        String(value ?? "").trim()
+    )
+    .filter(Boolean);
 
 
-  for (
-    const value
-    of directUidCandidates
-  ) {
+  /*
+   * Dacă avem UID direct,
+   * îl folosim imediat.
+   *
+   * NU mai verificăm existența în
+   * utilizatori deoarece este posibil ca
+   * structura Firestore să fie diferită.
+   */
 
-    const uid =
-      String(value ?? "").trim();
+  if (directUidCandidates.length > 0) {
 
+    console.log(
+      "UID găsit direct în cerere:",
+      directUidCandidates[0]
+    );
 
-    if (uid) {
+    return directUidCandidates[0];
 
-      console.log(
-        "UID găsit direct în cerere:",
-        uid
-      );
-
-      return uid;
-    }
   }
 
 
   /*
-   * 2. DISCORD ID
+   * 2. DISCORD
    */
 
   const discordId =
     String(
-
       requestData.discord_id ||
-
       requestData.discord ||
-
       requestData.numeDiscord ||
-
       requestData.discordId ||
-
       requestData.discordUID ||
-
       requestData.discordUid ||
-
       requestData.discord_uid ||
-
       requestData.discordUserId ||
-
       requestData.discord_user_id ||
-
       ""
-
     ).trim();
 
 
   if (discordId) {
 
-    const discordFields = [
+    const collectionsToCheck = [
+      "utilizatori",
+      "users"
+    ];
 
+    const discordFields = [
       "discord_id",
-      "discord",
       "discordId",
       "discordUID",
       "discordUid",
+      "discord",
       "discord_uid",
       "discordUserId",
       "discord_user_id",
       "numeDiscord"
-
     ];
 
 
     for (
-      const field
-      of discordFields
+      const collectionName
+      of collectionsToCheck
     ) {
 
-      try {
+      for (
+        const fieldName
+        of discordFields
+      ) {
 
-        const q =
-          query(
-            collection(
-              db,
-              "utilizatori"
-            ),
-            where(
-              field,
-              "==",
-              discordId
-            )
+        try {
+
+          const q =
+            query(
+              collection(
+                db,
+                collectionName
+              ),
+              where(
+                fieldName,
+                "==",
+                discordId
+              )
+            );
+
+          const snap =
+            await getDocs(q);
+
+          if (!snap.empty) {
+
+            const userDoc =
+              snap.docs[0];
+
+            const userData =
+              userDoc.data();
+
+
+            const uid =
+              String(
+                userData.uid ||
+                userData.userUid ||
+                userData.userUID ||
+                userData.firebaseUid ||
+                userData.firebaseUID ||
+                userDoc.id ||
+                ""
+              ).trim();
+
+
+            if (uid) {
+
+              console.log(
+                "UID găsit prin Discord:",
+                uid
+              );
+
+              return uid;
+
+            }
+
+          }
+
+        } catch (error) {
+
+          console.warn(
+            `Eroare căutare ${collectionName}.${fieldName}:`,
+            error
           );
 
-
-        const snap =
-          await getDocs(q);
-
-
-        if (!snap.empty) {
-
-          const userDoc =
-            snap.docs[0];
-
-
-          console.log(
-            "UID găsit prin Discord:",
-            discordId,
-            "=>",
-            userDoc.id
-          );
-
-
-          return userDoc.id;
         }
 
-      } catch (error) {
-
-        console.warn(
-          `Eroare căutare utilizator după ${field}:`,
-          error
-        );
       }
+
     }
+
   }
 
 
@@ -3113,24 +3036,21 @@ async function resolveRequestOwnerUid(
   const emailCandidates = [
 
     requestData.email_aplicant,
-
     requestData.email,
-
     requestData.emailSolicitant,
-
-    requestData.email_solicitant
+    requestData.email_solicitant,
+    requestData.email_proprietar,
+    requestData.emailProprietar,
+    requestData.userEmail,
+    requestData.user_email
 
   ]
-
     .map(
       value =>
-        String(
-          value ?? ""
-        )
+        String(value ?? "")
           .trim()
           .toLowerCase()
     )
-
     .filter(
       value =>
         value.includes("@")
@@ -3142,65 +3062,126 @@ async function resolveRequestOwnerUid(
     of [...new Set(emailCandidates)]
   ) {
 
-    try {
+    const collectionsToCheck = [
+      "utilizatori",
+      "users"
+    ];
 
-      const q =
-        query(
-          collection(
-            db,
-            "utilizatori"
-          ),
-          where(
-            "email",
-            "==",
-            email
-          )
+    for (
+      const collectionName
+      of collectionsToCheck
+    ) {
+
+      try {
+
+        const q =
+          query(
+            collection(
+              db,
+              collectionName
+            ),
+            where(
+              "email",
+              "==",
+              email
+            )
+          );
+
+        const snap =
+          await getDocs(q);
+
+        if (!snap.empty) {
+
+          const userDoc =
+            snap.docs[0];
+
+          console.log(
+            "UID găsit prin email:",
+            userDoc.id
+          );
+
+          return userDoc.id;
+
+        }
+
+      } catch (error) {
+
+        console.warn(
+          `Eroare email ${collectionName}:`,
+          error
         );
 
-
-      const snap =
-        await getDocs(q);
-
-
-      if (!snap.empty) {
-
-        console.log(
-          "UID găsit prin email:",
-          email,
-          "=>",
-          snap.docs[0].id
-        );
-
-
-        return snap.docs[0].id;
       }
 
-    } catch (error) {
-
-      console.warn(
-        "Eroare căutare utilizator după email:",
-        error
-      );
     }
+
+  }
+
+
+  /*
+   * 4. CÂMPURI EXTRA DE EMAIL
+   */
+
+  const emailFields = [
+    "mail",
+    "emailAddress",
+    "email_address"
+  ];
+
+
+  for (
+    const email
+    of [...new Set(emailCandidates)]
+  ) {
+
+    for (
+      const fieldName
+      of emailFields
+    ) {
+
+      try {
+
+        const q =
+          query(
+            collection(
+              db,
+              "utilizatori"
+            ),
+            where(
+              fieldName,
+              "==",
+              email
+            )
+          );
+
+        const snap =
+          await getDocs(q);
+
+        if (!snap.empty) {
+
+          return snap.docs[0].id;
+
+        }
+
+      } catch (_) {}
+
+    }
+
   }
 
 
   console.warn(
-    "NU AM GĂSIT UID-UL PROPRIETARULUI.",
-    {
-      discordId,
-      emailCandidates,
-      requestData
-    }
+    "Nu am găsit UID pentru cerere.",
+    requestData
   );
 
-
   return "";
+
 }
 
 
 /* =========================================================
-   CREARE NOTIFICARE
+   NOTIFICARE
 ========================================================= */
 
 async function createRequestNotification(
@@ -3218,14 +3199,13 @@ async function createRequestNotification(
       .trim();
 
 
-  const shouldNotify =
-    [
-      "aprobat",
-      "acceptat",
-      "respins"
-    ].includes(
-      normalizedStatus
-    );
+  const shouldNotify = [
+    "aprobat",
+    "acceptat",
+    "respins"
+  ].includes(
+    normalizedStatus
+  );
 
 
   if (!shouldNotify) {
@@ -3234,12 +3214,9 @@ async function createRequestNotification(
       created: false,
       ownerUid: ""
     };
+
   }
 
-
-  /*
-   * Găsim UID-ul proprietarului.
-   */
 
   const ownerUid =
     await resolveRequestOwnerUid(
@@ -3247,34 +3224,29 @@ async function createRequestNotification(
     );
 
 
-  /*
-   * Discord ID pentru recipientId.
-   */
-
   const ownerDiscordId =
     String(
-
       requestData.discord_id ||
-
       requestData.discord ||
-
       requestData.numeDiscord ||
-
       requestData.discordId ||
-
       requestData.discordUID ||
-
       requestData.discordUid ||
-
       ""
-
     ).trim();
 
+
+  /*
+   * Dacă nu avem UID:
+   *
+   * NU aruncăm eroare.
+   * Cererea rămâne aprobată/respinsă.
+   */
 
   if (!ownerUid) {
 
     console.warn(
-      "Nu am putut identifica UID-ul Firebase al proprietarului cererii.",
+      "Notificarea nu poate fi asociată unui UID.",
       {
         requestId,
         ownerDiscordId,
@@ -3282,11 +3254,11 @@ async function createRequestNotification(
       }
     );
 
-
     return {
       created: false,
       ownerUid: ""
     };
+
   }
 
 
@@ -3297,106 +3269,90 @@ async function createRequestNotification(
 
   const requestType =
     String(
-
       requestData.eveniment ||
-
       requestData.tip_cerere ||
-
       requestData.tipCerere ||
-
       requestData.tip ||
-
       requestData.departament ||
-
       "Cerere"
-
     );
 
 
-  try {
+  /*
+   * CREĂM NOTIFICAREA
+   */
 
-    const notificationData = {
+  const notificationData = {
 
-      recipientUid:
-        ownerUid,
+    recipientUid: ownerUid,
 
-      recipientId:
-        ownerDiscordId,
+    recipientId:
+      ownerDiscordId,
 
-      requestId:
-        String(requestId),
+    requestId:
+      String(requestId),
 
-      requestUrl:
-        `cererile_mele.html?cerere=${
-          encodeURIComponent(requestId)
-        }`,
+    requestUrl:
+      `cererile_mele.html?cerere=${encodeURIComponent(
+        requestId
+      )}`,
 
-      title:
-        isApproved
-          ? "Cererea ta a fost acceptată"
-          : "Cererea ta a fost respinsă",
+    title:
+      isApproved
+        ? "Cererea ta a fost acceptată"
+        : "Cererea ta a fost respinsă",
 
-      message:
-        isApproved
-          ? `Cererea ta (${requestType}) a fost acceptată de ${adminName}.`
-          : `Cererea ta (${requestType}) a fost respinsă de ${adminName}.`,
+    message:
+      isApproved
+        ? `Cererea ta (${requestType}) a fost acceptată de ${adminName}.`
+        : `Cererea ta (${requestType}) a fost respinsă de ${adminName}.`,
 
-      status:
-        normalizedStatus,
+    status:
+      normalizedStatus,
 
-      requestType:
-        requestType,
+    requestType:
 
-      read:
-        false,
+      requestType,
 
-      createdAt:
-        serverTimestamp()
-    };
+    read:
+      false,
 
+    createdAt:
+      serverTimestamp()
 
-    const notificationRef =
-      await addDoc(
-        collection(
-          db,
-          "notificari"
-        ),
-        notificationData
-      );
+  };
 
 
-    console.log(
-      "NOTIFICARE CREATĂ CU SUCCES:",
-      notificationRef.id,
+  const notificationRef =
+    await addDoc(
+      collection(
+        db,
+        "notificari"
+      ),
       notificationData
     );
 
 
-    return {
-      created: true,
-      ownerUid: ownerUid
-    };
+  console.log(
+    "NOTIFICARE CREATĂ:",
+    notificationRef.id,
+    notificationData
+  );
 
 
-  } catch (error) {
+  return {
 
-    console.error(
-      "EROARE LA CREAREA NOTIFICĂRII:",
-      error
-    );
+    created: true,
 
+    ownerUid
 
-    return {
-      created: false,
-      ownerUid: ownerUid
-    };
-  }
+  };
+
 }
 
 
 /* =========================================================
    UPDATE STATUS
-   ACCEPTĂ / RESPINGE / COȘ / RESTAURARE
 ========================================================= */
 
 async function updateStatus(
@@ -3407,20 +3363,14 @@ async function updateStatus(
 
   if (!id) {
 
-    console.error(
-      "updateStatus: ID lipsă."
+    showToast(
+      "ID-ul cererii lipsește.",
+      "error"
     );
 
     return;
+
   }
-
-
-  console.log(
-    "UPDATE STATUS:",
-    id,
-    newStatus,
-    actionName
-  );
 
 
   const requestRef =
@@ -3434,7 +3384,7 @@ async function updateStatus(
   try {
 
     /*
-     * LUĂM CEREREA
+     * CITIM CEREREA
      */
 
     const requestSnap =
@@ -3451,6 +3401,7 @@ async function updateStatus(
       );
 
       return;
+
     }
 
 
@@ -3463,7 +3414,9 @@ async function updateStatus(
 
 
     /*
-     * DATELE CARE SE SALVEAZĂ
+     * SALVĂM STATUSUL
+     *
+     * Asta se execută înaintea notificării.
      */
 
     const updateData = {
@@ -3476,17 +3429,15 @@ async function updateStatus(
 
       data_procesare:
         new Date()
-          .toLocaleString("ro-RO"),
+          .toLocaleString(
+            "ro-RO"
+          ),
 
       deleted:
         newStatus === "in_cos"
+
     };
 
-
-    /*
-     * IMPORTANT:
-     * STATUSUL SE SALVEAZĂ ÎNAINTEA NOTIFICĂRII.
-     */
 
     await updateDoc(
       requestRef,
@@ -3502,23 +3453,29 @@ async function updateStatus(
 
 
     /*
-     * NOTIFICARE DOAR PENTRU
-     * APROBAT / ACCEPTAT / RESPINS
+     * NOTIFICARE
      */
 
+    let notificationResult = {
+
+      created: false,
+
+      ownerUid: ""
+
+    };
+
+
     if (
-
-      newStatus === "aprobat" ||
-
-      newStatus === "acceptat" ||
-
-      newStatus === "respins"
-
+      ["aprobat", "acceptat", "respins"]
+        .includes(
+          String(newStatus)
+            .toLowerCase()
+        )
     ) {
 
       try {
 
-        const notificationResult =
+        notificationResult =
           await createRequestNotification(
             id,
             requestData,
@@ -3526,94 +3483,99 @@ async function updateStatus(
             adminName
           );
 
-
-        if (
-          notificationResult.created
-        ) {
-
-          showToast(
-
-            newStatus === "respins"
-
-              ? "Cererea a fost respinsă și notificarea a fost trimisă."
-
-              : "Cererea a fost aprobată și notificarea a fost trimisă.",
-
-            "success"
-          );
-
-        } else {
-
-          showToast(
-
-            newStatus === "respins"
-
-              ? "Cererea a fost respinsă. Notificarea nu a putut fi trimisă."
-
-              : "Cererea a fost aprobată. Notificarea nu a putut fi trimisă.",
-
-            "warning"
-          );
-        }
-
-
       } catch (notificationError) {
 
+        /*
+         * FOARTE IMPORTANT:
+         *
+         * Dacă notificarea dă eroare,
+         * statusul rămâne deja salvat.
+         */
+
         console.error(
-          "EROARE NOTIFICARE:",
+          "Eroare notificare:",
           notificationError
         );
 
+      }
+
+    }
+
+
+    /*
+     * MESAJ UTILIZATOR
+     */
+
+    if (newStatus !== "in_cos") {
+
+      if (
+        notificationResult.created
+      ) {
+
+        showToast(
+          newStatus === "respins"
+            ? "Cererea a fost respinsă și notificarea a fost trimisă."
+            : "Cererea a fost aprobată și notificarea a fost trimisă.",
+          "success"
+        );
+
+      } else {
 
         /*
-         * Cererea rămâne aprobată/respinsă
-         * chiar dacă notificarea eșuează.
+         * Cererea a fost procesată.
+         * Doar notificarea a eșuat.
          */
 
         showToast(
-
           newStatus === "respins"
-
-            ? "Cererea a fost respinsă, dar notificarea nu a putut fi trimisă."
-
-            : "Cererea a fost aprobată, dar notificarea nu a putut fi trimisă.",
-
+            ? "Cererea a fost respinsă. Notificarea nu a putut fi trimisă."
+            : "Cererea a fost aprobată. Notificarea nu a putut fi trimisă.",
           "warning"
         );
+
       }
+
     }
+
+
+    /*
+     * RE-RENDER IMEDIAT
+     */
+
+    renderCereri();
 
 
   } catch (error) {
 
     console.error(
-      "EROARE UPDATE STATUS:",
+      "Eroare updateStatus:",
       error
     );
-
 
     showToast(
       "Eroare la salvarea cererii.",
       "error"
     );
+
   }
+
 }
 
 
 /* =========================================================
-   MODAL CONFIRMARE ȘTERGERE
+   MODAL ȘTERGERE
 ========================================================= */
 
 function closeConfirmModal() {
 
   if (confirmModal) {
-
     confirmModal.classList.remove(
       "active"
     );
   }
 
   pendingDeleteId = null;
+
 }
 
 
@@ -3623,8 +3585,8 @@ if (confirmCancelBtn) {
     "click",
     closeConfirmModal
   );
-}
 
+}
 
 if (confirmCloseBtn) {
 
@@ -3632,6 +3594,7 @@ if (confirmCloseBtn) {
     "click",
     closeConfirmModal
   );
+
 }
 
 
@@ -3645,7 +3608,6 @@ if (confirmOkBtn) {
         return;
       }
 
-
       try {
 
         await deleteDoc(
@@ -3656,57 +3618,57 @@ if (confirmOkBtn) {
           )
         );
 
-
         showToast(
           "Ștearsă definitiv.",
-          "success"
+          "error"
         );
-
 
         closeConfirmModal();
 
       } catch (error) {
 
         console.error(
-          "Eroare ștergere definitivă:",
+          "Eroare ștergere:",
           error
         );
 
-
         showToast(
-          "Eroare la ștergerea cererii.",
+          "Eroare la ștergere.",
           "error"
         );
+
       }
+
     }
   );
+
 }
 
 
 /* =========================================================
-   MODAL DETALII
+   DETALII
 ========================================================= */
 
 function openDetailsModal(item) {
 
-  if (!item) {
+  if (!item || !detailsModal) {
     return;
   }
 
 
-  const codeTag =
+  const detailsCodeTag =
     document.getElementById(
       "details-code-tag"
     );
 
+  if (detailsCodeTag) {
 
-  if (codeTag) {
-
-    codeTag.textContent =
+    detailsCodeTag.textContent =
       item.codEveniment ||
       item.cod_eveniment ||
       item.cod ||
       "PCLS-CERERE";
+
   }
 
 
@@ -3749,8 +3711,7 @@ function openDetailsModal(item) {
 
     {
       label: "Procesată de User",
-      value:
-        userAction,
+      value: userAction,
       highlight: true,
       full: true
     },
@@ -3819,45 +3780,37 @@ function openDetailsModal(item) {
 
     detailsContainer.innerHTML =
       fields
-        .map(f => {
+        .map(f => `
 
-          return `
-            <div
-              class="
-                details-item
-                ${f.full ? "full-width" : ""}
-                ${
-                  f.size === "half"
-                    ? "half-width"
-                    : ""
-                }
-                ${
-                  f.size === "third"
-                    ? "third-width"
-                    : ""
-                }
-                ${
-                  f.highlight
-                    ? "highlight-user"
-                    : ""
-                }
-              "
-            >
+          <div
+            class="details-item
+              ${f.full ? "full-width" : ""}
+              ${f.size === "half"
+                ? "half-width"
+                : ""}
+              ${f.size === "third"
+                ? "third-width"
+                : ""}
+              ${f.highlight
+                ? "highlight-user"
+                : ""}"
+          >
 
-              <label>
-                ${f.label}
-              </label>
+            <label>
+              ${escapeHtml(f.label)}
+            </label>
 
-              <span>
-                ${escapeHtml(
-                  f.value || "-"
-                )}
-              </span>
+            <span>
+              ${escapeHtml(
+                f.value || "-"
+              )}
+            </span>
 
-            </div>
-          `;
-        })
+          </div>
+
+        `)
         .join("");
+
   }
 
 
@@ -3875,24 +3828,23 @@ function openDetailsModal(item) {
 
       detailsTrashBtn.textContent =
         "Mută în Coș";
+
     }
+
   }
 
 
   currentOpenItem = item;
 
+  detailsModal.classList.add(
+    "active"
+  );
 
-  if (detailsModal) {
-
-    detailsModal.classList.add(
-      "active"
-    );
-  }
 }
 
 
 /* =========================================================
-   ÎNCHIDERE MODAL DETALII
+   ÎNCHIDERE DETALII
 ========================================================= */
 
 function closeDetailsModal() {
@@ -3902,9 +3854,11 @@ function closeDetailsModal() {
     detailsModal.classList.remove(
       "active"
     );
+
   }
 
   currentOpenItem = null;
+
 }
 
 
@@ -3914,8 +3868,8 @@ if (detailsClose) {
     "click",
     closeDetailsModal
   );
-}
 
+}
 
 if (detailsCloseBtn) {
 
@@ -3923,6 +3877,7 @@ if (detailsCloseBtn) {
     "click",
     closeDetailsModal
   );
+
 }
 
 
@@ -3940,33 +3895,26 @@ if (detailsTrashBtn) {
         return;
       }
 
-
       const id =
         currentOpenItem.id;
 
 
       if (
-
-        currentOpenItem.status ===
-          "in_cos" ||
-
-        currentOpenItem.deleted ===
-          true
-
+        currentOpenItem.status === "in_cos" ||
+        currentOpenItem.deleted === true
       ) {
 
         pendingDeleteId = id;
 
         closeDetailsModal();
 
-
         if (confirmModal) {
 
           confirmModal.classList.add(
             "active"
           );
-        }
 
+        }
 
       } else {
 
@@ -3976,17 +3924,18 @@ if (detailsTrashBtn) {
           "Mutat în Coș din Detalii"
         );
 
-
         closeDetailsModal();
-
 
         showToast(
           "Cererea a fost mutată în Coș.",
           "warning"
         );
+
       }
+
     }
   );
+
 }
 
 
@@ -4005,17 +3954,10 @@ if (detailsCopyBtn) {
           "#details-container .details-item"
         );
 
-
-      const codElement =
+      const codCerere =
         document.getElementById(
           "details-code-tag"
-        );
-
-
-      const codCerere =
-        codElement
-          ? codElement.textContent
-          : "PCLS-CERERE";
+        )?.textContent || "";
 
 
       let textDeCopiat =
@@ -4029,15 +3971,14 @@ if (detailsCopyBtn) {
             "label"
           )?.textContent || "";
 
-
         const valoare =
           item.querySelector(
             "span"
           )?.textContent || "";
 
-
         textDeCopiat +=
           `${label}: ${valoare}\n`;
+
       });
 
 
@@ -4052,37 +3993,16 @@ if (detailsCopyBtn) {
             "success"
           );
 
-
           const textOriginal =
             detailsCopyBtn.innerHTML;
 
-
           detailsCopyBtn.innerHTML =
             "✓ Copiat!";
-
-          detailsCopyBtn.style.background =
-            "rgba(0, 255, 163, 0.15)";
-
-          detailsCopyBtn.style.color =
-            "var(--accent-primary)";
-
-          detailsCopyBtn.style.borderColor =
-            "rgba(0, 255, 163, 0.3)";
-
 
           setTimeout(() => {
 
             detailsCopyBtn.innerHTML =
               textOriginal;
-
-            detailsCopyBtn.style.background =
-              "rgba(0, 150, 255, 0.15)";
-
-            detailsCopyBtn.style.color =
-              "var(--accent-secondary)";
-
-            detailsCopyBtn.style.borderColor =
-              "rgba(0, 150, 255, 0.3)";
 
           }, 2500);
 
@@ -4094,39 +4014,47 @@ if (detailsCopyBtn) {
             error
           );
 
-
           showToast(
             "Eroare la copierea detaliilor.",
             "error"
           );
+
         });
+
     }
   );
+
 }
 
 
 /* =========================================================
-   ESCAPE HTML
+   HTML ESCAPE
 ========================================================= */
 
 function escapeHtml(str) {
 
-  return String(str)
-
+  return String(str ?? "")
     .replace(
       /&/g,
       "&amp;"
     )
-
     .replace(
       /</g,
       "&lt;"
     )
-
     .replace(
       />/g,
       "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
     );
+
 }
 
 
@@ -4144,7 +4072,6 @@ function showToast(
       "toast-container"
     );
 
-
   if (!container) {
     return;
   }
@@ -4154,7 +4081,6 @@ function showToast(
     document.createElement(
       "div"
     );
-
 
   toast.className =
     `toast ${type}`;
@@ -4187,6 +4113,7 @@ function showToast(
     </div>
 
     <div class="toast-progress"></div>
+
   `;
 
 
@@ -4195,17 +4122,17 @@ function showToast(
   );
 
 
-  setTimeout(
-    () => {
-      toast.remove();
-    },
-    3500
-  );
+  setTimeout(() => {
+
+    toast.remove();
+
+  }, 3500);
+
 }
 
 
 /* =========================================================
-   CLICK ÎN AFARA MODALURILOR
+   CLICK ÎN AFARA MODALELOR
 ========================================================= */
 
 window.addEventListener(
@@ -4213,37 +4140,27 @@ window.addEventListener(
   event => {
 
     if (
-      detailsModal &&
-      event.target === detailsModal
+      event.target ===
+      detailsModal
     ) {
       closeDetailsModal();
     }
 
-
     if (
-      confirmModal &&
-      event.target === confirmModal
+      event.target ===
+      confirmModal
     ) {
       closeConfirmModal();
     }
 
-
     if (
-      approveModal &&
-      event.target === approveModal
+      event.target ===
+      approveModal
     ) {
       closeApproveModal();
     }
+
   }
-);
-
-
-/* =========================================================
-   FINAL
-========================================================= */
-
-console.log(
-  "admin.html JavaScript încărcat cu succes."
 );
 
 </script>
