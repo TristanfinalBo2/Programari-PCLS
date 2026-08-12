@@ -6,119 +6,80 @@
 <title>Audit Log | Portal PCLS</title>
 <style>
 :root{color-scheme:dark;--bg:#05070c;--panel:rgba(18,25,40,.64);--line:rgba(255,255,255,.1);--text:#f7f9ff;--muted:#b8c0d0;--quiet:#7f8aa0;--accent:#64d2ff;--mint:#63e6be;--danger:#ff6961;--gold:#ffd60a;--violet:#bf5af2}
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;padding:30px 16px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 12% 8%,rgba(10,132,255,.2),transparent 30%),radial-gradient(circle at 88% 8%,rgba(191,90,242,.14),transparent 28%),linear-gradient(145deg,#070b14,#05070c)}
-a{color:inherit;text-decoration:none}.page{width:min(1100px,100%);margin:auto}.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}.kicker{color:var(--accent);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em}.title{margin-top:6px;font-size:clamp(2rem,5vw,2.8rem);font-weight:800;letter-spacing:-.045em}.sub{margin-top:8px;color:var(--muted);font-size:.86rem}.actions{display:flex;gap:8px}.btn{padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:var(--text);font-weight:700;cursor:pointer}.btn:hover{background:rgba(255,255,255,.09)}
-.toolbar{display:grid;grid-template-columns:minmax(0,1fr) 190px 190px;gap:10px;margin-bottom:16px}.input{height:44px;width:100%;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035);color:var(--text);outline:none}.input:focus{border-color:rgba(100,210,255,.35);box-shadow:0 0 0 3px rgba(100,210,255,.06)}
-.custom-select{position:relative}.select-trigger{width:100%;height:44px;padding:0 38px 0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035);color:var(--text);text-align:left;font:inherit;font-weight:600;cursor:pointer;position:relative}.select-trigger::after{content:"";position:absolute;right:13px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-65%) rotate(45deg);transition:.18s ease}.custom-select.open .select-trigger{border-color:rgba(100,210,255,.32);background:rgba(100,210,255,.045)}.custom-select.open .select-trigger::after{transform:translateY(-25%) rotate(225deg)}.select-menu{position:absolute;z-index:50;left:0;right:0;top:calc(100% + 7px);padding:6px;display:none;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:linear-gradient(160deg,rgba(22,30,48,.99),rgba(9,14,25,.99));box-shadow:0 24px 60px rgba(0,0,0,.5);backdrop-filter:blur(16px)}.custom-select.open .select-menu{display:grid;gap:3px}.select-option{width:100%;padding:10px 11px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:.78rem;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between}.select-option:hover{background:rgba(255,255,255,.07);color:var(--text)}.select-option.selected{background:rgba(100,210,255,.08);color:var(--text)}.select-option.selected::after{content:"✓";color:var(--accent);font-weight:800}.select-hidden{display:none}
-.panel{border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(18,25,40,.62),rgba(10,15,27,.45));overflow:hidden}.row{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:16px;padding:15px 17px;border-bottom:1px solid rgba(255,255,255,.06);align-items:start}.row:last-child{border-bottom:0}.time{color:var(--quiet);font-size:.7rem;line-height:1.4}.event strong{display:block;font-size:.82rem}.event span{display:block;margin-top:4px;color:var(--muted);font-size:.75rem;line-height:1.45}.tag{padding:5px 8px;border-radius:999px;background:rgba(100,210,255,.08);border:1px solid rgba(100,210,255,.16);color:#dff6ff;font-size:.61rem;font-weight:800;text-transform:uppercase;white-space:nowrap}.empty{padding:50px 20px;text-align:center;color:var(--quiet)}.error{padding:28px 20px;text-align:center;color:#ffd7d4}.error strong{display:block;color:#fff;font-size:.9rem;margin-bottom:7px}.error span{display:block;line-height:1.55;font-size:.76rem}
-@media(max-width:760px){.head{align-items:flex-start;flex-direction:column}.actions,.btn{width:100%}.toolbar{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:6px}.tag{justify-self:start}}
+*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;padding:30px 16px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 12% 8%,rgba(10,132,255,.2),transparent 30%),radial-gradient(circle at 88% 8%,rgba(191,90,242,.14),transparent 28%),linear-gradient(145deg,#070b14,#05070c)}a{color:inherit;text-decoration:none}.page{width:min(1200px,100%);margin:auto}.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}.kicker{color:var(--accent);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em}.title{margin-top:6px;font-size:clamp(2rem,5vw,2.8rem);font-weight:800;letter-spacing:-.045em}.sub{margin-top:8px;color:var(--muted);font-size:.86rem}.actions{display:flex;gap:8px}.btn{padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:var(--text);font-weight:700;cursor:pointer}.btn:hover{background:rgba(255,255,255,.09)}
+.toolbar{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(4,minmax(150px,1fr));gap:10px;margin-bottom:10px}.toolbar-second{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}.input{height:44px;width:100%;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035);color:var(--text);outline:none}.input:focus{border-color:rgba(100,210,255,.35);box-shadow:0 0 0 3px rgba(100,210,255,.06)}
+.custom-select{position:relative}.select-trigger{width:100%;height:44px;padding:0 38px 0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035);color:var(--text);text-align:left;font:inherit;font-weight:600;cursor:pointer;position:relative}.select-trigger::after{content:"";position:absolute;right:13px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-65%) rotate(45deg);transition:.18s ease}.custom-select.open .select-trigger{border-color:rgba(100,210,255,.32);background:rgba(100,210,255,.045)}.custom-select.open .select-trigger::after{transform:translateY(-25%) rotate(225deg)}.select-menu{position:absolute;z-index:60;left:0;right:0;top:calc(100% + 7px);padding:6px;display:none;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:linear-gradient(160deg,rgba(22,30,48,.99),rgba(9,14,25,.99));box-shadow:0 24px 60px rgba(0,0,0,.5);backdrop-filter:blur(16px);max-height:280px;overflow:auto}.custom-select.open .select-menu{display:grid;gap:3px}.select-option{width:100%;padding:10px 11px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:.78rem;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between}.select-option:hover{background:rgba(255,255,255,.07);color:var(--text)}.select-option.selected{background:rgba(100,210,255,.08);color:var(--text)}.select-option.selected::after{content:"✓";color:var(--accent);font-weight:800}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.stat{padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:var(--muted);font-size:.68rem}.stat strong{color:var(--text)}
+.panel{border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(18,25,40,.62),rgba(10,15,27,.45));overflow:hidden}.row{display:grid;grid-template-columns:135px minmax(0,1fr) 90px 150px;gap:14px;padding:15px 17px;border-bottom:1px solid rgba(255,255,255,.06);align-items:center;cursor:pointer;transition:.18s ease}.row:hover{background:rgba(255,255,255,.035)}.row:last-child{border-bottom:0}.time{color:var(--quiet);font-size:.7rem;line-height:1.4}.event strong{display:block;font-size:.82rem}.event span{display:block;margin-top:4px;color:var(--muted);font-size:.75rem;line-height:1.45}.tag{padding:5px 8px;border-radius:999px;background:rgba(100,210,255,.08);border:1px solid rgba(100,210,255,.16);color:#dff6ff;font-size:.61rem;font-weight:800;text-transform:uppercase;white-space:nowrap}.actor-tag{font-size:.68rem;color:#c8d2e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.empty{padding:50px 20px;text-align:center;color:var(--quiet)}.error{padding:28px 20px;text-align:center;color:#ffd7d4}.error strong{display:block;color:#fff;font-size:.9rem;margin-bottom:7px}.error span{display:block;line-height:1.55;font-size:.76rem}
+.modal-backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);z-index:100}.modal-backdrop.open{display:flex}.modal{width:min(720px,100%);max-height:min(80vh,760px);overflow:auto;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(22,30,48,.97),rgba(8,13,23,.97));box-shadow:0 30px 90px rgba(0,0,0,.55);padding:22px}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.modal-title{font-size:1.15rem;font-weight:800}.modal-sub{margin-top:5px;color:var(--muted);font-size:.75rem}.close{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.detail{padding:12px;border:1px solid rgba(255,255,255,.07);border-radius:13px;background:rgba(255,255,255,.025)}.detail small{display:block;color:var(--quiet);font-size:.63rem;text-transform:uppercase;letter-spacing:.07em}.detail div{margin-top:4px;color:var(--text);font-size:.78rem;word-break:break-word}.detail.full{grid-column:1/-1}
+.date-box{display:flex;gap:8px}.date-box input{flex:1}
+@media(max-width:1000px){.toolbar{grid-template-columns:1fr 1fr}.toolbar-second{grid-template-columns:1fr 1fr}.row{grid-template-columns:120px minmax(0,1fr) 82px}}
+@media(max-width:760px){.head{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions .btn{flex:1}.toolbar,.toolbar-second{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:6px}.tag{justify-self:start}.actor-tag{white-space:normal}.detail-grid{grid-template-columns:1fr}.detail.full{grid-column:auto}}
 </style>
 </head>
 <body>
 <main class="page">
-<header class="head">
-  <div><div class="kicker">Securitate · Administrare</div><div class="title">Audit Log</div><div class="sub">Istoricul acțiunilor importante din portal.</div></div>
-  <div class="actions"><a class="btn" href="admin.html">← Admin</a><button class="btn" id="refresh" type="button">Actualizează</button></div>
-</header>
+<header class="head"><div><div class="kicker">Securitate · Administrare</div><div class="title">Audit Log</div><div class="sub">Istoricul acțiunilor importante din portal.</div></div><div class="actions"><a class="btn" href="admin.html">← Admin</a><button class="btn" id="refresh" type="button">Actualizează</button></div></header>
 <section class="toolbar">
-  <input id="search" class="input" type="search" placeholder="Caută actor, acțiune, utilizator sau ID..." autocomplete="off">
-  <div class="custom-select" data-select="type">
-    <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">Toate</button>
-    <div class="select-menu" role="listbox">
-      <button class="select-option selected" type="button" data-value="all">Toate</button>
-      <button class="select-option" type="button" data-value="cerere">Cereri</button>
-      <button class="select-option" type="button" data-value="utilizator">Utilizatori</button>
-    </div>
-  </div>
-  <div class="custom-select" data-select="role">
-    <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">Toate rolurile</button>
-    <div class="select-menu" role="listbox">
-      <button class="select-option selected" type="button" data-value="all">Toate rolurile</button>
-      <button class="select-option" type="button" data-value="superadmin">Superadmin</button>
-      <button class="select-option" type="button" data-value="admin">Admin</button>
-      <button class="select-option" type="button" data-value="conducere">Conducere</button>
-    </div>
-  </div>
+  <input id="search" class="input" type="search" placeholder="Caută actor, acțiune, utilizator, ID sau departament..." autocomplete="off">
+  <div class="custom-select" data-select="type"><button type="button" class="select-trigger">Toate tipurile</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate tipurile</button><button class="select-option" type="button" data-value="cerere">Cereri</button><button class="select-option" type="button" data-value="utilizator">Utilizatori</button></div></div>
+  <div class="custom-select" data-select="role"><button type="button" class="select-trigger">Toate rolurile</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate rolurile</button></div></div>
+  <div class="custom-select" data-select="action"><button type="button" class="select-trigger">Toate acțiunile</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate acțiunile</button></div></div>
+  <div class="custom-select" data-select="department"><button type="button" class="select-trigger">Toate departamentele</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate departamentele</button><button class="select-option" type="button" data-value="isuls">ISULS</button><button class="select-option" type="button" data-value="dsls">DSLS</button><button class="select-option" type="button" data-value="mmls">MMLS</button><button class="select-option" type="button" data-value="ssmls">SSMLS</button></div></div>
 </section>
+<section class="toolbar-second">
+  <div class="custom-select" data-select="period"><button type="button" class="select-trigger">Orice perioadă</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Orice perioadă</button><button class="select-option" type="button" data-value="today">Astăzi</button><button class="select-option" type="button" data-value="7">Ultimele 7 zile</button><button class="select-option" type="button" data-value="30">Ultimele 30 zile</button></div></div>
+  <div class="date-box"><input id="from" class="input" type="date" aria-label="De la"><input id="to" class="input" type="date" aria-label="Până la"></div>
+  <button class="btn" id="reset" type="button">Resetează filtrele</button>
+</section>
+<div class="stats"><div class="stat">Evenimente: <strong id="count">0</strong></div><div class="stat">Rezultate: <strong id="visible">0</strong></div><div class="stat" id="liveState">Sursă: Firestore</div></div>
 <section class="panel"><div id="list" class="empty">Se încarcă Audit Log…</div></section>
 </main>
+<div class="modal-backdrop" id="modalBackdrop"><div class="modal"><div class="modal-head"><div><div class="modal-title" id="modalTitle">Detalii eveniment</div><div class="modal-sub" id="modalSub"></div></div><button class="close" id="closeModal" type="button">×</button></div><div class="detail-grid" id="details"></div></div></div>
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const list = document.getElementById("list");
-const search = document.getElementById("search");
-const state = { type:"all", role:"all", events:[] };
-const esc = v => String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-const roleOf = e => String(e?.actorRole || "").trim().toLowerCase();
-
-function timeValue(value){
-  if (!value) return 0;
-  if (typeof value?.toDate === "function") return value.toDate().getTime() || 0;
-  if (typeof value === "number") return value;
-  const t = new Date(value).getTime();
-  return Number.isNaN(t) ? 0 : t;
+const list=document.getElementById("list"), search=document.getElementById("search"), count=document.getElementById("count"), visible=document.getElementById("visible");
+const modalBackdrop=document.getElementById("modalBackdrop"),details=document.getElementById("details"),modalTitle=document.getElementById("modalTitle"),modalSub=document.getElementById("modalSub");
+const state={type:"all",role:"all",action:"all",department:"all",period:"all",events:[]};
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+const norm=v=>String(v??"").trim().toLowerCase();
+function timeValue(v){if(!v)return 0;if(typeof v?.toDate==="function")return v.toDate().getTime()||0;if(typeof v==="number")return v;const t=new Date(v).getTime();return Number.isNaN(t)?0:t}
+function formatDate(v){const t=timeValue(v);return t?new Date(t).toLocaleString("ro-RO",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"—"}
+function populateDynamicFilters(){
+ const roles=[...new Set(state.events.map(e=>norm(e.actorRole)).filter(Boolean))].sort();
+ const actions=[...new Set(state.events.map(e=>String(e.action||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ro"));
+ const roleRoot=document.querySelector('[data-select="role"] .select-menu');
+ const actionRoot=document.querySelector('[data-select="action"] .select-menu');
+ if(roleRoot)roleRoot.innerHTML='<button class="select-option selected" type="button" data-value="all">Toate rolurile</button>'+roles.map(v=>`<button class="select-option" type="button" data-value="${esc(v)}">${esc(v.toUpperCase())}</button>`).join("");
+ if(actionRoot)actionRoot.innerHTML='<button class="select-option selected" type="button" data-value="all">Toate acțiunile</button>'+actions.map(v=>`<button class="select-option" type="button" data-value="${esc(v)}">${esc(v)}</button>`).join("");
+ bindSelectOptions();
 }
-
-function formatDate(value){
-  const t=timeValue(value);
-  if(!t) return "—";
-  return new Date(t).toLocaleString("ro-RO",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
-}
-
+function inDateRange(event){const t=timeValue(event.createdAt);if(!t)return false;const from=document.getElementById("from").value,to=document.getElementById("to").value;if(from){const start=new Date(from+"T00:00:00").getTime();if(t<start)return false}if(to){const end=new Date(to+"T23:59:59.999").getTime();if(t>end)return false}return true}
+function matchesPeriod(event){if(state.period==="all")return true;const t=timeValue(event.createdAt);if(!t)return false;const d=new Date();d.setHours(0,0,0,0);if(state.period==="today")return t>=d.getTime();const days=Number(state.period);if(!Number.isFinite(days))return true;return t>=Date.now()-days*86400000}
 function render(){
-  const s=String(search.value||"").trim().toLowerCase();
-  const filtered=state.events.filter(e=>{
-    const hay=[e.actorName,e.actorRole,e.action,e.targetName,e.targetId,e.targetType,e.department,e.status].filter(Boolean).join(" ").toLowerCase();
-    return (!s || hay.includes(s)) && (state.type==="all" || String(e.targetType||"").toLowerCase()===state.type) && (state.role==="all" || roleOf(e)===state.role);
-  }).sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt));
-  if(!filtered.length){list.innerHTML='<div class="empty">Nu există evenimente pentru filtrul selectat.</div>';return;}
-  list.innerHTML=filtered.map(e=>`<div class="row"><div class="time">${esc(formatDate(e.createdAt))}</div><div class="event"><strong>${esc(e.actorName||"Sistem")}</strong><span>${esc(e.action||"Activitate")} · ${esc(e.targetName||e.targetId||"—")}</span></div><span class="tag">${esc(e.targetType||"sistem")}</span></div>`).join("");
+ const q=norm(search.value);let filtered=state.events.filter(e=>{const hay=[e.actorName,e.actorRole,e.action,e.targetName,e.targetId,e.targetType,e.department,e.status].filter(Boolean).join(" ").toLowerCase();return(!q||hay.includes(q))&&(state.type==="all"||norm(e.targetType)===state.type)&&(state.role==="all"||norm(e.actorRole)===state.role)&&(state.action==="all"||String(e.action||"")===state.action)&&(state.department==="all"||norm(e.department)===state.department)&&matchesPeriod(e)&&inDateRange(e)}).sort((a,b)=>timeValue(b.createdAt)-timeValue(a.createdAt));
+ count.textContent=state.events.length;visible.textContent=filtered.length;
+ if(!filtered.length){list.innerHTML='<div class="empty">Nu există evenimente pentru filtrele selectate.</div>';return}
+ list.innerHTML=filtered.map((e,i)=>`<div class="row" data-index="${state.events.indexOf(e)}"><div class="time">${esc(formatDate(e.createdAt))}</div><div class="event"><strong>${esc(e.action||"Activitate")}</strong><span>${esc(e.targetName||e.targetId||"—")}${e.department?` · ${esc(String(e.department).toUpperCase())}`:""}</span></div><span class="tag">${esc(e.targetType||"sistem")}</span><span class="actor-tag">${esc(e.actorName||"Sistem")}</span></div>`).join("");
+ list.querySelectorAll(".row").forEach(row=>row.addEventListener("click",()=>openEvent(state.events[Number(row.dataset.index)])));
 }
-
-function setFilter(kind,value,label,root){
-  state[kind]=value;
-  root.querySelector(".select-trigger").textContent=label;
-  root.querySelectorAll(".select-option").forEach(opt=>opt.classList.toggle("selected",opt.dataset.value===value));
-  root.classList.remove("open");
-  root.querySelector(".select-trigger").setAttribute("aria-expanded","false");
-  render();
+function bindSelectOptions(){
+ document.querySelectorAll(".custom-select .select-option").forEach(option=>{if(option.dataset.bound)return;option.dataset.bound="1";option.addEventListener("click",()=>{const root=option.closest(".custom-select");const kind=root.dataset.select;state[kind]=option.dataset.value;root.querySelector(".select-trigger").textContent=option.textContent.trim();root.querySelectorAll(".select-option").forEach(x=>x.classList.toggle("selected",x===option));root.classList.remove("open");root.querySelector(".select-trigger").setAttribute("aria-expanded","false");render()})});
 }
-
-document.querySelectorAll(".custom-select").forEach(root=>{
-  const trigger=root.querySelector(".select-trigger");
-  trigger.addEventListener("click",e=>{
-    e.stopPropagation();
-    document.querySelectorAll(".custom-select.open").forEach(other=>{if(other!==root){other.classList.remove("open");other.querySelector(".select-trigger").setAttribute("aria-expanded","false")}});
-    root.classList.toggle("open");
-    trigger.setAttribute("aria-expanded",root.classList.contains("open")?"true":"false");
-  });
-  root.querySelectorAll(".select-option").forEach(option=>option.addEventListener("click",()=>setFilter(root.dataset.select,option.dataset.value,option.textContent.trim(),root)));
-});
-
+document.querySelectorAll(".custom-select").forEach(root=>{const trigger=root.querySelector(".select-trigger");trigger.setAttribute("aria-expanded","false");trigger.addEventListener("click",e=>{e.stopPropagation();document.querySelectorAll(".custom-select.open").forEach(other=>{if(other!==root){other.classList.remove("open");other.querySelector(".select-trigger").setAttribute("aria-expanded","false")}});root.classList.toggle("open");trigger.setAttribute("aria-expanded",root.classList.contains("open")?"true":"false")})});
 document.addEventListener("click",()=>document.querySelectorAll(".custom-select.open").forEach(root=>{root.classList.remove("open");root.querySelector(".select-trigger").setAttribute("aria-expanded","false")}));
-search.addEventListener("input",render);
-
-aSyncRefresh();
-document.getElementById("refresh").addEventListener("click",aSyncRefresh);
-
-async function aSyncRefresh(){
-  list.innerHTML='<div class="empty">Se încarcă Audit Log…</div>';
-  try{
-    const snap=await getDocs(collection(db,"audit_log"));
-    state.events=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-    render();
-  }catch(error){
-    console.error("Audit Log:",error);
-    list.innerHTML=`<div class="error"><strong>Nu s-a putut încărca Audit Log.</strong><span>${esc(error?.code||"permission-denied")} — ${esc(error?.message||"Verifică regulile Firestore pentru audit_log și rolul contului.")}</span></div>`;
-  }
-}
-
-onAuthStateChanged(auth,async user=>{
-  if(!user){location.href="auth.html";return;}
-});
+search.addEventListener("input",render);document.getElementById("from").addEventListener("change",render);document.getElementById("to").addEventListener("change",render);
+document.getElementById("reset").addEventListener("click",()=>{state.type=state.role=state.action=state.department=state.period="all";search.value="";document.getElementById("from").value="";document.getElementById("to").value="";document.querySelectorAll(".custom-select").forEach(root=>{const first=root.querySelector('.select-option[data-value="all"]');root.querySelector(".select-trigger").textContent=first?.textContent.trim()||"Toate";root.querySelectorAll(".select-option").forEach(x=>x.classList.toggle("selected",x===first))});render()});
+function openEvent(e){modalTitle.textContent=e.action||"Detalii eveniment";modalSub.textContent=formatDate(e.createdAt);const pairs=[[
+"Actor",e.actorName||"Sistem"],["Role",e.actorRole||"—"],["Tip",e.targetType||"—"],["Țintă",e.targetName||e.targetId||"—"],["Departament",e.department||"—"],["Status",e.status||"—"],["ID țintă",e.targetId||"—"],["ID actor",e.actorId||"—"],["Sursă",e.source||"—"],["Acțiune explicită",e.explicitAction===true?"Da":"Nu"],["Data",formatDate(e.createdAt)]
+];details.innerHTML=pairs.map(([k,v])=>`<div class="detail"><small>${esc(k)}</small><div>${esc(v)}</div></div>`).join("");modalBackdrop.classList.add("open")}
+function close(){modalBackdrop.classList.remove("open")}
+document.getElementById("closeModal").addEventListener("click",close);modalBackdrop.addEventListener("click",e=>{if(e.target===modalBackdrop)close()});document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+async function refresh(){list.innerHTML='<div class="empty">Se încarcă Audit Log…</div>';try{const snap=await getDocs(collection(db,"audit_log"));state.events=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));populateDynamicFilters();render()}catch(error){console.error("Audit Log:",error);list.innerHTML=`<div class="error"><strong>Nu s-a putut încărca Audit Log.</strong><span>${esc(error?.code||"permission-denied")} — ${esc(error?.message||"Verifică regulile Firestore pentru audit_log și rolul contului.")}</span></div>`}}
+document.getElementById("refresh").addEventListener("click",refresh);onAuthStateChanged(auth,user=>{if(!user)location.href="auth.html"});refresh();
 </script>
 </body>
 </html>
