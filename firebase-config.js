@@ -69,6 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("DOMContentLoaded", () => {
   import("./discord-id-guard.js").catch(error => console.error("Discord ID guard:", error));
   import("./notification-center.js").catch(error => console.error("Centrul de notificări:", error));
+  if (window.location.pathname.toLowerCase().endsWith("/audit.html")) {
+    import("./audit-cleaner.js").catch(error => console.error("Audit cleaner:", error));
+  }
   if (document.getElementById("cereri-container")) {
     import("./admin-dashboard.js").catch(error => console.error("Dashboard admin:", error));
     import("./admin-dashboard-skeleton.js").catch(error => console.error("Skeleton dashboard:", error));
@@ -84,4 +87,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-15";
+export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-18";
