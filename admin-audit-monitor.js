@@ -4,7 +4,7 @@ import {
   onSnapshot,
   doc,
   getDoc,
-  addDoc,
+  setDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -32,6 +32,20 @@ const userFingerprint = d => JSON.stringify({
   role: roleOf(d),
   name: nameOf(d)
 });
+
+function stableHash(value) {
+  let hash = 2166136261;
+  const text = String(value || "");
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function auditDocId(key) {
+  return `evt_${stableHash(key)}_${stableHash(String(key).split(":").slice(0, 3).join(":"))}`;
+}
 
 async function currentActor() {
   const u = auth.currentUser;
@@ -110,12 +124,13 @@ function actionFromRequestChange(oldData, newData) {
   return null;
 }
 
-async function writeAudit(data) {
+async function writeAudit(data, uniquenessKey) {
   try {
-    await addDoc(collection(db, "audit_log"), {
+    const auditId = auditDocId(uniquenessKey || `${data.targetType || "event"}:${data.targetId || "unknown"}:${data.action || "action"}`);
+    await setDoc(doc(db, "audit_log", auditId), {
       ...data,
       createdAt: serverTimestamp()
-    });
+    }, { merge: false });
   } catch (error) {
     console.error("AUDIT LOG ERROR:", error);
   }
@@ -131,6 +146,16 @@ async function writeRequestAudit(targetId, oldData, newData, explicitDeleted = f
   let a = await currentActor();
   a = actorFromProcessedBy(newData?.procesat_de, a);
 
+  const oldFingerprint = requestFingerprint(oldData || {});
+  const newFingerprint = requestFingerprint(newData || {});
+  const uniquenessKey = [
+    "cerere",
+    targetId,
+    action,
+    oldFingerprint,
+    newFingerprint
+  ].join(":");
+
   await writeAudit({
     actorId: a.uid,
     actorName: a.name,
@@ -143,7 +168,7 @@ async function writeRequestAudit(targetId, oldData, newData, explicitDeleted = f
     status: newData?.status || oldData?.status || "",
     source: "firestore_monitor",
     explicitAction: true
-  });
+  }, uniquenessKey);
 }
 
 function startRequests() {
@@ -207,6 +232,14 @@ function startUsers() {
           }
 
           const a = await currentActor();
+          const uniquenessKey = [
+            "utilizator",
+            item.id,
+            action,
+            prev,
+            fp
+          ].join(":");
+
           await writeAudit({
             actorId: a.uid,
             actorName: a.name,
@@ -219,7 +252,7 @@ function startUsers() {
             active: activeOf(data),
             source: "firestore_monitor",
             explicitAction: true
-          });
+          }, uniquenessKey);
         }
 
         userBaseline.set(item.id, fp);
