@@ -67,6 +67,19 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("DOMContentLoaded", () => {
+  // Index-only visual adjustment: move the content inside the top bar slightly downward.
+  if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
+    const style = document.createElement("style");
+    style.id = "index-topbar-spacing-adjustment";
+    style.textContent = `
+      .topbar-container { padding-top: 20px !important; padding-bottom: 8px !important; }
+      @media (max-width: 900px) {
+        .topbar-container { padding-top: 18px !important; padding-bottom: 8px !important; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   import("./discord-id-guard.js").catch(error => console.error("Discord ID guard:", error));
   import("./notification-center.js").catch(error => console.error("Centrul de notificări:", error));
   if (window.location.pathname.toLowerCase().endsWith("/audit.html")) {
@@ -87,4 +100,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-18";
+export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-20";
