@@ -9,6 +9,9 @@ function addStyles() {
   const style = document.createElement("style");
   style.id = "audit-cleaner-style";
   style.textContent = `
+    .actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+    .actions .btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+    .audit-actions-separator{width:1px;height:24px;background:rgba(255,255,255,.11);margin:0 2px}
     .audit-clear-btn{background:rgba(255,105,97,.08)!important;border-color:rgba(255,105,97,.2)!important;color:#ffd7d4!important}
     .audit-clear-btn:hover{background:rgba(255,105,97,.14)!important;border-color:rgba(255,105,97,.3)!important}
     .audit-clear-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(10px)}
@@ -17,7 +20,7 @@ function addStyles() {
     .audit-clear-title{font-size:1.08rem;font-weight:800}.audit-clear-copy{margin-top:8px;color:#b8c0d0;font-size:.78rem;line-height:1.55}
     .audit-clear-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.audit-clear-actions button{padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#f7f9ff;font-weight:700;cursor:pointer}.audit-clear-actions .danger{background:rgba(255,105,97,.12);border-color:rgba(255,105,97,.25);color:#ffd7d4}
     .audit-clear-status{min-height:18px;margin-top:10px;font-size:.73rem;color:#b8c0d0}.audit-clear-status.err{color:#ffd7d4}.audit-clear-status.ok{color:#caffec}
-    @media(max-width:760px){.audit-clear-actions{display:grid;grid-template-columns:1fr}.audit-clear-actions button{width:100%}}
+    @media(max-width:760px){.actions{width:100%;justify-content:stretch}.actions .btn{flex:1;min-width:0}.audit-actions-separator{display:none}.audit-clear-actions{display:grid;grid-template-columns:1fr}.audit-clear-actions button{width:100%}}
   `;
   document.head.appendChild(style);
 }
@@ -82,11 +85,15 @@ async function init() {
       if (!ADMIN_ROLES.has(role)) return;
       const actions = document.querySelector(".actions");
       if (!actions || document.getElementById("auditClearButton")) return;
+      const separator = document.createElement("span");
+      separator.className = "audit-actions-separator";
+      separator.setAttribute("aria-hidden", "true");
       const button = document.createElement("button");
       button.id = "auditClearButton";
       button.type = "button";
       button.className = "btn audit-clear-btn";
       button.textContent = "Curăță Audit Log";
+      actions.appendChild(separator);
       actions.appendChild(button);
       const modal = createModal();
       button.addEventListener("click", () => {
