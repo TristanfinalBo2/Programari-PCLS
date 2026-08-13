@@ -93,6 +93,7 @@ window.addEventListener("DOMContentLoaded", () => {
     import("./admin-dashboard-layout-guard.js").catch(error => console.error("Dashboard layout guard:", error));
     import("./admin-audit-monitor.js").catch(error => console.error("Audit monitor:", error));
     import("./admin-notification-monitor.js").catch(error => console.error("Monitor notificări admin:", error));
+    import("./admin-smart-alerts.js").catch(error => console.error("Smart Alerts:", error));
   }
   if (window.location.pathname.toLowerCase().endsWith("/setari.html")) {
     import("./gestionare-utilizatori-v2.js").catch(error => console.error("Gestionare utilizatori:", error));
@@ -100,4 +101,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-20";
+export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-22";
