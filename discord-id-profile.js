@@ -44,12 +44,14 @@ async function init() {
   const providerData = getDiscordProviderData(user);
   const providerId = String(providerData?.uid || "").trim();
   let savedId = String(profileData.discordId || profileData.discord_id || "").trim();
+  const savedVerifiedName = String(profileData.discordVerifiedName || profileData.discordName || "").trim();
+  const alreadyVerified = profileData.discordVerified === true && DISCORD_ID_RE.test(savedId) && !!savedVerifiedName;
   const autoVerified = DISCORD_ID_RE.test(providerId);
 
   if (autoVerified && savedId !== providerId) {
     savedId = providerId;
     try {
-      await setDoc(ref, { discordId: providerId, discordName: providerData.displayName || user.displayName || "Discord user", updatedAt: serverTimestamp() }, { merge: true });
+      await setDoc(ref, { discordId: providerId, discordVerified: true, discordVerifiedName: providerData.displayName || user.displayName || "Discord user", discordName: providerData.displayName || user.displayName || "Discord user", updatedAt: serverTimestamp() }, { merge: true });
     } catch (error) {
       console.warn("Nu am putut sincroniza Discord ID:", error?.message || error);
     }
@@ -62,12 +64,12 @@ async function init() {
     card.className = "settings-card discord-id-card";
     card.innerHTML = `
       <div class="discord-id-head">
-        <div><div class="discord-id-title">Identificare și verificare Discord</div><div class="discord-id-copy">Pentru conturile create cu email, introdu Discord ID-ul și verifică-l prin autentificarea Discord. Pentru conturile autentificate deja prin Discord, ID-ul este preluat automat.</div></div>
+        <div><div class="discord-id-title">Identificare și verificare Discord</div><div class="discord-id-copy">Pentru conturile create cu email, introdu Discord ID-ul și verifică-l o singură dată prin Discord. După legare, verificările viitoare sunt automate. Pentru conturile autentificate deja prin Discord, ID-ul este preluat automat.</div></div>
         <span id="discord-id-badge" class="discord-id-badge pending">Neverificat</span>
       </div>
       <div class="discord-id-grid">
         <div class="discord-id-input"><div class="input-shell"><input id="discordIdInput" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Ex.: 123456789012345678"></div><div class="discord-id-help">ID-ul Discord trebuie să conțină 17–20 cifre.</div></div>
-        <button id="discordIdVerify" class="discord-id-button" type="button">Verifică cu Discord</button>
+        <button id="discordIdVerify" class="discord-id-button" type="button">Verifică automat</button>
         <button id="discordIdSave" class="discord-id-button secondary" type="button">Salvează ID</button>
       </div>
       <div id="discordIdResult" class="discord-id-result"></div>
@@ -89,10 +91,11 @@ async function init() {
 
   const paint = (id, name = "") => {
     const valid = DISCORD_ID_RE.test(String(id || "").trim());
-    card.classList.toggle("verified", valid && !!name);
-    badge.className = `discord-id-badge ${valid && name ? "verified" : "pending"}`;
-    badge.textContent = valid && name ? "Verificat" : "Neverificat";
-    if (valid && name) {
+    const verified = valid && !!name;
+    card.classList.toggle("verified", verified);
+    badge.className = `discord-id-badge ${verified ? "verified" : "pending"}`;
+    badge.textContent = verified ? "Verificat" : "Neverificat";
+    if (verified) {
       greeting.textContent = `✓ Salut, ${name}! Discord ID-ul ${id} a fost verificat și asociat contului tău.`;
       greeting.classList.add("show");
     } else {
@@ -101,10 +104,26 @@ async function init() {
     return valid;
   };
 
-  if (autoVerified) paint(savedId, providerData.displayName || user.displayName || "utilizator Discord");
-  else paint(savedId, profileData.discordVerifiedName || "");
+  const isVerifiedNow = autoVerified || alreadyVerified;
+  const knownName = autoVerified
+    ? (providerData.displayName || user.displayName || "utilizator Discord")
+    : savedVerifiedName;
 
-  input.addEventListener("input", () => { result.textContent = ""; result.className = "discord-id-result"; paint(input.value, ""); });
+  if (isVerifiedNow) {
+    paint(savedId, knownName);
+    verifyButton.textContent = "Verifică automat";
+  } else {
+    paint(savedId, "");
+    verifyButton.textContent = "Leagă și verifică Discord";
+  }
+
+  input.addEventListener("input", () => {
+    result.textContent = "";
+    result.className = "discord-id-result";
+    if (autoVerified) paint(input.value, providerData.displayName || user.displayName || "utilizator Discord");
+    else if (alreadyVerified && input.value.trim() === savedId) paint(input.value, savedVerifiedName);
+    else paint(input.value, "");
+  });
 
   saveButton.addEventListener("click", async () => {
     const id = String(input.value || "").trim();
@@ -116,9 +135,10 @@ async function init() {
     saveButton.disabled = true;
     try {
       await setDoc(ref, { discordId: id, updatedAt: serverTimestamp() }, { merge: true });
-      result.textContent = "Discord ID salvat. Pentru identificare completă folosește Verifică cu Discord.";
+      savedId = id;
+      result.textContent = "Discord ID salvat. Pentru validarea identității, folosește verificarea Discord o singură dată.";
       result.className = "discord-id-result ok";
-      paint(id, profileData.discordVerifiedName || "");
+      paint(id, alreadyVerified && savedVerifiedName ? savedVerifiedName : "");
     } catch (error) {
       result.textContent = error?.code === "permission-denied" ? "Nu ai permisiunea de a modifica profilul." : `Eroare la salvare: ${error?.message || "necunoscută"}`;
       result.className = "discord-id-result err";
@@ -132,38 +152,63 @@ async function init() {
       result.className = "discord-id-result err";
       return;
     }
+
     verifyButton.disabled = true;
     saveButton.disabled = true;
-    result.textContent = "Se deschide Discord pentru verificare…";
     result.className = "discord-id-result";
+
     try {
       const current = getAuth(getApp()).currentUser;
       if (!current) throw new Error("Sesiunea a expirat. Autentifică-te din nou.");
-      const linked = getDiscordProviderData(current);
-      let verifiedUser = current;
-      let verifiedProvider = linked;
 
-      if (!verifiedProvider) {
-        const provider = new OAuthProvider(DISCORD_PROVIDER);
-        provider.addScope("identify");
-        const credentialResult = await linkWithPopup(current, provider);
-        verifiedUser = credentialResult.user;
-        verifiedProvider = getDiscordProviderData(verifiedUser);
+      // 1. Dacă Discord este deja legat, verificarea este complet automată.
+      const linked = getDiscordProviderData(current);
+      const linkedId = String(linked?.uid || "").trim();
+      const linkedName = String(linked?.displayName || current.displayName || "Discord user").trim();
+
+      if (DISCORD_ID_RE.test(linkedId)) {
+        if (linkedId !== enteredId) {
+          result.textContent = "Discord ID introdus nu corespunde contului Discord deja legat de acest cont Firebase.";
+          result.className = "discord-id-result err";
+          return;
+        }
+
+        await setDoc(ref, { discordId: linkedId, discordVerified: true, discordVerifiedName: linkedName, discordVerifiedAt: serverTimestamp(), discordName: linkedName, updatedAt: serverTimestamp() }, { merge: true });
+        savedId = linkedId;
+        result.textContent = "Verificare automată finalizată cu succes.";
+        result.className = "discord-id-result ok";
+        paint(linkedId, linkedName);
+        return;
       }
 
+      // 2. Dacă a fost deja verificat în trecut, nu mai cerem popup-ul.
+      if (profileData.discordVerified === true && enteredId === savedId && savedVerifiedName) {
+        result.textContent = "Discord ID este deja verificat pentru acest cont.";
+        result.className = "discord-id-result ok";
+        paint(enteredId, savedVerifiedName);
+        return;
+      }
+
+      // 3. Prima verificare pentru un cont email: singura autorizare Discord necesară.
+      result.textContent = "Este necesară o singură conectare Discord pentru verificarea inițială…";
+      const provider = new OAuthProvider(DISCORD_PROVIDER);
+      provider.addScope("identify");
+      const credentialResult = await linkWithPopup(current, provider);
+      const verifiedUser = credentialResult.user;
+      const verifiedProvider = getDiscordProviderData(verifiedUser);
       const verifiedId = String(verifiedProvider?.uid || "").trim();
-      const verifiedName = String(verifiedProvider?.displayName || verifiedUser.displayName || verifiedUser.email || "Discord user").trim();
+      const verifiedName = String(verifiedProvider?.displayName || verifiedUser.displayName || "Discord user").trim();
+
       if (!DISCORD_ID_RE.test(verifiedId)) throw new Error("Discord nu a furnizat un ID valid.");
       if (verifiedId !== enteredId) {
-        result.textContent = `ID-ul introdus nu corespunde contului Discord autentificat (${verifiedId}).`;
+        result.textContent = `ID-ul introdus nu corespunde contului Discord autentificat.`;
         result.className = "discord-id-result err";
-        paint(enteredId, "");
         return;
       }
 
       await setDoc(ref, { discordId: verifiedId, discordVerified: true, discordVerifiedName: verifiedName, discordVerifiedAt: serverTimestamp(), discordName: verifiedName, updatedAt: serverTimestamp() }, { merge: true });
-      input.value = verifiedId;
-      result.textContent = "Verificarea Discord a fost finalizată cu succes.";
+      savedId = verifiedId;
+      result.textContent = "Discord a fost verificat și asociat. De acum verificarea este automată.";
       result.className = "discord-id-result ok";
       paint(verifiedId, verifiedName);
     } catch (error) {
