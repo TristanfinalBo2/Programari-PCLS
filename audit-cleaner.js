@@ -1,6 +1,6 @@
 import { getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const ADMIN_ROLES = new Set(["admin", "superadmin"]);
 
@@ -42,9 +42,8 @@ function createModal() {
 
 async function getRole(user) {
   const db = getFirestore(getApp());
-  const snap = await getDocs(collection(db, "utilizatori"));
-  const mine = snap.docs.find(d => d.id === user.uid);
-  const data = mine?.data() || {};
+  const snap = await getDoc(doc(db, "utilizatori", user.uid));
+  const data = snap.exists() ? snap.data() || {} : {};
   return String(data.role || data.rol || "").toLowerCase();
 }
 
@@ -95,7 +94,7 @@ async function init() {
         modal.querySelector("#auditClearConfirm").disabled = false;
         modal.classList.add("open");
       });
-      modal.querySelector("#auditClearConfirm").addEventListener("click", clearAuditLog, { once: false });
+      modal.querySelector("#auditClearConfirm").addEventListener("click", clearAuditLog);
     } catch (error) {
       console.error("Audit cleaner init:", error);
     }
