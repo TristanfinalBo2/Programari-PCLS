@@ -80,8 +80,8 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   if (window.location.pathname.toLowerCase().endsWith("/setari.html")) {
     import("./gestionare-utilizatori-v2.js").catch(error => console.error("Gestionare utilizatori:", error));
-    import("./discord-id-profile.js").catch(error => console.error("Discord ID profil:", error));
+    import("./discord-id-profile-loader.js").catch(error => console.error("Discord ID profil:", error));
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-12";
+export const FIREBASE_CONFIG_VERSION = "2026-08-13-03-15";
