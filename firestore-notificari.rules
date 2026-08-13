@@ -26,5 +26,10 @@ match /audit_log/{auditId} {
                    in ["superadmin", "admin"]
                 && request.resource.data.actorId == request.auth.uid;
 
-  allow update, delete: if false;
+  // Curățarea Audit Log este permisă doar Admin/Superadmin.
+  allow delete: if request.auth != null
+                && get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role
+                   in ["superadmin", "admin"];
+
+  allow update: if false;
 }
