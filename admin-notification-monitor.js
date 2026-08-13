@@ -8,6 +8,11 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Încarcă modulul de aprobare Discord numai pe Admin Panel, după ce Auth este disponibil.
+if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
+  import("./approval-dispatch.js").catch(error => console.error("Approval dispatch:", error));
+}
+
 const ROLE_SET = new Set(["admin", "superadmin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]);
 const initialized = new Map();
 let firstSnapshot = true;
