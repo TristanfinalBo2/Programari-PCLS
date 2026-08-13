@@ -14,8 +14,8 @@ function injectStyles() {
     .discord-id-card.verified{border-color:rgba(104,242,192,.18);background:linear-gradient(145deg,rgba(104,242,192,.045),rgba(255,255,255,.015))}
     .discord-id-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.discord-id-title{font-size:.94rem;font-weight:800}.discord-id-copy{margin-top:5px;max-width:700px;color:var(--text-3);font-size:.7rem;line-height:1.55}
     .discord-id-badge{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 9px;border-radius:999px;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}.discord-id-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}.discord-id-badge.pending{color:#ffe39a;background:rgba(255,214,10,.07);border:1px solid rgba(255,214,10,.12)}.discord-id-badge.verified{color:#caffec;background:rgba(104,242,192,.07);border:1px solid rgba(104,242,192,.12)}
-    .discord-id-grid{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:end;margin-top:15px}.discord-id-input{min-width:0}.discord-id-input .input-shell{padding:1px;border-radius:18px;background:linear-gradient(120deg,rgba(255,255,255,.07),rgba(124,231,255,.035),rgba(167,124,255,.03))}.discord-id-input input{width:100%;min-height:50px;border:0;border-radius:17px;padding:0 16px;color:var(--text);background:rgba(3,7,14,.98);font:inherit;outline:none}.discord-id-button{min-height:50px;padding:0 17px;border-radius:15px;border:1px solid rgba(124,231,255,.18);background:linear-gradient(110deg,rgba(76,141,255,.82),rgba(145,117,238,.76));color:#fff;font:inherit;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}.discord-id-button.secondary{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);color:var(--text-2)}.discord-id-button:disabled{opacity:.55;cursor:not-allowed}.discord-id-help{margin-top:7px;color:var(--text-3);font-size:.62rem}.discord-id-result{min-height:18px;margin-top:10px;font-size:.7rem;color:var(--text-2)}.discord-id-result.ok{color:#caffec}.discord-id-result.err{color:#ffd5dc}.discord-id-greeting{display:none;margin-top:12px;padding:12px 13px;border-radius:14px;background:rgba(104,242,192,.05);border:1px solid rgba(104,242,192,.11);color:#d9fff0;font-size:.76rem}.discord-id-greeting.show{display:block}
-    @media(max-width:760px){.discord-id-head{flex-direction:column}.discord-id-grid{grid-template-columns:1fr}.discord-id-button{width:100%}}
+    .discord-id-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,auto) minmax(120px,auto);gap:10px;align-items:stretch;margin-top:15px}.discord-id-input{min-width:0;display:flex;flex-direction:column}.discord-id-input .input-shell{padding:1px;border-radius:18px;background:linear-gradient(120deg,rgba(255,255,255,.07),rgba(124,231,255,.035),rgba(167,124,255,.03))}.discord-id-input input{width:100%;min-height:50px;border:0;border-radius:17px;padding:0 16px;color:var(--text);background:rgba(3,7,14,.98);font:inherit;outline:none}.discord-id-button{height:52px;align-self:stretch;padding:0 17px;border-radius:15px;border:1px solid rgba(124,231,255,.18);background:linear-gradient(110deg,rgba(76,141,255,.82),rgba(145,117,238,.76));color:#fff;font:inherit;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;white-space:nowrap}.discord-id-button.secondary{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.08);color:var(--text-2)}.discord-id-button:disabled{opacity:.55;cursor:not-allowed}.discord-id-help{margin-top:7px;color:var(--text-3);font-size:.62rem}.discord-id-result{min-height:18px;margin-top:10px;font-size:.7rem;color:var(--text-2)}.discord-id-result.ok{color:#caffec}.discord-id-result.err{color:#ffd5dc}.discord-id-greeting{display:none;margin-top:12px;padding:12px 13px;border-radius:14px;background:rgba(104,242,192,.05);border:1px solid rgba(104,242,192,.11);color:#d9fff0;font-size:.76rem}.discord-id-greeting.show{display:block}
+    @media(max-width:760px){.discord-id-head{flex-direction:column}.discord-id-grid{grid-template-columns:1fr}.discord-id-button{width:100%;height:50px}}
   `;
   document.head.appendChild(style);
 }
@@ -161,7 +161,6 @@ async function init() {
       const current = getAuth(getApp()).currentUser;
       if (!current) throw new Error("Sesiunea a expirat. Autentifică-te din nou.");
 
-      // 1. Dacă Discord este deja legat, verificarea este complet automată.
       const linked = getDiscordProviderData(current);
       const linkedId = String(linked?.uid || "").trim();
       const linkedName = String(linked?.displayName || current.displayName || "Discord user").trim();
@@ -172,7 +171,6 @@ async function init() {
           result.className = "discord-id-result err";
           return;
         }
-
         await setDoc(ref, { discordId: linkedId, discordVerified: true, discordVerifiedName: linkedName, discordVerifiedAt: serverTimestamp(), discordName: linkedName, updatedAt: serverTimestamp() }, { merge: true });
         savedId = linkedId;
         result.textContent = "Verificare automată finalizată cu succes.";
@@ -181,7 +179,6 @@ async function init() {
         return;
       }
 
-      // 2. Dacă a fost deja verificat în trecut, nu mai cerem popup-ul.
       if (profileData.discordVerified === true && enteredId === savedId && savedVerifiedName) {
         result.textContent = "Discord ID este deja verificat pentru acest cont.";
         result.className = "discord-id-result ok";
@@ -189,7 +186,6 @@ async function init() {
         return;
       }
 
-      // 3. Prima verificare pentru un cont email: singura autorizare Discord necesară.
       result.textContent = "Este necesară o singură conectare Discord pentru verificarea inițială…";
       const provider = new OAuthProvider(DISCORD_PROVIDER);
       provider.addScope("identify");
@@ -201,7 +197,7 @@ async function init() {
 
       if (!DISCORD_ID_RE.test(verifiedId)) throw new Error("Discord nu a furnizat un ID valid.");
       if (verifiedId !== enteredId) {
-        result.textContent = `ID-ul introdus nu corespunde contului Discord autentificat.`;
+        result.textContent = "ID-ul introdus nu corespunde contului Discord autentificat.";
         result.className = "discord-id-result err";
         return;
       }
