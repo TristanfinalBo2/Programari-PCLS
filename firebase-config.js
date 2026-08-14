@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Cererile Mele: aceeași imagine este afișată în modalul de detalii.
   if (window.location.pathname.toLowerCase().endsWith("/cererile_mele.html")) {
-    import("./cererile-mele-location-preview.js?v=20260814-my-preview-2").catch(error => console.error("Cererile Mele location preview:", error));
+    import("./cererile-mele-location-preview.js?v=20260814-my-preview-3").catch(error => console.error("Cererile Mele location preview:", error));
   }
 
   const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
@@ -104,4 +104,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-my-preview-2";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-my-preview-3";
