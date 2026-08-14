@@ -22,6 +22,10 @@ if (window.location.pathname === "/" || window.location.pathname.toLowerCase().e
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Location attachment is intentionally loaded on every authenticated/form page.
+  // It only activates when a <form> exists and explicitly skips admin/system pages.
+  import("./location-attachment.js?v=20260814-attachment").catch(error => console.error("Location attachment:", error));
+
   const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
   if (!authContainer) return;
   onAuthStateChanged(auth, async user => {
@@ -92,4 +96,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-index-modernized-2";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment";
