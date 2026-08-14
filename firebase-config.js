@@ -16,18 +16,22 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Load the homepage visual layer immediately. The module itself waits for DOMContentLoaded.
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
   import("./index-modernizer.js?v=20260814").catch(error => console.error("Index modernizer:", error));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Location attachment on public/form pages.
+  // Formular attachment: selectare + preview + salvare pe cerere.
   import("./location-attachment.js?v=20260814-attachment").catch(error => console.error("Location attachment:", error));
 
-  // Admin-only location image preview inside request details.
+  // Admin: imaginea este afișată în Detalii cerere.
   if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
     import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
+  }
+
+  // Cererile Mele: aceeași imagine este afișată în modalul de detalii.
+  if (window.location.pathname.toLowerCase().endsWith("/cererile_mele.html")) {
+    import("./cererile-mele-location-preview.js?v=20260814-my-preview").catch(error => console.error("Cererile Mele location preview:", error));
   }
 
   const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
@@ -100,4 +104,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-preview";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-my-preview";
