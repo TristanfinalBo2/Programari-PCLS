@@ -8,12 +8,10 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Încarcă modulul de aprobare Discord numai pe Admin Panel, după ce Auth este disponibil.
 if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
   import("./approval-dispatch.js").catch(error => console.error("Approval dispatch:", error));
 }
 
-const ROLE_SET = new Set(["admin", "superadmin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]);
 const initialized = new Map();
 let firstSnapshot = true;
 let currentAdminName = "Administrator";
@@ -59,8 +57,11 @@ function buildNotification(item, status) {
     message = "Cererea ta a fost aprobată. Poți deschide cererea pentru detalii.";
   } else if (["respins", "respinsa", "rejected"].includes(normalized)) {
     type = "error";
-    title = "Cerere respinsă";
-    message = "Cererea ta a fost respinsă. Verifică cererea pentru detalii suplimentare.";
+    title = "Cererea a fost respinsă";
+    const reason = String(
+      item.rejectionReason || item.motivRespingere || item.motiv_respingere || "Motivul nu a fost specificat."
+    ).trim();
+    message = `Cererea a fost respinsă cu motiv: ${reason}`;
   } else if (["in_cos", "cos"].includes(normalized)) {
     type = "warning";
     title = "Cererea a fost mutată în Coș";
@@ -73,7 +74,10 @@ function buildNotification(item, status) {
     return null;
   }
 
-  const fingerprint = [item.id, normalized, item.data_procesare || item.updatedAt || ""].join("|");
+  const reason = normalized === "respins"
+    ? String(item.rejectionReason || item.motivRespingere || item.motiv_respingere || "").trim()
+    : "";
+  const fingerprint = [item.id, normalized, item.data_procesare || item.updatedAt || "", reason].join("|");
   const notificationId = `request_${hashId(fingerprint)}`;
 
   return {
@@ -87,6 +91,7 @@ function buildNotification(item, status) {
       requestUrl: item.id ? `cererile_mele.html?cerere=${encodeURIComponent(item.id)}` : "cererile_mele.html",
       status: normalized,
       actorName: currentAdminName,
+      rejectionReason: reason || null,
       read: false,
       createdAt: serverTimestamp()
     }
@@ -103,7 +108,10 @@ function start() {
     snapshot.docs.forEach(itemDoc => {
       const item = { id: itemDoc.id, ...(itemDoc.data() || {}) };
       const status = normalize(item.status || "in_asteptare");
-      const fingerprint = `${status}|${item.data_procesare || item.updatedAt || ""}`;
+      const reason = status === "respins"
+        ? String(item.rejectionReason || item.motivRespingere || item.motiv_respingere || "").trim()
+        : "";
+      const fingerprint = `${status}|${item.data_procesare || item.updatedAt || ""}|${reason}`;
 
       if (!firstSnapshot) {
         const previous = initialized.get(item.id);
