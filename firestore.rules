@@ -1,0 +1,79 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /cereri/{cerereId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    match /utilizatori/{userId} {
+      allow read: if request.auth != null
+        && (
+          request.auth.uid == userId
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role in ["admin", "superadmin"]
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.rol in ["admin", "superadmin"]
+        );
+
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      allow update: if request.auth != null
+        && (
+          request.auth.uid == userId
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role in ["admin", "superadmin"]
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.rol in ["admin", "superadmin"]
+        );
+
+      allow delete: if false;
+    }
+
+    match /invite_codes/{codeId} {
+      allow read: if true;
+      allow update: if request.auth != null;
+    }
+
+    match /notificari/{notificationId} {
+      allow read: if request.auth != null
+        && resource.data.recipientId == request.auth.uid;
+
+      allow create: if request.auth != null
+        && (
+          get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role in [
+            "superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"
+          ]
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.rol in [
+            "superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"
+          ]
+        );
+
+      allow update: if request.auth != null
+        && resource.data.recipientId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["read"]);
+
+      allow delete: if false;
+    }
+
+    match /audit_log/{auditId} {
+      allow read: if request.auth != null
+        && (
+          get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role in ["admin", "superadmin"]
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.rol in ["admin", "superadmin"]
+        );
+
+      allow create: if request.auth != null
+        && (
+          get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role in ["admin", "superadmin"]
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.rol in ["admin", "superadmin"]
+        );
+
+      allow update: if false;
+
+      allow delete: if request.auth != null
+        && (
+          get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role in ["admin", "superadmin"]
+          || get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.rol in ["admin", "superadmin"]
+        );
+    }
+  }
+}
