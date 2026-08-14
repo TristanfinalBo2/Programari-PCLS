@@ -1,4 +1,5 @@
 const PROJECT_ID = "pcls-portal";
+const FIREBASE_API_KEY = "AIzaSyBst9kibTzc9Cx-KgJ21XcZUkouRtDI1Sc";
 const ALLOWED_ROLES = new Set(["admin", "superadmin"]);
 const WEBHOOK_ENV = {
   isuls: "DISCORD_WEBHOOK_ISULS",
@@ -19,27 +20,28 @@ function isAllowedOrigin(req) {
 
 async function verifyFirebaseToken(idToken) {
   const response = await fetch(
-    `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_API_KEY)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken })
+    }
   );
 
   if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    console.error("Firebase token verification failed", response.status, detail.slice(0, 500));
     throw new Error("Sesiunea Firebase nu a putut fi verificată.");
   }
 
   const data = await response.json();
-  const uid = String(data.user_id || data.sub || "").trim();
-  const audience = String(data.aud || "").trim();
-  const issuer = String(data.iss || "").trim();
+  const user = Array.isArray(data.users) ? data.users[0] : null;
 
-  if (!uid) {
+  if (!user?.localId) {
     throw new Error("Sesiunea Firebase este invalidă.");
   }
 
-  if (audience !== PROJECT_ID || issuer !== `https://securetoken.google.com/${PROJECT_ID}`) {
-    throw new Error("Tokenul Firebase nu aparține proiectului pcls-portal.");
-  }
-
-  return { uid };
+  return { uid: user.localId };
 }
 
 async function getUserProfile(uid, idToken) {
@@ -49,6 +51,8 @@ async function getUserProfile(uid, idToken) {
   });
 
   if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    console.error("Firestore profile verification failed", response.status, detail.slice(0, 500));
     throw new Error("Profilul utilizatorului nu a putut fi verificat.");
   }
 
@@ -110,6 +114,10 @@ export default async function handler(req, res) {
     }
 
     const idToken = authorization.slice(7).trim();
+    if (!idToken) {
+      return sendJson(res, 401, { ok: false, error: "Token Firebase lipsă." });
+    }
+
     const { uid } = await verifyFirebaseToken(idToken);
     const profile = await getUserProfile(uid, idToken);
 
