@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
     import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
+    import("./admin-rejection.js?v=20260814-rejection-2").catch(error => console.error("Admin rejection:", error));
   }
 
   if (window.location.pathname.toLowerCase().endsWith("/cererile_mele.html")) {
@@ -102,4 +103,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-my-preview-3-discord-fullwidth";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-my-preview-3-discord-fullwidth-rejection-2";
