@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
     import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
-    import("./admin-rejection.js?v=20260814-rejection-4").catch(error => console.error("Admin rejection:", error));
+    import("./admin-rejection.js?v=20260814-rejection-5").catch(error => console.error("Admin rejection:", error));
   }
 
   if (window.location.pathname.toLowerCase().endsWith("/cererile_mele.html")) {
@@ -84,7 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.addEventListener("DOMContentLoaded", () => {
   import("./discord-id-guard.js").catch(error => console.error("Discord ID guard:", error));
-  import("./notification-center.js").catch(error => console.error("Centrul de notificări:", error));
+  import("./notification-center.js?v=20260814").catch(error => console.error("Centrul de notificări:", error));
+  import("./rejection-notification-bridge.js?v=20260814-rejection-bridge-1").catch(error => console.error("Rejection notification bridge:", error));
   if (window.location.pathname.toLowerCase().endsWith("/audit.html")) {
     import("./audit-cleaner.js").catch(error => console.error("Audit cleaner:", error));
   }
@@ -103,4 +104,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-rejection-v3-location-image-clean";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-rejection-v4-location-image-clean";
