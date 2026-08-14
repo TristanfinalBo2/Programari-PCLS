@@ -16,6 +16,11 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// Load the homepage visual layer immediately. The module itself waits for DOMContentLoaded.
+if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
+  import("./index-modernizer.js?v=20260814").catch(error => console.error("Index modernizer:", error));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
   if (!authContainer) return;
@@ -67,11 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Index-only visual adjustment: luxury header + portal organization.
-  if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
-    import("./index-modernizer.js").catch(error => console.error("Index modernizer:", error));
-  }
-
   import("./discord-id-guard.js").catch(error => console.error("Discord ID guard:", error));
   import("./notification-center.js").catch(error => console.error("Centrul de notificări:", error));
   if (window.location.pathname.toLowerCase().endsWith("/audit.html")) {
@@ -92,4 +92,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-index-modernized";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-index-modernized-2";
