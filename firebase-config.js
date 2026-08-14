@@ -22,9 +22,13 @@ if (window.location.pathname === "/" || window.location.pathname.toLowerCase().e
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Location attachment is intentionally loaded on every authenticated/form page.
-  // It only activates when a <form> exists and explicitly skips admin/system pages.
+  // Location attachment on public/form pages.
   import("./location-attachment.js?v=20260814-attachment").catch(error => console.error("Location attachment:", error));
+
+  // Admin-only location image preview inside request details.
+  if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
+    import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
+  }
 
   const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
   if (!authContainer) return;
@@ -96,4 +100,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-preview";
