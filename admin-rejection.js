@@ -12,15 +12,6 @@ const STYLE_ID = "admin-rejection-modal-styles";
 const MODAL_ID = "admin-rejection-modal";
 let activeRequest = null;
 
-function esc(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 function currentAdminName() {
   const user = auth.currentUser;
   return user?.displayName || user?.email || "Administrator";
@@ -28,24 +19,12 @@ function currentAdminName() {
 
 function ownerUid(item) {
   const candidates = [
-    item?.ownerUid,
-    item?.ownerUID,
-    item?.firebaseUid,
-    item?.firebaseUID,
-    item?.userUid,
-    item?.userUID,
-    item?.uid,
-    item?.userId,
-    item?.user_id,
-    item?.utilizatorId,
-    item?.createdByUid,
-    item?.created_by_uid,
-    item?.submittedByUid,
-    item?.requesterUid,
-    item?.requesterId
+    item?.ownerUid, item?.ownerUID, item?.firebaseUid, item?.firebaseUID,
+    item?.userUid, item?.userUID, item?.uid, item?.userId, item?.user_id,
+    item?.utilizatorId, item?.createdByUid, item?.created_by_uid,
+    item?.submittedByUid, item?.requesterUid, item?.requesterId
   ];
-  return candidates
-    .map(v => String(v || "").trim())
+  return candidates.map(v => String(v || "").trim())
     .find(v => v.length >= 20 && v !== "undefined" && v !== "null") || null;
 }
 
@@ -109,9 +88,8 @@ function ensureModal() {
   return modal;
 }
 
-function openRejection(item) {
-  if (!item?.id) return;
-  activeRequest = item;
+function openRejection(id) {
+  activeRequest = { id: String(id) };
   const modal = ensureModal();
   const reason = modal.querySelector("#admin-rejection-reason");
   const error = modal.querySelector("#admin-rejection-error");
@@ -130,8 +108,8 @@ async function submitRejection() {
   const errorEl = modal.querySelector("#admin-rejection-error");
   const submit = modal.querySelector("#admin-rejection-submit");
   const reason = String(reasonEl.value || "").trim();
-  const item = activeRequest;
-  if (!item?.id) return;
+  const requestId = activeRequest?.id;
+  if (!requestId) return;
 
   if (!reason) {
     errorEl.textContent = "Introdu motivul respingerii.";
@@ -144,7 +122,11 @@ async function submitRejection() {
   errorEl.style.display = "none";
 
   try {
-    const updateData = {
+    const requestSnap = await getDoc(doc(db, "cereri", requestId));
+    if (!requestSnap.exists()) throw new Error("Cererea nu mai există.");
+    const item = { id: requestId, ...requestSnap.data() };
+
+    await updateDoc(doc(db, "cereri", requestId), {
       status: "respins",
       rejectionReason: reason,
       motivRespingere: reason,
@@ -153,19 +135,17 @@ async function submitRejection() {
       data_procesare: new Date().toLocaleString("ro-RO"),
       updatedAt: serverTimestamp(),
       deleted: false
-    };
-
-    await updateDoc(doc(db, "cereri", String(item.id)), updateData);
+    });
 
     const recipientId = ownerUid(item);
     if (recipientId) {
       await addDoc(collection(db, "notificari"), {
         recipientId,
         title: "Cerere respinsă",
-        message: `Cererea ${item.id} a fost respinsă. Motiv: ${reason}`,
+        message: `Cererea ${requestId} a fost respinsă. Motiv: ${reason}`,
         type: "error",
-        requestId: String(item.id),
-        requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(item.id)}`,
+        requestId,
+        requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(requestId)}`,
         status: "respins",
         actorName: currentAdminName(),
         actorRole: "admin",
@@ -178,7 +158,6 @@ async function submitRejection() {
     if (typeof window.showToast === "function") {
       window.showToast("Cererea a fost respinsă și motivul a fost trimis utilizatorului.", "success");
     }
-
     modal.classList.remove("open");
     activeRequest = null;
   } catch (error) {
@@ -189,21 +168,13 @@ async function submitRejection() {
   }
 }
 
-function findRequest(id) {
-  if (!id) return null;
-  const source = window.allCereri || [];
-  return source.find(item => String(item?.id) === String(id)) || null;
-}
-
 document.addEventListener("click", event => {
   const button = event.target.closest(".btn-reject[data-id]");
   if (!button) return;
-  const item = findRequest(button.getAttribute("data-id"));
-  if (!item) return;
   event.preventDefault();
   event.stopPropagation();
   event.stopImmediatePropagation();
-  openRejection(item);
+  openRejection(button.getAttribute("data-id"));
 }, true);
 
 injectStyles();
