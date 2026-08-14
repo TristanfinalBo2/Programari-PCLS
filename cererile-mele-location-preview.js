@@ -12,7 +12,7 @@ function injectStyles() {
     .pcls-my-location-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
     .pcls-my-location-title{font-size:.78rem;font-weight:800;color:#eefbff}
     .pcls-my-location-badge{padding:5px 8px;border-radius:999px;color:#c8ffea;background:rgba(99,230,190,.07);border:1px solid rgba(99,230,190,.13);font-size:.6rem;font-weight:760}
-    .pcls-my-location-image{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:#050a12;cursor:zoom-in}
+    .pcls-my-location-image{display:block;width:100%;max-height:520px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:#050a12;cursor:zoom-in}
     .pcls-my-location-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;color:#8190a4;font-size:.64rem}
     .pcls-my-location-open{color:#9ee9ff;font-weight:750;text-decoration:none}
     .pcls-my-location-open:hover{text-decoration:underline}
@@ -46,9 +46,9 @@ async function renderLocationImage(requestId) {
   try {
     const snap = await getDoc(doc(db, "cereri", requestId));
     const data = snap.exists() ? (snap.data() || {}) : {};
-    const url = data.locationImage || data.locationImageUrl || data.locatieImagine || data.location_photo || "";
+    const imageSource = data.locationImage || data.locationImageUrl || data.locatieImagine || data.location_photo || "";
 
-    if (!url) {
+    if (!imageSource) {
       const empty = document.createElement("div");
       empty.className = "pcls-my-location-empty";
       empty.textContent = "📍 Nu există o fotografie de locație atașată acestei cereri.";
@@ -63,22 +63,27 @@ async function renderLocationImage(requestId) {
         <div class="pcls-my-location-title">📍 Fotografie locație</div>
         <span class="pcls-my-location-badge">Atașată</span>
       </div>
-      <img class="pcls-my-location-image" alt="Fotografie atașată a locației">
+      <img class="pcls-my-location-image" alt="Fotografia atașată locației">
       <div class="pcls-my-location-meta">
-        <span>${String(data.locationImageName || "Fotografie locație")}</span>
+        <span>Imaginea atașată cererii</span>
         <a class="pcls-my-location-open" href="#">Deschide fullscreen →</a>
       </div>
     `;
 
     const image = card.querySelector("img");
     const open = card.querySelector("a");
-    image.src = url;
+    image.src = imageSource;
+
+    image.addEventListener("error", () => {
+      image.removeAttribute("src");
+      image.alt = "Imaginea nu a putut fi afișată";
+    });
 
     const showFullscreen = event => {
       event?.preventDefault();
       ensureLightbox();
       const box = document.getElementById("pcls-my-location-lightbox");
-      box.querySelector("img").src = url;
+      box.querySelector("img").src = imageSource;
       box.classList.add("show");
     };
 
@@ -93,11 +98,12 @@ async function renderLocationImage(requestId) {
 function boot() {
   if (!location.pathname.toLowerCase().endsWith("/cererile_mele.html")) return;
   injectStyles();
+
   document.addEventListener("click", event => {
-    const button = event.target.closest(".btn-details[data-id]");
+    const button = event.target.closest(".btn-details[data-request-id]");
     if (!button) return;
-    const id = button.getAttribute("data-id");
-    setTimeout(() => renderLocationImage(id), 150);
+    const id = button.getAttribute("data-request-id");
+    setTimeout(() => renderLocationImage(id), 100);
   }, true);
 }
 
