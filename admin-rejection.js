@@ -1,12 +1,5 @@
 import { db, auth } from "./firebase-config.js";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  updateDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const STYLE_ID = "admin-rejection-modal-styles";
 const MODAL_ID = "admin-rejection-modal";
@@ -15,17 +8,6 @@ let activeRequest = null;
 function currentAdminName() {
   const user = auth.currentUser;
   return user?.displayName || user?.email || "Administrator";
-}
-
-function ownerUid(item) {
-  const candidates = [
-    item?.ownerUid, item?.ownerUID, item?.firebaseUid, item?.firebaseUID,
-    item?.userUid, item?.userUID, item?.uid, item?.userId, item?.user_id,
-    item?.utilizatorId, item?.createdByUid, item?.created_by_uid,
-    item?.submittedByUid, item?.requesterUid, item?.requesterId
-  ];
-  return candidates.map(v => String(v || "").trim())
-    .find(v => v.length >= 20 && v !== "undefined" && v !== "null") || null;
 }
 
 function injectStyles() {
@@ -45,7 +27,6 @@ function injectStyles() {
     #${MODAL_ID} textarea:focus{border-color:rgba(255,105,97,.42);box-shadow:0 0 0 3px rgba(255,105,97,.08)}
     #${MODAL_ID} .rejection-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
     #${MODAL_ID} .rejection-btn{border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:11px 17px;color:#fff;background:rgba(255,255,255,.06);cursor:pointer;font-weight:700}
-    #${MODAL_ID} .rejection-btn:hover{background:rgba(255,255,255,.1)}
     #${MODAL_ID} .rejection-btn-danger{background:rgba(255,105,97,.14);border-color:rgba(255,105,97,.3);color:#ffd9d6}
     #${MODAL_ID} .rejection-btn-danger:disabled{opacity:.55;cursor:not-allowed}
     #${MODAL_ID} .rejection-error{display:none;margin-top:8px;color:#ff9b96;font-size:.84rem}
@@ -63,7 +44,7 @@ function ensureModal() {
       <div class="rejection-head">
         <div>
           <div id="admin-rejection-title" class="rejection-title">Respinge cererea</div>
-          <div class="rejection-subtitle">Introdu motivul pentru respingere. Va fi salvat în cerere și trimis în notificare.</div>
+          <div class="rejection-subtitle">Introdu motivul pentru respingere. Va fi salvat în cerere și va apărea în notificarea utilizatorului.</div>
         </div>
         <button type="button" class="rejection-close" id="admin-rejection-close" aria-label="Închide">×</button>
       </div>
@@ -91,15 +72,12 @@ function ensureModal() {
 function openRejection(id) {
   activeRequest = { id: String(id) };
   const modal = ensureModal();
-  const reason = modal.querySelector("#admin-rejection-reason");
-  const error = modal.querySelector("#admin-rejection-error");
-  const submit = modal.querySelector("#admin-rejection-submit");
-  reason.value = "";
-  error.style.display = "none";
-  error.textContent = "";
-  submit.disabled = false;
+  modal.querySelector("#admin-rejection-reason").value = "";
+  modal.querySelector("#admin-rejection-error").style.display = "none";
+  modal.querySelector("#admin-rejection-error").textContent = "";
+  modal.querySelector("#admin-rejection-submit").disabled = false;
   modal.classList.add("open");
-  setTimeout(() => reason.focus(), 50);
+  setTimeout(() => modal.querySelector("#admin-rejection-reason").focus(), 50);
 }
 
 async function submitRejection() {
@@ -124,7 +102,6 @@ async function submitRejection() {
   try {
     const requestSnap = await getDoc(doc(db, "cereri", requestId));
     if (!requestSnap.exists()) throw new Error("Cererea nu mai există.");
-    const item = { id: requestId, ...requestSnap.data() };
 
     await updateDoc(doc(db, "cereri", requestId), {
       status: "respins",
@@ -137,27 +114,10 @@ async function submitRejection() {
       deleted: false
     });
 
-    const recipientId = ownerUid(item);
-    if (recipientId) {
-      await addDoc(collection(db, "notificari"), {
-        recipientId,
-        title: "Cerere respinsă",
-        message: `Cererea ${requestId} a fost respinsă. Motiv: ${reason}`,
-        type: "error",
-        requestId,
-        requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(requestId)}`,
-        status: "respins",
-        actorName: currentAdminName(),
-        actorRole: "admin",
-        rejectionReason: reason,
-        read: false,
-        createdAt: serverTimestamp()
-      });
+    if (typeof window.showToast === "function") {
+      window.showToast("Cererea a fost respinsă. Motivul a fost salvat.", "success");
     }
 
-    if (typeof window.showToast === "function") {
-      window.showToast("Cererea a fost respinsă și motivul a fost trimis utilizatorului.", "success");
-    }
     modal.classList.remove("open");
     activeRequest = null;
   } catch (error) {
