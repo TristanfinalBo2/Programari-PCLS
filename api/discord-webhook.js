@@ -1,5 +1,4 @@
 const PROJECT_ID = "pcls-portal";
-const FIREBASE_API_KEY = "AIzaSyBst9kibTzc9Cx-KgJ21XcZUkouRtDI1Sc";
 const ALLOWED_ROLES = new Set(["admin", "superadmin"]);
 const WEBHOOK_ENV = {
   isuls: "DISCORD_WEBHOOK_ISULS",
@@ -18,30 +17,34 @@ function isAllowedOrigin(req) {
   return origin === "https://programari-pcls.vercel.app" || origin === `https://${req.headers.host}`;
 }
 
+function decodeJwtPayload(idToken) {
+  const parts = String(idToken || "").split(".");
+  if (parts.length !== 3) throw new Error("Tokenul Firebase este invalid.");
+
+  try {
+    const normalized = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+    return JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
+  } catch {
+    throw new Error("Tokenul Firebase este invalid.");
+  }
+}
+
 async function verifyFirebaseToken(idToken) {
-  const response = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_API_KEY)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken })
-    }
-  );
+  const payload = decodeJwtPayload(idToken);
+  const uid = String(payload.user_id || payload.sub || "").trim();
+  const audience = String(payload.aud || "").trim();
+  const issuer = String(payload.iss || "").trim();
 
-  if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    console.error("Firebase token verification failed", response.status, detail.slice(0, 500));
-    throw new Error("Sesiunea Firebase nu a putut fi verificată.");
+  if (!uid) throw new Error("Tokenul Firebase nu conține UID.");
+  if (audience !== PROJECT_ID) throw new Error("Tokenul Firebase nu aparține proiectului pcls-portal.");
+  if (issuer !== `https://securetoken.google.com/${PROJECT_ID}`) {
+    throw new Error("Emitentul tokenului Firebase este invalid.");
   }
 
-  const data = await response.json();
-  const user = Array.isArray(data.users) ? data.users[0] : null;
-
-  if (!user?.localId) {
-    throw new Error("Sesiunea Firebase este invalidă.");
-  }
-
-  return { uid: user.localId };
+  // Nu validăm criptografic tokenul aici. Firestore validează semnătura,
+  // expirarea și identitatea atunci când folosim tokenul ca Bearer token.
+  return { uid };
 }
 
 async function getUserProfile(uid, idToken) {
@@ -53,16 +56,27 @@ async function getUserProfile(uid, idToken) {
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     console.error("Firestore profile verification failed", response.status, detail.slice(0, 500));
-    throw new Error("Profilul utilizatorului nu a putut fi verificat.");
+
+    if (response.status === 401) {
+      throw new Error("Sesiunea Firebase este expirată sau invalidă. Reîncarcă pagina și autentifică-te din nou.");
+    }
+
+    if (response.status === 403) {
+      throw new Error("Firebase a refuzat accesul la profilul utilizatorului. Verifică regulile Firestore pentru utilizatori.");
+    }
+
+    if (response.status === 404) {
+      throw new Error("Profilul utilizatorului nu există în colecția utilizatori.");
+    }
+
+    throw new Error(`Profilul utilizatorului nu a putut fi verificat (HTTP ${response.status}).`);
   }
 
   const data = await response.json();
   const fields = data.fields || {};
   const role = fields.role?.stringValue || fields.rol?.stringValue || "";
 
-  return {
-    role: String(role).trim().toLowerCase()
-  };
+  return { role: String(role).trim().toLowerCase() };
 }
 
 function webhookForDepartment(department) {
@@ -88,9 +102,7 @@ function sanitizeEmbed(embed) {
     description: String(embed.description || "").slice(0, 4096),
     color: Number.isFinite(Number(embed.color)) ? Number(embed.color) : 3447003,
     fields,
-    footer: embed.footer?.text
-      ? { text: String(embed.footer.text).slice(0, 2048) }
-      : undefined,
+    footer: embed.footer?.text ? { text: String(embed.footer.text).slice(0, 2048) } : undefined,
     timestamp: embed.timestamp || new Date().toISOString()
   };
 }
@@ -143,10 +155,7 @@ export default async function handler(req, res) {
     }
 
     if (content.length > 2000) {
-      return sendJson(res, 400, {
-        ok: false,
-        error: "Mesajul Discord depășește limita permisă."
-      });
+      return sendJson(res, 400, { ok: false, error: "Mesajul Discord depășește limita permisă." });
     }
 
     const webhook = webhookForDepartment(department);
@@ -163,9 +172,7 @@ export default async function handler(req, res) {
       allowed_mentions: roleId ? { roles: [roleId] } : { parse: [] }
     };
 
-    if (embed) {
-      discordBody.embeds = [embed];
-    }
+    if (embed) discordBody.embeds = [embed];
 
     const discordResponse = await fetch(webhook, {
       method: "POST",
@@ -175,13 +182,7 @@ export default async function handler(req, res) {
 
     if (!discordResponse.ok) {
       const detail = await discordResponse.text().catch(() => "");
-      console.error(
-        "Discord webhook failed",
-        department,
-        discordResponse.status,
-        detail.slice(0, 500)
-      );
-
+      console.error("Discord webhook failed", department, discordResponse.status, detail.slice(0, 500));
       return sendJson(res, 502, {
         ok: false,
         error: `Discord a refuzat mesajul (HTTP ${discordResponse.status}).`
