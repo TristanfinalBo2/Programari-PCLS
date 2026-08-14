@@ -26,20 +26,12 @@ const normalizeType = v => String(v || "")
 
 function isSimpleApprovalCase(o) {
   const text = [
-    o?.tip_cerere,
-    o?.tip,
-    o?.categorie,
-    o?.eveniment,
-    o?.requestType,
-    o?.request_type,
-    o?.type,
-    o?.category
+    o?.tip_cerere, o?.tip, o?.categorie, o?.eveniment,
+    o?.requestType, o?.request_type, o?.type, o?.category
   ].filter(Boolean).map(normalizeType).join(" ");
 
   return /(^|\s)(inregistrare|programare|eveniment|event)(\s|$)/.test(text) ||
-         text.includes("programare") ||
-         text.includes("inregistrare") ||
-         text.includes("eveniment");
+         text.includes("programare") || text.includes("inregistrare") || text.includes("eveniment");
 }
 
 const dateFmt = v => {
@@ -75,15 +67,10 @@ function buildMessage(o) {
   const address = val(o, ["adresa", "adresa_control", "adresaControl", "strada", "street"]);
   const extra = val(o, ["informatii_extra", "informatiiExtra", "extra_info", "detalii_extra", "detalii", "observatii", "observații", "descriere"]);
   return [
-    `📋 **Programare ${LABELS[d]} / PCLS**`,
-    `🏢 **Afacere:** ${business}`,
-    `👤 **Administrator:** ${admin}`,
-    `📞 **Telefon:** ${phone}`,
-    `📅 **Data:** ${controlDate(o)}`,
-    `🕐 **Ora:** ${controlTime(o)}`,
-    `📍 **Locație:** ${location}`,
-    `🏠 **Adresă:** ${address}`,
-    `📝 **Extra:** ${extra}`
+    `📋 **Programare ${LABELS[d]} / PCLS**`, `🏢 **Afacere:** ${business}`,
+    `👤 **Administrator:** ${admin}`, `📞 **Telefon:** ${phone}`,
+    `📅 **Data:** ${controlDate(o)}`, `🕐 **Ora:** ${controlTime(o)}`,
+    `📍 **Locație:** ${location}`, `🏠 **Adresă:** ${address}`, `📝 **Extra:** ${extra}`
   ].join("\n");
 }
 
@@ -126,13 +113,11 @@ async function send(o, content) {
   if (!auth.currentUser) throw new Error("Sesiunea a expirat. Reautentifică-te.");
   const token = await auth.currentUser.getIdToken(true);
   if (!token) throw new Error("Tokenul Firebase nu a putut fi obținut.");
-
   const r = await fetch("/api/discord-webhook", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ department: dept(o), content })
   });
-
   const b = await r.json().catch(() => null);
   if (!r.ok || !b?.ok) throw new Error(b?.error || `HTTP ${r.status}`);
 }
@@ -140,23 +125,19 @@ async function send(o, content) {
 async function approve(o, discordSent = false) {
   const admin = auth.currentUser;
   if (!admin) throw new Error("Sesiunea a expirat.");
-
   const snap = await getDoc(doc(db, "utilizatori", admin.uid));
   const data = snap.exists() ? snap.data() || {} : {};
   const name = String(data.nume || data.name || data.displayName || admin.displayName || admin.email?.split("@")[0] || "Admin").trim();
-
   const update = {
     status: "aprobat",
     procesat_de: `${name} (Aprobat cererea)`,
     data_procesare: new Date().toLocaleString("ro-RO"),
     deleted: false
   };
-
   if (discordSent) {
     update.discordDispatchSent = true;
     update.discordDispatchDepartment = dept(o);
   }
-
   await updateDoc(doc(db, "cereri", o.id), update);
 }
 
@@ -165,7 +146,6 @@ async function confirm(e) {
   e.preventDefault();
   e.stopImmediatePropagation();
   busy = true;
-
   const simple = isSimpleApprovalCase(selected);
   const btn = document.getElementById("approve-ok-btn");
   const p = simple ? null : ensurePreview();
@@ -173,100 +153,63 @@ async function confirm(e) {
   const er = p?.querySelector("#approval-dispatch-error");
   const ok = p?.querySelector("#approval-dispatch-ok");
   const original = btn?.innerHTML || "Confirmă & Acceptă";
-
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = "Se procesează…";
-  }
+  if (btn) { btn.disabled = true; btn.innerHTML = "Se procesează…"; }
   if (er) er.textContent = "";
   if (ok) ok.textContent = "";
-
   try {
     const latest = await load(selected.id);
-
-    // Înregistrare / Programare / Eveniment: DOAR aprobare Firebase.
-    // Nu se apelează deloc endpoint-ul Discord.
     if (simple) {
       await approve(latest, false);
       setTimeout(() => {
         document.getElementById("approve-modal")?.classList.remove("active");
-        restoreClassicSummary();
-        selected = null;
+        restoreClassicSummary(); selected = null;
       }, 150);
       return;
     }
-
-    // Restul tipurilor: un singur dispatch Discord, apoi aprobarea.
     const content = ta?.value?.trim() || buildMessage(latest);
     await send(latest, content);
     if (ok) ok.textContent = "✓ Mesajul a fost trimis.";
     await approve(latest, true);
-
     setTimeout(() => {
       document.getElementById("approve-modal")?.classList.remove("active");
-      restoreClassicSummary();
-      selected = null;
+      restoreClassicSummary(); selected = null;
     }, 350);
   } catch (err) {
     console.error("Approval dispatch:", err);
-    if (simple) {
-      alert(`Aprobarea NU a fost salvată. ${String(err?.message || err)}`);
-    } else if (er) {
-      er.textContent = `Aprobarea NU a fost salvată. ${String(err?.message || err)}`;
-    }
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = original;
-    }
-  } finally {
-    busy = false;
-  }
+    if (simple) alert(`Aprobarea NU a fost salvată. ${String(err?.message || err)}`);
+    else if (er) er.textContent = `Aprobarea NU a fost salvată. ${String(err?.message || err)}`;
+    if (btn) { btn.disabled = false; btn.innerHTML = original; }
+  } finally { busy = false; }
 }
 
 function bind() {
   if (!location.pathname.toLowerCase().endsWith("/admin.html")) return;
   styles();
-
   document.addEventListener("click", async e => {
     const b = e.target.closest(".btn-approve");
     if (!b) return;
     const id = b.getAttribute("data-id");
     if (!id) return;
-
     try {
       selected = await load(id);
-
-      if (isSimpleApprovalCase(selected)) {
-        restoreClassicSummary();
-        return;
-      }
-
+      if (isSimpleApprovalCase(selected)) { restoreClassicSummary(); return; }
       const p = ensurePreview();
       if (p) {
         p.querySelector("#approval-dispatch-text").value = buildMessage(selected);
         p.querySelector("#approval-dispatch-error").textContent = "";
         p.querySelector("#approval-dispatch-ok").textContent = "";
       }
-    } catch (err) {
-      console.error("Approval preview:", err);
-    }
+    } catch (err) { console.error("Approval preview:", err); }
   }, true);
-
   document.addEventListener("click", e => {
     if (e.target.closest("#approve-ok-btn")) void confirm(e);
   }, true);
-
   document.addEventListener("click", e => {
     if (e.target.closest("#approve-cancel-btn") || e.target.closest("#approve-close")) {
-      selected = null;
-      busy = false;
-      restoreClassicSummary();
+      selected = null; busy = false; restoreClassicSummary();
     }
   }, true);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bind, { once: true });
-} else {
-  bind();
-}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind, { once: true });
+else bind();
