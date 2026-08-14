@@ -25,11 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
     import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
-    import("./admin-rejection.js?v=20260814-rejection-2").catch(error => console.error("Admin rejection:", error));
+    import("./admin-rejection.js?v=20260814-rejection-3").catch(error => console.error("Admin rejection:", error));
   }
 
   if (window.location.pathname.toLowerCase().endsWith("/cererile_mele.html")) {
-    import("./cererile-mele-location-preview.js?v=20260814-my-preview-3").catch(error => console.error("Cererile Mele location preview:", error));
+    import("./cererile-mele-location-preview.js?v=20260814-my-preview-4").catch(error => console.error("Cererile Mele location/rejection preview:", error));
     import("./cererile-mele-ui-fixes.js?v=20260814-discord-fullwidth-1").catch(error => console.error("Cererile Mele UI fixes:", error));
   }
 
@@ -95,7 +95,7 @@ window.addEventListener("DOMContentLoaded", () => {
     import("./admin-departments-v2.js").catch(error => console.error("Department dashboard V2:", error));
     import("./admin-dashboard-layout-guard.js").catch(error => console.error("Dashboard layout guard:", error));
     import("./admin-audit-monitor.js").catch(error => console.error("Audit monitor:", error));
-    import("./admin-notification-monitor.js").catch(error => console.error("Monitor notificări admin:", error));
+    import("./admin-notification-monitor.js?v=20260814-rejection-reason-2").catch(error => console.error("Monitor notificări admin:", error));
   }
   if (window.location.pathname.toLowerCase().endsWith("/setari.html")) {
     import("./gestionare-utilizatori-v2.js").catch(error => console.error("Gestionare utilizatori:", error));
@@ -103,4 +103,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-location-attachment-admin-my-preview-3-discord-fullwidth-rejection-2";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-rejection-reason-v2";
