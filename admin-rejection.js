@@ -1,5 +1,15 @@
 import { db, auth } from "./firebase-config.js";
-import { collection, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  setDoc,
+  updateDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const STYLE_ID = "admin-rejection-modal-styles";
 const MODAL_ID = "admin-rejection-modal";
@@ -8,6 +18,40 @@ let activeRequest = null;
 function currentAdminName() {
   const user = auth.currentUser;
   return user?.displayName || user?.email || "Administrator";
+}
+
+function normalizeDiscord(value) {
+  return String(value || "").trim();
+}
+
+function ownerUid(item = {}) {
+  const candidates = [
+    item.ownerUid, item.ownerUID, item.firebaseUid, item.firebaseUID,
+    item.userUid, item.userUID, item.uid, item.userId, item.user_id,
+    item.utilizatorId, item.createdByUid, item.created_by_uid,
+    item.submittedByUid, item.requesterUid, item.requesterId
+  ];
+  return candidates.map(v => String(v || "").trim()).find(v => v.length >= 20 && v !== "undefined" && v !== "null") || null;
+}
+
+async function resolveRecipientUid(item) {
+  const direct = ownerUid(item);
+  if (direct) return direct;
+
+  const discordCandidates = [item.discord, item.discord_id, item.numeDiscord, item.discordId];
+  const discordId = discordCandidates.map(normalizeDiscord).find(Boolean);
+  if (!discordId) return null;
+
+  const fields = ["discord", "discord_id", "numeDiscord", "discordId"];
+  for (const field of fields) {
+    try {
+      const snap = await getDocs(query(collection(db, "utilizatori"), where(field, "==", discordId)));
+      if (!snap.empty) return snap.docs[0].id;
+    } catch (error) {
+      console.warn(`Nu s-a putut căuta utilizatorul după ${field}:`, error);
+    }
+  }
+  return null;
 }
 
 function injectStyles() {
@@ -44,7 +88,7 @@ function ensureModal() {
       <div class="rejection-head">
         <div>
           <div id="admin-rejection-title" class="rejection-title">Respinge cererea</div>
-          <div class="rejection-subtitle">Introdu motivul pentru respingere. Va fi salvat în cerere și va apărea în notificarea utilizatorului.</div>
+          <div class="rejection-subtitle">Introdu motivul pentru respingere. Va fi salvat în cerere și trimis în notificarea utilizatorului.</div>
         </div>
         <button type="button" class="rejection-close" id="admin-rejection-close" aria-label="Închide">×</button>
       </div>
@@ -102,6 +146,7 @@ async function submitRejection() {
   try {
     const requestSnap = await getDoc(doc(db, "cereri", requestId));
     if (!requestSnap.exists()) throw new Error("Cererea nu mai există.");
+    const item = { id: requestId, ...requestSnap.data() };
 
     await updateDoc(doc(db, "cereri", requestId), {
       status: "respins",
@@ -114,8 +159,27 @@ async function submitRejection() {
       deleted: false
     });
 
+    const recipientId = await resolveRecipientUid(item);
+    if (!recipientId) throw new Error("Nu am putut identifica utilizatorul care a trimis cererea pentru notificare.");
+
+    const notificationId = `rejection_${requestId}`;
+    await setDoc(doc(db, "notificari", notificationId), {
+      recipientId,
+      title: "Cererea a fost respinsă",
+      message: `Cererea a fost respinsă cu motiv: ${reason}`,
+      type: "error",
+      requestId,
+      requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(requestId)}`,
+      status: "respins",
+      actorName: currentAdminName(),
+      actorRole: "admin",
+      rejectionReason: reason,
+      read: false,
+      createdAt: serverTimestamp()
+    }, { merge: false });
+
     if (typeof window.showToast === "function") {
-      window.showToast("Cererea a fost respinsă. Motivul a fost salvat.", "success");
+      window.showToast("Cererea a fost respinsă și notificarea a fost trimisă.", "success");
     }
 
     modal.classList.remove("open");
