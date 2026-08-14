@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
     import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
-    import("./admin-rejection.js?v=20260814-rejection-6").catch(error => console.error("Admin rejection:", error));
+    import("./admin-rejection-v2.js?v=20260814-rejection-v2-1").catch(error => console.error("Admin rejection:", error));
   }
 
   if (window.location.pathname.toLowerCase().endsWith("/cererile_mele.html")) {
@@ -104,4 +104,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-rejection-v5-popup";
+export const FIREBASE_CONFIG_VERSION = "2026-08-14-rejection-v6-status-based";
