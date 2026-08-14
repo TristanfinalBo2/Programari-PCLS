@@ -1,14 +1,30 @@
 // Colecția de notificări existente.
 match /notificari/{notificationId} {
   allow read: if request.auth != null
-              && resource.data.recipientId == request.auth.uid;
+              && (
+                resource.data.recipientId == request.auth.uid
+                || (
+                  resource.data.recipientDiscordId != null
+                  && resource.data.recipientDiscordId != ""
+                  && resource.data.recipientDiscordId
+                     == get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.discordId
+                )
+              );
 
   allow create: if request.auth != null
                 && get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.role
                    in ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"];
 
   allow update: if request.auth != null
-                && resource.data.recipientId == request.auth.uid
+                && (
+                  resource.data.recipientId == request.auth.uid
+                  || (
+                    resource.data.recipientDiscordId != null
+                    && resource.data.recipientDiscordId != ""
+                    && resource.data.recipientDiscordId
+                       == get(/databases/$(database)/documents/utilizatori/$(request.auth.uid)).data.discordId
+                  )
+                )
                 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["read"]);
 
   allow delete: if false;
