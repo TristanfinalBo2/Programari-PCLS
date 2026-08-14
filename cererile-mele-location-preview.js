@@ -2,6 +2,17 @@ import { db } from "./firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const STYLE_ID = "pcls-my-request-location-preview-style";
+const TECHNICAL_FIELDS = new Set([
+  "locationimage",
+  "locationimagename",
+  "locationimageupdatedat",
+  "locationimageurl",
+  "locatieimagine",
+  "location_photo",
+  "rejectionreason",
+  "motivrespingere",
+  "motiv_respingere"
+]);
 
 function injectStyles() {
   if (document.getElementById(STYLE_ID)) return;
@@ -13,8 +24,7 @@ function injectStyles() {
     .pcls-my-location-title{font-size:.78rem;font-weight:800;color:#eefbff}
     .pcls-my-location-badge{padding:5px 8px;border-radius:999px;color:#c8ffea;background:rgba(99,230,190,.07);border:1px solid rgba(99,230,190,.13);font-size:.6rem;font-weight:760}
     .pcls-my-location-image{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:#050a12;cursor:zoom-in}
-    .pcls-my-location-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;color:#8190a4;font-size:.64rem}
-    .pcls-my-location-open{color:#9ee9ff;font-weight:750;text-decoration:none}
+    .pcls-my-location-open{display:inline-block;margin-top:9px;color:#9ee9ff;font-weight:750;text-decoration:none;font-size:.68rem}
     .pcls-my-location-open:hover{text-decoration:underline}
     .pcls-my-location-empty{grid-column:1/-1;padding:13px 15px;border:1px dashed rgba(255,255,255,.09);border-radius:15px;color:#78869d;font-size:.68rem}
     .pcls-my-rejection-card{grid-column:1/-1;padding:16px;border:1px solid rgba(255,105,97,.22);border-radius:18px;background:linear-gradient(145deg,rgba(255,105,97,.075),rgba(255,255,255,.025));overflow:hidden;margin-top:4px}
@@ -24,9 +34,6 @@ function injectStyles() {
     .pcls-my-location-lightbox.show{display:grid}
     .pcls-my-location-lightbox img{max-width:min(1200px,96vw);max-height:90vh;object-fit:contain;border-radius:18px;box-shadow:0 35px 100px rgba(0,0,0,.6)}
     .pcls-my-location-lightbox button{position:absolute;top:18px;right:18px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:1.3rem;cursor:pointer}
-
-    /* Cererile Mele: ascunde ultimele 3 secțiuni din informațiile cererii. */
-    #modal-details > .detail-item:nth-last-child(-n+3){display:none !important}
   `;
   document.head.appendChild(style);
 }
@@ -43,11 +50,26 @@ function ensureLightbox() {
   });
 }
 
+function cleanupTechnicalFields(details) {
+  details?.querySelectorAll(":scope > .detail-item").forEach(item => {
+    const label = String(item.querySelector(".detail-label")?.textContent || "")
+      .trim().toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/[ăâ]/g, "a")
+      .replace(/î/g, "i")
+      .replace(/ș/g, "s")
+      .replace(/ț/g, "t");
+
+    if (TECHNICAL_FIELDS.has(label)) item.remove();
+  });
+}
+
 async function renderRequestMeta(requestId) {
   const details = document.getElementById("modal-details");
   if (!details || !requestId) return;
 
   details.querySelector(".pcls-my-location-card, .pcls-my-location-empty, .pcls-my-rejection-card")?.remove();
+  cleanupTechnicalFields(details);
 
   try {
     const snap = await getDoc(doc(db, "cereri", requestId));
@@ -56,7 +78,11 @@ async function renderRequestMeta(requestId) {
     const reason = String(data.rejectionReason || data.motivRespingere || data.motiv_respingere || "").trim();
     const status = String(data.status || "").toLowerCase();
 
+    cleanupTechnicalFields(details);
+
     if (status.includes("respins") && reason) {
+      const oldReason = details.querySelector(".pcls-my-rejection-card");
+      oldReason?.remove();
       const card = document.createElement("section");
       card.className = "pcls-my-rejection-card";
       card.innerHTML = `
@@ -68,7 +94,6 @@ async function renderRequestMeta(requestId) {
     }
 
     if (!url) {
-      if (!snap.exists()) return;
       const empty = document.createElement("div");
       empty.className = "pcls-my-location-empty";
       empty.textContent = "📍 Nu există o fotografie de locație atașată acestei cereri.";
@@ -84,10 +109,7 @@ async function renderRequestMeta(requestId) {
         <span class="pcls-my-location-badge">Atașată</span>
       </div>
       <img class="pcls-my-location-image" alt="Fotografie atașată a locației">
-      <div class="pcls-my-location-meta">
-        <span>${String(data.locationImageName || "Fotografie locație")}</span>
-        <a class="pcls-my-location-open" href="#">Deschide fullscreen →</a>
-      </div>
+      <a class="pcls-my-location-open" href="#">Deschide fullscreen →</a>
     `;
 
     const image = card.querySelector("img");
