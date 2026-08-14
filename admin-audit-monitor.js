@@ -275,6 +275,3 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
-
-// Approval Discord dispatch is loaded only on the Admin Panel.
-import("./approval-dispatch.js").catch(error => console.error("Approval Discord dispatch:", error));
