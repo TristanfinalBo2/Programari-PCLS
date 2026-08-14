@@ -11,7 +11,8 @@ const TECHNICAL_FIELDS = new Set([
   "location_photo",
   "rejectionreason",
   "motivrespingere",
-  "motiv_respingere"
+  "motiv_respingere",
+  "updatedat"
 ]);
 
 function injectStyles() {
@@ -50,16 +51,20 @@ function ensureLightbox() {
   });
 }
 
+function normalizeLabel(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[ăâ]/g, "a")
+    .replace(/î/g, "i")
+    .replace(/ș/g, "s")
+    .replace(/ț/g, "t");
+}
+
 function cleanupTechnicalFields(details) {
   details?.querySelectorAll(":scope > .detail-item").forEach(item => {
-    const label = String(item.querySelector(".detail-label")?.textContent || "")
-      .trim().toLowerCase()
-      .replace(/\s+/g, "")
-      .replace(/[ăâ]/g, "a")
-      .replace(/î/g, "i")
-      .replace(/ș/g, "s")
-      .replace(/ț/g, "t");
-
+    const label = normalizeLabel(item.querySelector(".detail-label")?.textContent);
     if (TECHNICAL_FIELDS.has(label)) item.remove();
   });
 }
