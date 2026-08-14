@@ -34,24 +34,44 @@ function ownerUid(item = {}) {
   return candidates.map(v => String(v || "").trim()).find(v => v.length >= 20 && v !== "undefined" && v !== "null") || null;
 }
 
-async function resolveRecipientUid(item) {
-  const direct = ownerUid(item);
-  if (direct) return direct;
+function requestDiscordId(item = {}) {
+  const candidates = [item.discord, item.discord_id, item.discordId, item.numeDiscord];
+  return candidates.map(normalizeDiscord).find(Boolean) || null;
+}
 
-  const discordCandidates = [item.discord, item.discord_id, item.numeDiscord, item.discordId];
-  const discordId = discordCandidates.map(normalizeDiscord).find(Boolean);
-  if (!discordId) return null;
+async function resolveRecipient(item) {
+  const directUid = ownerUid(item);
+  const requestDiscord = requestDiscordId(item);
 
-  const fields = ["discord", "discord_id", "numeDiscord", "discordId"];
+  if (directUid) {
+    try {
+      const profileSnap = await getDoc(doc(db, "utilizatori", directUid));
+      const profile = profileSnap.exists() ? profileSnap.data() || {} : {};
+      const profileDiscord = normalizeDiscord(profile.discordId || profile.discord_id || profile.discord || profile.numeDiscord);
+      return { uid: directUid, discordId: requestDiscord || profileDiscord || null };
+    } catch (_) {
+      return { uid: directUid, discordId: requestDiscord || null };
+    }
+  }
+
+  if (!requestDiscord) return { uid: null, discordId: null };
+
+  const fields = ["discordId", "discord_id", "discord", "numeDiscord"];
   for (const field of fields) {
     try {
-      const snap = await getDocs(query(collection(db, "utilizatori"), where(field, "==", discordId)));
-      if (!snap.empty) return snap.docs[0].id;
+      const snap = await getDocs(query(collection(db, "utilizatori"), where(field, "==", requestDiscord)));
+      if (!snap.empty) {
+        const profileDoc = snap.docs[0];
+        const profile = profileDoc.data() || {};
+        const profileDiscord = normalizeDiscord(profile.discordId || profile.discord_id || profile.discord || profile.numeDiscord) || requestDiscord;
+        return { uid: profileDoc.id, discordId: profileDiscord };
+      }
     } catch (error) {
       console.warn(`Nu s-a putut căuta utilizatorul după ${field}:`, error);
     }
   }
-  return null;
+
+  return { uid: null, discordId: requestDiscord };
 }
 
 function injectStyles() {
@@ -148,6 +168,11 @@ async function submitRejection() {
     if (!requestSnap.exists()) throw new Error("Cererea nu mai există.");
     const item = { id: requestId, ...requestSnap.data() };
 
+    const recipient = await resolveRecipient(item);
+    if (!recipient.uid && !recipient.discordId) {
+      throw new Error("Nu am putut identifica utilizatorul care a trimis cererea.");
+    }
+
     await updateDoc(doc(db, "cereri", requestId), {
       status: "respins",
       rejectionReason: reason,
@@ -159,14 +184,12 @@ async function submitRejection() {
       deleted: false
     });
 
-    const recipientId = await resolveRecipientUid(item);
-    if (!recipientId) throw new Error("Nu am putut identifica utilizatorul care a trimis cererea pentru notificare.");
-
     const notificationId = `rejection_${requestId}`;
     await setDoc(doc(db, "notificari", notificationId), {
-      recipientId,
-      title: "Cererea a fost respinsă",
-      message: `Cererea a fost respinsă cu motiv: ${reason}`,
+      recipientId: recipient.uid || null,
+      recipientDiscordId: recipient.discordId || null,
+      title: "Cererea ta a fost respinsă",
+      message: `Cererea ta a fost respinsă cu motiv: ${reason}`,
       type: "error",
       requestId,
       requestUrl: `cererile_mele.html?cerere=${encodeURIComponent(requestId)}`,
