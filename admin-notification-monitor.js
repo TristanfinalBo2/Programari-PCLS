@@ -44,6 +44,9 @@ function hashId(value) {
 
 function buildNotification(item, status) {
   const normalized = normalize(status);
+  // Respingerile sunt notificate direct de admin-rejection.js, cu destinatarul rezolvat sigur după UID/Discord.
+  if (["respins", "respinsa", "rejected"].includes(normalized)) return null;
+
   const recipientId = ownerUid(item);
   if (!recipientId) return null;
 
@@ -55,13 +58,6 @@ function buildNotification(item, status) {
     type = "success";
     title = "Cerere aprobată";
     message = "Cererea ta a fost aprobată. Poți deschide cererea pentru detalii.";
-  } else if (["respins", "respinsa", "rejected"].includes(normalized)) {
-    type = "error";
-    title = "Cererea a fost respinsă";
-    const reason = String(
-      item.rejectionReason || item.motivRespingere || item.motiv_respingere || "Motivul nu a fost specificat."
-    ).trim();
-    message = `Cererea a fost respinsă cu motiv: ${reason}`;
   } else if (["in_cos", "cos"].includes(normalized)) {
     type = "warning";
     title = "Cererea a fost mutată în Coș";
@@ -74,10 +70,7 @@ function buildNotification(item, status) {
     return null;
   }
 
-  const reason = normalized === "respins"
-    ? String(item.rejectionReason || item.motivRespingere || item.motiv_respingere || "").trim()
-    : "";
-  const fingerprint = [item.id, normalized, item.data_procesare || item.updatedAt || "", reason].join("|");
+  const fingerprint = [item.id, normalized, item.data_procesare || item.updatedAt || ""].join("|");
   const notificationId = `request_${hashId(fingerprint)}`;
 
   return {
@@ -91,7 +84,6 @@ function buildNotification(item, status) {
       requestUrl: item.id ? `cererile_mele.html?cerere=${encodeURIComponent(item.id)}` : "cererile_mele.html",
       status: normalized,
       actorName: currentAdminName,
-      rejectionReason: reason || null,
       read: false,
       createdAt: serverTimestamp()
     }
@@ -108,10 +100,7 @@ function start() {
     snapshot.docs.forEach(itemDoc => {
       const item = { id: itemDoc.id, ...(itemDoc.data() || {}) };
       const status = normalize(item.status || "in_asteptare");
-      const reason = status === "respins"
-        ? String(item.rejectionReason || item.motivRespingere || item.motiv_respingere || "").trim()
-        : "";
-      const fingerprint = `${status}|${item.data_procesare || item.updatedAt || ""}|${reason}`;
+      const fingerprint = `${status}|${item.data_procesare || item.updatedAt || ""}`;
 
       if (!firstSnapshot) {
         const previous = initialized.get(item.id);
