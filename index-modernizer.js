@@ -36,8 +36,7 @@ function ensureStyle() {
 .pcls-hub-shell{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:20px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)),rgba(11,17,29,.55);backdrop-filter:blur(26px) saturate(155%);-webkit-backdrop-filter:blur(26px) saturate(155%);box-shadow:0 24px 58px rgba(0,0,0,.26),inset 0 1px rgba(255,255,255,.09);}
 .pcls-hub-shell::before{content:"";position:absolute;inset:-40% auto auto 42%;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(100,210,255,.13),transparent 68%);filter:blur(16px);pointer-events:none;}
 .pcls-hub-head{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:16px;}
-.pcls-hub-kicker{color:#7f8aa0;font-size:.68rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;}
-.pcls-hub-title{margin-top:5px;color:#fff;font-size:1.22rem;font-weight:760;letter-spacing:-.035em;}
+.pcls-hub-title{color:#fff;font-size:1.22rem;font-weight:760;letter-spacing:-.035em;}
 .pcls-hub-subtitle{max-width:460px;color:#9da9bb;font-size:.78rem;line-height:1.45;text-align:right;}
 .pcls-hub-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
 .pcls-hub-card{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;align-items:center;min-height:92px;padding:13px;border:1px solid rgba(255,255,255,.08);border-radius:18px;color:#fff;background:rgba(255,255,255,.035);box-shadow:inset 0 1px rgba(255,255,255,.045);transition:transform .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease;}
@@ -82,7 +81,7 @@ function createHub() {
   const section = document.createElement("section");
   section.id = HUB_ID;
   section.setAttribute("aria-label", "Command Hub");
-  section.innerHTML = `<div class="pcls-hub-shell"><div class="pcls-hub-head"><div><div class="pcls-hub-kicker">Comandă rapidă</div><div class="pcls-hub-title">Centrul portalului</div></div><div class="pcls-hub-subtitle">Cele mai folosite acțiuni sunt acum grupate într-un singur loc.</div></div><div class="pcls-hub-grid">${HUB_ITEMS.map(item => `<a class="pcls-hub-card" data-tone="${item.tone}" href="${item.href}"><span class="pcls-hub-icon" aria-hidden="true">${item.icon}</span><span><strong>${item.title}</strong><span>${item.text}</span></span></a>`).join("")}</div></div>`;
+  section.innerHTML = `<div class="pcls-hub-shell"><div class="pcls-hub-head"><div><div class="pcls-hub-title">Centrul portalului</div></div><div class="pcls-hub-subtitle">Cele mai folosite acțiuni sunt acum grupate într-un singur loc.</div></div><div class="pcls-hub-grid">${HUB_ITEMS.map(item => `<a class="pcls-hub-card" data-tone="${item.tone}" href="${item.href}"><span class="pcls-hub-icon" aria-hidden="true">${item.icon}</span><span><strong>${item.title}</strong><span>${item.text}</span></span></a>`).join("")}</div></div>`;
   hero.insertAdjacentElement("afterend", section);
 }
 
@@ -105,7 +104,6 @@ function reorderHomeSections() {
 
   if (!hero || !hub || !services || !quickActions || !process) return;
 
-  // Flux vizual: introducere -> acces central -> servicii -> scurtături -> proces.
   [hero, hub, services, quickActions, process].forEach(section => main.appendChild(section));
   main.setAttribute(ORDER_READY_ATTR, "1");
 }
