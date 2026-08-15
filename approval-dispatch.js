@@ -63,14 +63,20 @@ function buildMessage(o) {
   const business = val(o, ["nume_afacere", "unitate", "denumire_afacere", "business_name", "nume_proprietar", "proprietar", "reprezentant", "nume"]);
   const admin = val(o, ["nume_administrator", "numeAdministrator", "administrator", "admin", "nume_proprietar", "proprietar", "reprezentant", "nume"]);
   const phone = val(o, ["telefon", "telefon_contact", "telefonContact", "tel", "phone"]);
-  const location = val(o, ["locatie", "location", "nr_locatie", "numar_locatie", "numarLocatie"]);
   const address = val(o, ["adresa", "adresa_control", "adresaControl", "strada", "street"]);
   const extra = val(o, ["informatii_extra", "informatiiExtra", "extra_info", "detalii_extra", "detalii", "observatii", "observații", "descriere"]);
+  const location = val(o, ["locatie", "location", "nr_locatie", "numar_locatie", "numarLocatie"]);
+
   return [
-    `📋 **Programare ${LABELS[d]} / PCLS**`, `🏢 **Afacere:** ${business}`,
-    `👤 **Administrator:** ${admin}`, `📞 **Telefon:** ${phone}`,
-    `📅 **Data:** ${controlDate(o)}`, `🕐 **Ora:** ${controlTime(o)}`,
-    `📍 **Locație:** ${location}`, `🏠 **Adresă:** ${address}`, `📝 **Extra:** ${extra}`
+    `📋 **Programare ${LABELS[d]} / PCLS**`,
+    `🏢 **Afacere:** ${business}`,
+    `👤 **Administrator:** ${admin}`,
+    `📞 **Telefon:** ${phone}`,
+    `📅 **Data:** ${controlDate(o)}`,
+    `🕐 **Ora:** ${controlTime(o)}`,
+    `🏠 **Adresă:** ${address}`,
+    `📝 **Extra:** ${extra}`,
+    `📍 **Locație:** ${location}`
   ].join("\n");
 }
 
@@ -113,11 +119,17 @@ async function send(o, content) {
   if (!auth.currentUser) throw new Error("Sesiunea a expirat. Reautentifică-te.");
   const token = await auth.currentUser.getIdToken(true);
   if (!token) throw new Error("Tokenul Firebase nu a putut fi obținut.");
+
   const r = await fetch("/api/discord-webhook", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ department: dept(o), content })
+    body: JSON.stringify({
+      department: dept(o),
+      content,
+      locationImage: o.locationImage || null
+    })
   });
+
   const b = await r.json().catch(() => null);
   if (!r.ok || !b?.ok) throw new Error(b?.error || `HTTP ${r.status}`);
 }
@@ -161,10 +173,12 @@ async function confirm(e) {
     const latest = await load(selected.id);
     const content = ta?.value?.trim() || buildMessage(latest);
 
-    // Mesajul Discord se trimite la fiecare confirmare pentru ISULS/MMLS/DSLS/SSMLS.
     await send(latest, content);
 
-    if (ok) ok.textContent = "✓ Mesajul a fost trimis pe Discord.";
+    if (ok) ok.textContent = latest.locationImage
+      ? "✓ Mesajul și fotografia au fost trimise pe Discord."
+      : "✓ Mesajul a fost trimis pe Discord.";
+
     await approve(latest, true);
 
     setTimeout(() => {
