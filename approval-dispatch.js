@@ -90,7 +90,7 @@ function styles() {
   if (document.getElementById("approval-dispatch-style")) return;
   const s = document.createElement("style");
   s.id = "approval-dispatch-style";
-  s.textContent = `.approval-dispatch-preview{margin-top:18px;padding:0;border-radius:18px;border:0;background:transparent}.approval-dispatch-preview textarea{display:block;width:100%;min-height:260px;resize:vertical;padding:14px;border-radius:14px;border:1px solid rgba(88,166,255,.18);background:linear-gradient(145deg,rgba(13,28,48,.72),rgba(7,14,24,.52));color:#e7edf7;font:500 .75rem/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-sizing:border-box}.approval-dispatch-error{margin-top:10px;color:#ffd1d0;font-size:.7rem;font-weight:700}.approval-dispatch-ok{margin-top:10px;color:#caffec;font-size:.68rem;font-weight:700}`;
+  s.textContent = `.approval-dispatch-preview{margin-top:18px;padding:0;border-radius:18px;border:0;background:transparent}.approval-dispatch-preview textarea{display:block;width:100%;min-height:260px;resize:vertical;padding:14px;border-radius:14px;border:1px solid rgba(88,166,255,.18);background:linear-gradient(145deg,rgba(13,28,48,.72),rgba(7,14,24,.52));color:#e7edf7;font:500 .75rem/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-sizing:border-box}.approval-dispatch-preview textarea[readonly]{cursor:default}.approval-dispatch-error{margin-top:10px;color:#ffd1d0;font-size:.7rem;font-weight:700}.approval-dispatch-ok{margin-top:10px;color:#caffec;font-size:.68rem;font-weight:700}`;
   document.head.appendChild(s);
 }
 
@@ -103,7 +103,7 @@ function ensurePreview() {
   p = document.createElement("section");
   p.id = "approval-dispatch-preview";
   p.className = "approval-dispatch-preview";
-  p.innerHTML = `<textarea id="approval-dispatch-text" spellcheck="false" aria-label="Mesaj Discord"></textarea><div id="approval-dispatch-error" class="approval-dispatch-error"></div><div id="approval-dispatch-ok" class="approval-dispatch-ok"></div>`;
+  p.innerHTML = `<textarea id="approval-dispatch-text" spellcheck="false" readonly aria-label="Mesaj Discord"></textarea><div id="approval-dispatch-error" class="approval-dispatch-error"></div><div id="approval-dispatch-ok" class="approval-dispatch-ok"></div>`;
   summary.insertAdjacentElement("afterend", p);
   return p;
 }
