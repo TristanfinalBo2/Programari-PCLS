@@ -1,13 +1,5 @@
 const STYLE_ID = "pcls-index-modernizer";
-const HUB_ID = "pcls-command-hub";
 const ORDER_READY_ATTR = "data-pcls-home-order";
-
-const HUB_ITEMS = [
-  { href: "pcls_page.html", icon: "↗", title: "Depune cerere", text: "Trimite rapid o programare PCLS.", tone: "blue" },
-  { href: "inregistrare_page.html", icon: "+", title: "Înregistrează afacerea", text: "Adaugă o unitate în portal.", tone: "cyan" },
-  { href: "cererile_mele.html", icon: "◷", title: "Cererile mele", text: "Vezi statusul și istoricul cererilor.", tone: "mint" },
-  { href: "ghid_pcls.html", icon: "?", title: "Ghid PCLS", text: "Instrucțiuni și pașii de urmat.", tone: "violet" }
-];
 
 function ensureStyle() {
   if (document.getElementById(STYLE_ID)) return;
@@ -32,21 +24,6 @@ function ensureStyle() {
 .hero-meta{margin-top:30px !important;gap:10px !important;}
 .hero-meta div{min-height:94px !important;padding:16px !important;border-radius:18px !important;}
 .hero-meta strong{font-size:1.42rem !important;}
-#pcls-command-hub{position:relative;margin:0 auto 70px;width:min(1240px,calc(100% - 48px));}
-.pcls-hub-shell{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:28px;padding:20px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)),rgba(11,17,29,.55);backdrop-filter:blur(26px) saturate(155%);-webkit-backdrop-filter:blur(26px) saturate(155%);box-shadow:0 24px 58px rgba(0,0,0,.26),inset 0 1px rgba(255,255,255,.09);}
-.pcls-hub-shell::before{content:"";position:absolute;inset:-40% auto auto 42%;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(100,210,255,.13),transparent 68%);filter:blur(16px);pointer-events:none;}
-.pcls-hub-head{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:16px;}
-.pcls-hub-title{color:#fff;font-size:1.22rem;font-weight:760;letter-spacing:-.035em;}
-.pcls-hub-subtitle{max-width:460px;color:#9da9bb;font-size:.78rem;line-height:1.45;text-align:right;}
-.pcls-hub-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
-.pcls-hub-card{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;align-items:center;min-height:92px;padding:13px;border:1px solid rgba(255,255,255,.08);border-radius:18px;color:#fff;background:rgba(255,255,255,.035);box-shadow:inset 0 1px rgba(255,255,255,.045);transition:transform .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease;}
-.pcls-hub-card:hover{transform:translateY(-4px);border-color:rgba(100,210,255,.24);background:rgba(255,255,255,.065);box-shadow:0 18px 34px rgba(0,0,0,.22),0 0 0 4px rgba(100,210,255,.035);}
-.pcls-hub-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;color:#04121d;background:linear-gradient(145deg,#b6efff,#64d2ff);font-weight:900;font-size:1rem;box-shadow:0 10px 22px rgba(100,210,255,.16),inset 0 1px rgba(255,255,255,.6);}
-.pcls-hub-card[data-tone="mint"] .pcls-hub-icon{background:linear-gradient(145deg,#caffec,#63e6be);}
-.pcls-hub-card[data-tone="violet"] .pcls-hub-icon{background:linear-gradient(145deg,#ead8ff,#bf5af2);}
-.pcls-hub-card[data-tone="cyan"] .pcls-hub-icon{background:linear-gradient(145deg,#d6f8ff,#7fe7ff);}
-.pcls-hub-card strong{display:block;font-size:.84rem;font-weight:760;letter-spacing:-.02em;}
-.pcls-hub-card span{display:block;margin-top:3px;color:#8f9caf;font-size:.68rem;line-height:1.35;}
 #servicii{padding-top:0 !important;}
 #servicii .section-heading{margin-bottom:20px !important;}
 #servicii .section-heading h2{font-size:clamp(1.8rem,3vw,2.55rem) !important;}
@@ -68,21 +45,10 @@ function ensureStyle() {
 .step::before{width:40px;height:40px;border-radius:13px;font-size:.75rem;}
 .step strong{font-size:.9rem !important;}
 .step span{font-size:.78rem !important;}
-@media(max-width:900px){.topbar-container{grid-template-columns:1fr auto !important;padding:12px 18px !important}.nav-premium{display:none !important}.brand-text span{display:none !important}.pcls-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.pcls-hub-head{align-items:flex-start;flex-direction:column;}.pcls-hub-subtitle{text-align:left;}}
-@media(max-width:560px){.topbar-container{min-height:74px !important}.brand-logo-wrapper{width:44px !important;height:44px !important}.header-actions-premium{gap:7px !important}.notification-btn-premium{width:42px !important;height:42px !important}#pcls-command-hub{width:min(100% - 28px,1240px);margin-bottom:50px;}.pcls-hub-shell{padding:15px;border-radius:22px;}.pcls-hub-grid{grid-template-columns:1fr;}.pcls-hub-card{min-height:80px;}.hero-meta{margin-top:22px !important;}.hero-meta div{min-height:82px !important;}}
+@media(max-width:900px){.topbar-container{grid-template-columns:1fr auto !important;padding:12px 18px !important}.nav-premium{display:none !important}.brand-text span{display:none !important}}
+@media(max-width:560px){.topbar-container{min-height:74px !important}.brand-logo-wrapper{width:44px !important;height:44px !important}.header-actions-premium{gap:7px !important}.notification-btn-premium{width:42px !important;height:42px !important}.hero-meta{margin-top:22px !important;}.hero-meta div{min-height:82px !important;}}
   `;
   document.head.appendChild(style);
-}
-
-function createHub() {
-  if (document.getElementById(HUB_ID)) return;
-  const hero = document.querySelector(".portal-hero");
-  if (!hero) return;
-  const section = document.createElement("section");
-  section.id = HUB_ID;
-  section.setAttribute("aria-label", "Command Hub");
-  section.innerHTML = `<div class="pcls-hub-shell"><div class="pcls-hub-head"><div><div class="pcls-hub-title">Centrul portalului</div></div><div class="pcls-hub-subtitle">Cele mai folosite acțiuni sunt acum grupate într-un singur loc.</div></div><div class="pcls-hub-grid">${HUB_ITEMS.map(item => `<a class="pcls-hub-card" data-tone="${item.tone}" href="${item.href}"><span class="pcls-hub-icon" aria-hidden="true">${item.icon}</span><span><strong>${item.title}</strong><span>${item.text}</span></span></a>`).join("")}</div></div>`;
-  hero.insertAdjacentElement("afterend", section);
 }
 
 function refineExistingSections() {
@@ -97,14 +63,13 @@ function reorderHomeSections() {
   if (!main || main.getAttribute(ORDER_READY_ATTR) === "1") return;
 
   const hero = document.querySelector(".portal-hero");
-  const hub = document.getElementById(HUB_ID);
   const services = document.getElementById("servicii");
   const quickActions = document.querySelector(".quick-actions");
   const process = document.getElementById("proces");
 
-  if (!hero || !hub || !services || !quickActions || !process) return;
+  if (!hero || !services || !quickActions || !process) return;
 
-  [hero, hub, services, quickActions, process].forEach(section => main.appendChild(section));
+  [hero, services, quickActions, process].forEach(section => main.appendChild(section));
   main.setAttribute(ORDER_READY_ATTR, "1");
 }
 
@@ -112,7 +77,8 @@ function init() {
   const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
   if (!isIndex) return;
   ensureStyle();
-  createHub();
+  const oldHub = document.getElementById("pcls-command-hub");
+  oldHub?.remove();
   refineExistingSections();
   reorderHomeSections();
 }
