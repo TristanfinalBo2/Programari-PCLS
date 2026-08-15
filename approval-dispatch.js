@@ -19,10 +19,26 @@ const dept = o => {
   return LABELS[d] ? d : "isuls";
 };
 
-// Doar ISULS / DSLS / MMLS / SSMLS folosesc preview-ul Discord.
-// Toate celelalte cereri păstrează preview-ul clasic și nu trimit nimic pe Discord.
+const normalizeType = value => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .trim();
+
+// Programare / Înregistrare / Eveniment sunt aprobate local,
+// fără preview sau trimitere Discord. Orice alt tip păstrează
+// exact fluxul existent bazat pe departament.
 function isSimpleApprovalCase(o) {
-  return !DISCORD_DEPARTMENTS.has(dept(o));
+  const tipCerere = normalizeType(o?.tip_cerere);
+  const tip = normalizeType(o?.tip);
+  const categorie = normalizeType(o?.categorie);
+  const eveniment = String(o?.eveniment || "").trim();
+
+  if (tipCerere.includes("programare") || tip.includes("programare") || categorie.includes("programare")) return true;
+  if (tipCerere.includes("inregistrare") || tip.includes("inregistrare") || categorie.includes("inregistrare")) return true;
+  if (eveniment) return true;
+
+  return false;
 }
 
 const dateFmt = v => {
