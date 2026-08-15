@@ -156,30 +156,31 @@ async function confirm(e) {
   if (btn) { btn.disabled = true; btn.innerHTML = "Se procesează…"; }
   if (er) er.textContent = "";
   if (ok) ok.textContent = "";
+
   try {
     const latest = await load(selected.id);
-    if (simple) {
-      await approve(latest, false);
-      setTimeout(() => {
-        document.getElementById("approve-modal")?.classList.remove("active");
-        restoreClassicSummary(); selected = null;
-      }, 150);
-      return;
-    }
     const content = ta?.value?.trim() || buildMessage(latest);
+
+    // Mesajul Discord se trimite la fiecare confirmare pentru ISULS/MMLS/DSLS/SSMLS.
     await send(latest, content);
-    if (ok) ok.textContent = "✓ Mesajul a fost trimis.";
+
+    if (ok) ok.textContent = "✓ Mesajul a fost trimis pe Discord.";
     await approve(latest, true);
+
     setTimeout(() => {
       document.getElementById("approve-modal")?.classList.remove("active");
-      restoreClassicSummary(); selected = null;
-    }, 350);
+      restoreClassicSummary();
+      selected = null;
+    }, simple ? 250 : 350);
   } catch (err) {
     console.error("Approval dispatch:", err);
-    if (simple) alert(`Aprobarea NU a fost salvată. ${String(err?.message || err)}`);
-    else if (er) er.textContent = `Aprobarea NU a fost salvată. ${String(err?.message || err)}`;
+    const message = String(err?.message || err);
+    if (simple) alert(`Aprobarea NU a fost salvată și mesajul Discord NU a fost trimis. ${message}`);
+    else if (er) er.textContent = `Aprobarea NU a fost salvată. ${message}`;
     if (btn) { btn.disabled = false; btn.innerHTML = original; }
-  } finally { busy = false; }
+  } finally {
+    busy = false;
+  }
 }
 
 function bind() {
