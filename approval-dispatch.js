@@ -2,6 +2,7 @@ import { auth, db } from "./firebase-config.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const LABELS = { isuls: "ISULS", dsls: "DSLS", mmls: "MMLS", ssmls: "SSMLS" };
+const DISCORD_DEPARTMENTS = new Set(Object.keys(LABELS));
 let selected = null;
 let busy = false;
 
@@ -18,20 +19,10 @@ const dept = o => {
   return LABELS[d] ? d : "isuls";
 };
 
-const normalizeType = v => String(v || "")
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase()
-  .trim();
-
+// Doar ISULS / DSLS / MMLS / SSMLS folosesc preview-ul Discord.
+// Toate celelalte cereri păstrează preview-ul clasic și nu trimit nimic pe Discord.
 function isSimpleApprovalCase(o) {
-  const text = [
-    o?.tip_cerere, o?.tip, o?.categorie, o?.eveniment,
-    o?.requestType, o?.request_type, o?.type, o?.category
-  ].filter(Boolean).map(normalizeType).join(" ");
-
-  return /(^|\s)(inregistrare|programare|eveniment|event)(\s|$)/.test(text) ||
-         text.includes("programare") || text.includes("inregistrare") || text.includes("eveniment");
+  return !DISCORD_DEPARTMENTS.has(dept(o));
 }
 
 const dateFmt = v => {
@@ -172,8 +163,6 @@ async function confirm(e) {
   try {
     const latest = await load(selected.id);
 
-    // Înregistrare / Eveniment / Programare păstrează exact fluxul vechi:
-    // fără preview-ul Discord și fără trimitere către Discord.
     if (simple) {
       await approve(latest, false);
       setTimeout(() => {
@@ -184,7 +173,6 @@ async function confirm(e) {
       return;
     }
 
-    // ISULS / DSLS / MMLS / SSMLS folosesc noul preview și trimit mesajul + poza.
     const content = ta?.value?.trim() || buildMessage(latest);
     await send(latest, content);
 
