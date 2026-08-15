@@ -24,7 +24,7 @@ function ensureStyle() {
 .hero-meta{margin-top:30px !important;gap:10px !important;}
 .hero-meta div{min-height:94px !important;padding:16px !important;border-radius:18px !important;}
 .hero-meta strong{font-size:1.42rem !important;}
-#proces{margin-bottom:54px !important;padding:30px !important;border-radius:28px !important;gap:24px !important;}
+#proces{margin-top:56px !important;margin-bottom:54px !important;padding:30px !important;border-radius:28px !important;gap:24px !important;}
 #proces h2{font-size:clamp(1.75rem,3vw,2.55rem) !important;}
 .step-list{gap:10px !important;}
 .step{min-height:135px !important;padding:15px !important;border-radius:18px !important;}
