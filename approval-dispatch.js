@@ -19,11 +19,28 @@ const dept = o => {
   return LABELS[d] ? d : "";
 };
 
-// Doar ISULS / DSLS / MMLS / SSMLS folosesc preview-ul Discord.
-// Cererile care NU aparțin acestor 4 departamente păstrează confirmarea clasică,
-// fără preview Discord și fără trimitere Discord.
+const normalizeType = value => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .trim();
+
+// DOAR aceste 3 tipuri folosesc confirmarea clasică, fără Discord:
+// PROGRAMARE / INREGISTRARE / EVENIMENT.
+// Toate celelalte cereri din ISULS/DSLS/MMLS/SSMLS folosesc preview-ul Discord.
 function isSimpleApprovalCase(o) {
-  return !DISCORD_DEPARTMENTS.has(dept(o));
+  const candidates = [
+    o?.tip_cerere,
+    o?.tip,
+    o?.categorie,
+    o?.eveniment
+  ].map(normalizeType).filter(Boolean);
+
+  return candidates.some(type =>
+    type === "programare" ||
+    type === "inregistrare" ||
+    type === "eveniment"
+  );
 }
 
 const dateFmt = v => {
