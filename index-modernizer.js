@@ -1,5 +1,6 @@
 const STYLE_ID = "pcls-index-modernizer";
 const HUB_ID = "pcls-command-hub";
+const ORDER_READY_ATTR = "data-pcls-home-order";
 
 const HUB_ITEMS = [
   { href: "pcls_page.html", icon: "↗", title: "Depune cerere", text: "Trimite rapid o programare PCLS.", tone: "blue" },
@@ -58,6 +59,9 @@ function ensureStyle() {
 .service-card h3{font-size:1.18rem !important;}
 .service-card p{font-size:.84rem !important;}
 .service-footer{padding-top:13px !important;font-size:.8rem !important;}
+.quick-actions{margin:0 auto 74px !important;gap:10px !important;}
+.quick-actions::before{content:"Acces rapid";grid-column:1/-1;display:block;margin:0 0 2px;padding-left:2px;color:#fff;font-size:clamp(1.45rem,2.7vw,2.05rem);font-weight:760;letter-spacing:-.045em;line-height:1.05;}
+.quick-actions::after{content:"Scurtături utile pentru cele mai frecvente acțiuni din portal.";grid-column:1/-1;display:block;order:0;margin:-5px 0 4px;padding-left:2px;color:#8f9caf;font-size:.8rem;line-height:1.45;}
 #proces{margin-bottom:54px !important;padding:30px !important;border-radius:28px !important;gap:24px !important;}
 #proces h2{font-size:clamp(1.75rem,3vw,2.55rem) !important;}
 .step-list{gap:10px !important;}
@@ -65,11 +69,6 @@ function ensureStyle() {
 .step::before{width:40px;height:40px;border-radius:13px;font-size:.75rem;}
 .step strong{font-size:.9rem !important;}
 .step span{font-size:.78rem !important;}
-.quick-actions{margin:0 auto 74px !important;gap:10px !important;}
-.action-tile{min-height:145px !important;padding:18px !important;gap:13px !important;border-radius:20px !important;}
-.tile-icon{width:44px !important;height:44px !important;border-radius:13px !important;}
-.tile-copy strong{font-size:.92rem !important;}
-.tile-copy span{font-size:.78rem !important;}
 @media(max-width:900px){.topbar-container{grid-template-columns:1fr auto !important;padding:12px 18px !important}.nav-premium{display:none !important}.brand-text span{display:none !important}.pcls-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.pcls-hub-head{align-items:flex-start;flex-direction:column;}.pcls-hub-subtitle{text-align:left;}}
 @media(max-width:560px){.topbar-container{min-height:74px !important}.brand-logo-wrapper{width:44px !important;height:44px !important}.header-actions-premium{gap:7px !important}.notification-btn-premium{width:42px !important;height:42px !important}#pcls-command-hub{width:min(100% - 28px,1240px);margin-bottom:50px;}.pcls-hub-shell{padding:15px;border-radius:22px;}.pcls-hub-grid{grid-template-columns:1fr;}.pcls-hub-card{min-height:80px;}.hero-meta{margin-top:22px !important;}.hero-meta div{min-height:82px !important;}}
   `;
@@ -94,12 +93,30 @@ function refineExistingSections() {
   if (serviceDesc) serviceDesc.textContent = "Accesează rapid zona de lucru potrivită pentru cererea ta.";
 }
 
+function reorderHomeSections() {
+  const main = document.querySelector("main");
+  if (!main || main.getAttribute(ORDER_READY_ATTR) === "1") return;
+
+  const hero = document.querySelector(".portal-hero");
+  const hub = document.getElementById(HUB_ID);
+  const services = document.getElementById("servicii");
+  const quickActions = document.querySelector(".quick-actions");
+  const process = document.getElementById("proces");
+
+  if (!hero || !hub || !services || !quickActions || !process) return;
+
+  // Flux vizual: introducere -> acces central -> servicii -> scurtături -> proces.
+  [hero, hub, services, quickActions, process].forEach(section => main.appendChild(section));
+  main.setAttribute(ORDER_READY_ATTR, "1");
+}
+
 function init() {
   const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
   if (!isIndex) return;
   ensureStyle();
   createHub();
   refineExistingSections();
+  reorderHomeSections();
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
