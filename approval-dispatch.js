@@ -15,30 +15,15 @@ const val = (o, keys, fallback = "-") => {
 };
 
 const dept = o => {
-  const d = val(o, ["departament", "department", "dept"], "isuls").toLowerCase();
-  return LABELS[d] ? d : "isuls";
+  const d = val(o, ["departament", "department", "dept"], "").toLowerCase().trim();
+  return LABELS[d] ? d : "";
 };
 
-const normalizeType = value => String(value || "")
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase()
-  .trim();
-
-// Programare / Înregistrare / Eveniment sunt aprobate local,
-// fără preview sau trimitere Discord. Orice alt tip păstrează
-// exact fluxul existent bazat pe departament.
+// Doar ISULS / DSLS / MMLS / SSMLS folosesc preview-ul Discord.
+// Cererile care NU aparțin acestor 4 departamente păstrează confirmarea clasică,
+// fără preview Discord și fără trimitere Discord.
 function isSimpleApprovalCase(o) {
-  const tipCerere = normalizeType(o?.tip_cerere);
-  const tip = normalizeType(o?.tip);
-  const categorie = normalizeType(o?.categorie);
-  const eveniment = String(o?.eveniment || "").trim();
-
-  if (tipCerere.includes("programare") || tip.includes("programare") || categorie.includes("programare")) return true;
-  if (tipCerere.includes("inregistrare") || tip.includes("inregistrare") || categorie.includes("inregistrare")) return true;
-  if (eveniment) return true;
-
-  return false;
+  return !DISCORD_DEPARTMENTS.has(dept(o));
 }
 
 const dateFmt = v => {
@@ -224,7 +209,10 @@ function bind() {
     if (!id) return;
     try {
       selected = await load(id);
-      if (isSimpleApprovalCase(selected)) { restoreClassicSummary(); return; }
+      if (isSimpleApprovalCase(selected)) {
+        restoreClassicSummary();
+        return;
+      }
       const p = ensurePreview();
       if (p) {
         p.querySelector("#approval-dispatch-text").value = buildMessage(selected);
