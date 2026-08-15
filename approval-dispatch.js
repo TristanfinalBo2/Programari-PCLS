@@ -171,8 +171,21 @@ async function confirm(e) {
 
   try {
     const latest = await load(selected.id);
-    const content = ta?.value?.trim() || buildMessage(latest);
 
+    // Înregistrare / Eveniment / Programare păstrează exact fluxul vechi:
+    // fără preview-ul Discord și fără trimitere către Discord.
+    if (simple) {
+      await approve(latest, false);
+      setTimeout(() => {
+        document.getElementById("approve-modal")?.classList.remove("active");
+        restoreClassicSummary();
+        selected = null;
+      }, 150);
+      return;
+    }
+
+    // ISULS / DSLS / MMLS / SSMLS folosesc noul preview și trimit mesajul + poza.
+    const content = ta?.value?.trim() || buildMessage(latest);
     await send(latest, content);
 
     if (ok) ok.textContent = latest.locationImage
@@ -185,11 +198,11 @@ async function confirm(e) {
       document.getElementById("approve-modal")?.classList.remove("active");
       restoreClassicSummary();
       selected = null;
-    }, simple ? 250 : 350);
+    }, 350);
   } catch (err) {
     console.error("Approval dispatch:", err);
     const message = String(err?.message || err);
-    if (simple) alert(`Aprobarea NU a fost salvată și mesajul Discord NU a fost trimis. ${message}`);
+    if (simple) alert(`Aprobarea NU a fost salvată. ${message}`);
     else if (er) er.textContent = `Aprobarea NU a fost salvată. ${message}`;
     if (btn) { btn.disabled = false; btn.innerHTML = original; }
   } finally {
