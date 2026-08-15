@@ -24,20 +24,6 @@ function ensureStyle() {
 .hero-meta{margin-top:30px !important;gap:10px !important;}
 .hero-meta div{min-height:94px !important;padding:16px !important;border-radius:18px !important;}
 .hero-meta strong{font-size:1.42rem !important;}
-#servicii{padding-top:0 !important;}
-#servicii .section-heading{margin-bottom:20px !important;}
-#servicii .section-heading h2{font-size:clamp(1.8rem,3vw,2.55rem) !important;}
-#servicii .section-heading p{font-size:.86rem !important;}
-.service-grid{gap:12px !important;margin-bottom:78px !important;}
-.service-card{min-height:255px !important;padding:22px !important;border-radius:24px !important;grid-template-columns:92px minmax(0,1fr) !important;gap:18px !important;}
-.service-icon{width:84px !important;height:84px !important;border-radius:20px !important;}
-.service-icon img{width:64px !important;height:64px !important;}
-.service-card h3{font-size:1.18rem !important;}
-.service-card p{font-size:.84rem !important;}
-.service-footer{padding-top:13px !important;font-size:.8rem !important;}
-.quick-actions{margin:0 auto 74px !important;gap:10px !important;}
-.quick-actions::before{content:"Acces rapid";grid-column:1/-1;display:block;margin:0 0 2px;padding-left:2px;color:#fff;font-size:clamp(1.45rem,2.7vw,2.05rem);font-weight:760;letter-spacing:-.045em;line-height:1.05;}
-.quick-actions::after{content:"Scurtături utile pentru cele mai frecvente acțiuni din portal.";grid-column:1/-1;display:block;order:0;margin:-5px 0 4px;padding-left:2px;color:#8f9caf;font-size:.8rem;line-height:1.45;}
 #proces{margin-bottom:54px !important;padding:30px !important;border-radius:28px !important;gap:24px !important;}
 #proces h2{font-size:clamp(1.75rem,3vw,2.55rem) !important;}
 .step-list{gap:10px !important;}
@@ -51,11 +37,9 @@ function ensureStyle() {
   document.head.appendChild(style);
 }
 
-function refineExistingSections() {
-  const serviceTitle = document.querySelector("#servicii .section-heading h2");
-  const serviceDesc = document.querySelector("#servicii .section-heading p");
-  if (serviceTitle) serviceTitle.textContent = "Servicii & departamente";
-  if (serviceDesc) serviceDesc.textContent = "Accesează rapid zona de lucru potrivită pentru cererea ta.";
+function removeRedundantSections() {
+  document.getElementById("servicii")?.remove();
+  document.querySelector(".quick-actions")?.remove();
 }
 
 function reorderHomeSections() {
@@ -63,13 +47,11 @@ function reorderHomeSections() {
   if (!main || main.getAttribute(ORDER_READY_ATTR) === "1") return;
 
   const hero = document.querySelector(".portal-hero");
-  const services = document.getElementById("servicii");
-  const quickActions = document.querySelector(".quick-actions");
   const process = document.getElementById("proces");
 
-  if (!hero || !services || !quickActions || !process) return;
+  if (!hero || !process) return;
 
-  [hero, services, quickActions, process].forEach(section => main.appendChild(section));
+  [hero, process].forEach(section => main.appendChild(section));
   main.setAttribute(ORDER_READY_ATTR, "1");
 }
 
@@ -77,9 +59,8 @@ function init() {
   const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
   if (!isIndex) return;
   ensureStyle();
-  const oldHub = document.getElementById("pcls-command-hub");
-  oldHub?.remove();
-  refineExistingSections();
+  document.getElementById("pcls-command-hub")?.remove();
+  removeRedundantSections();
   reorderHomeSections();
 }
 
