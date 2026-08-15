@@ -3,6 +3,9 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.
 
 const LABELS = { isuls: "ISULS", dsls: "DSLS", mmls: "MMLS", ssmls: "SSMLS" };
 const DISCORD_DEPARTMENTS = new Set(Object.keys(LABELS));
+const BIND_FLAG = "__pclsApprovalDispatchBound";
+const OP_TIMEOUT_MS = 15000;
+
 let selected = null;
 let busy = false;
 
@@ -25,22 +28,25 @@ const normalizeType = value => String(value || "")
   .toLowerCase()
   .trim();
 
-// DOAR aceste 3 tipuri folosesc confirmarea clasică, fără Discord:
+// DOAR aceste 3 tipuri folosesc confirmarea clasică din admin.html:
 // PROGRAMARE / INREGISTRARE / EVENIMENT.
-// Toate celelalte cereri din ISULS/DSLS/MMLS/SSMLS folosesc preview-ul Discord.
 function isSimpleApprovalCase(o) {
-  const candidates = [
-    o?.tip_cerere,
-    o?.tip,
-    o?.categorie,
-    o?.eveniment
-  ].map(normalizeType).filter(Boolean);
+  const candidates = [o?.tip_cerere, o?.tip, o?.categorie, o?.eveniment]
+    .map(normalizeType)
+    .filter(Boolean);
 
   return candidates.some(type =>
     type === "programare" ||
     type === "inregistrare" ||
     type === "eveniment"
   );
+};
+
+function withTimeout(promise, ms = OP_TIMEOUT_MS, message = "Operația a durat prea mult. Reîncearcă.") {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
+  ]);
 }
 
 const dateFmt = v => {
@@ -90,9 +96,13 @@ function buildMessage(o) {
 }
 
 async function load(id) {
-  const s = await getDoc(doc(db, "cereri", id));
-  if (!s.exists()) throw new Error("Cererea nu mai există.");
-  return { id: s.id, ...s.data() };
+  const snap = await withTimeout(
+    getDoc(doc(db, "cereri", id)),
+    OP_TIMEOUT_MS,
+    "Cererea nu a putut fi încărcată la timp."
+  );
+  if (!snap.exists()) throw new Error("Cererea nu mai există.");
+  return { id: snap.id, ...snap.data() };
 }
 
 function styles() {
@@ -126,27 +136,43 @@ function restoreClassicSummary() {
 
 async function send(o, content) {
   if (!auth.currentUser) throw new Error("Sesiunea a expirat. Reautentifică-te.");
-  const token = await auth.currentUser.getIdToken(true);
+  const token = await withTimeout(
+    auth.currentUser.getIdToken(true),
+    OP_TIMEOUT_MS,
+    "Tokenul Firebase nu a putut fi obținut la timp."
+  );
   if (!token) throw new Error("Tokenul Firebase nu a putut fi obținut.");
 
-  const r = await fetch("/api/discord-webhook", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      department: dept(o),
-      content,
-      locationImage: o.locationImage || null
-    })
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OP_TIMEOUT_MS);
 
-  const b = await r.json().catch(() => null);
-  if (!r.ok || !b?.ok) throw new Error(b?.error || `HTTP ${r.status}`);
+  try {
+    const r = await fetch("/api/discord-webhook", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        department: dept(o),
+        content,
+        locationImage: o.locationImage || null
+      }),
+      signal: controller.signal
+    });
+
+    const b = await r.json().catch(() => null);
+    if (!r.ok || !b?.ok) throw new Error(b?.error || `HTTP ${r.status}`);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function approve(o, discordSent = false) {
   const admin = auth.currentUser;
   if (!admin) throw new Error("Sesiunea a expirat.");
-  const snap = await getDoc(doc(db, "utilizatori", admin.uid));
+  const snap = await withTimeout(
+    getDoc(doc(db, "utilizatori", admin.uid)),
+    OP_TIMEOUT_MS,
+    "Profilul administratorului nu a putut fi încărcat la timp."
+  );
   const data = snap.exists() ? snap.data() || {} : {};
   const name = String(data.nume || data.name || data.displayName || admin.displayName || admin.email?.split("@")[0] || "Admin").trim();
   const update = {
@@ -159,37 +185,33 @@ async function approve(o, discordSent = false) {
     update.discordDispatchSent = true;
     update.discordDispatchDepartment = dept(o);
   }
-  await updateDoc(doc(db, "cereri", o.id), update);
+  await withTimeout(
+    updateDoc(doc(db, "cereri", o.id), update),
+    OP_TIMEOUT_MS,
+    "Aprobarea nu a putut fi salvată la timp."
+  );
 }
 
-async function confirm(e) {
-  if (busy || !selected?.id) return;
+async function confirmDiscord(e) {
+  if (busy || !selected?.id || isSimpleApprovalCase(selected)) return;
   e.preventDefault();
   e.stopImmediatePropagation();
   busy = true;
-  const simple = isSimpleApprovalCase(selected);
+
   const btn = document.getElementById("approve-ok-btn");
-  const p = simple ? null : ensurePreview();
+  const p = ensurePreview();
   const ta = p?.querySelector("#approval-dispatch-text");
   const er = p?.querySelector("#approval-dispatch-error");
   const ok = p?.querySelector("#approval-dispatch-ok");
   const original = btn?.innerHTML || "Confirmă & Acceptă";
+
   if (btn) { btn.disabled = true; btn.innerHTML = "Se procesează…"; }
   if (er) er.textContent = "";
   if (ok) ok.textContent = "";
 
   try {
     const latest = await load(selected.id);
-
-    if (simple) {
-      await approve(latest, false);
-      setTimeout(() => {
-        document.getElementById("approve-modal")?.classList.remove("active");
-        restoreClassicSummary();
-        selected = null;
-      }, 150);
-      return;
-    }
+    if (isSimpleApprovalCase(latest)) return;
 
     const content = ta?.value?.trim() || buildMessage(latest);
     await send(latest, content);
@@ -208,42 +230,73 @@ async function confirm(e) {
   } catch (err) {
     console.error("Approval dispatch:", err);
     const message = String(err?.message || err);
-    if (simple) alert(`Aprobarea NU a fost salvată. ${message}`);
-    else if (er) er.textContent = `Aprobarea NU a fost salvată. ${message}`;
-    if (btn) { btn.disabled = false; btn.innerHTML = original; }
+    if (message.toLowerCase().includes("aborted")) {
+      if (er) er.textContent = "Aprobarea a expirat deoarece Discord nu a răspuns la timp. Cererea NU a fost marcată ca aprobată.";
+    } else if (er) {
+      er.textContent = `Aprobarea NU a fost finalizată. ${message}`;
+    }
   } finally {
     busy = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
   }
 }
 
 function bind() {
   if (!location.pathname.toLowerCase().endsWith("/admin.html")) return;
+  if (window[BIND_FLAG]) return;
+  window[BIND_FLAG] = true;
+
   styles();
+
+  // Selectăm cererea curentă și pregătim DOAR preview-ul Discord pentru ISULS/DSLS/MMLS/SSMLS.
   document.addEventListener("click", async e => {
     const b = e.target.closest(".btn-approve");
     if (!b) return;
     const id = b.getAttribute("data-id");
     if (!id) return;
+
     try {
       selected = await load(id);
+
+      // Pentru Programare / Înregistrare / Eveniment nu atingem deloc
+      // handlerul existent din admin.html: popup-ul clasic rămâne intact.
       if (isSimpleApprovalCase(selected)) {
         restoreClassicSummary();
         return;
       }
+
       const p = ensurePreview();
       if (p) {
         p.querySelector("#approval-dispatch-text").value = buildMessage(selected);
         p.querySelector("#approval-dispatch-error").textContent = "";
         p.querySelector("#approval-dispatch-ok").textContent = "";
       }
-    } catch (err) { console.error("Approval preview:", err); }
+    } catch (err) {
+      console.error("Approval preview:", err);
+      selected = null;
+    }
   }, true);
+
+  // Interceptăm Confirmă & Acceptă NUMAI pentru fluxul Discord.
   document.addEventListener("click", e => {
-    if (e.target.closest("#approve-ok-btn")) void confirm(e);
+    if (!e.target.closest("#approve-ok-btn")) return;
+    if (!selected || isSimpleApprovalCase(selected)) return;
+    void confirmDiscord(e);
   }, true);
+
   document.addEventListener("click", e => {
     if (e.target.closest("#approve-cancel-btn") || e.target.closest("#approve-close")) {
-      selected = null; busy = false; restoreClassicSummary();
+      selected = null;
+      busy = false;
+      const btn = document.getElementById("approve-ok-btn");
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "Confirmă & Acceptă";
+      }
+      restoreClassicSummary();
     }
   }, true);
 }
