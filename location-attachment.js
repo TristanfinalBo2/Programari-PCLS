@@ -15,7 +15,7 @@ function injectStyles() {
   style.id = STYLE_ID;
   style.textContent = `
     .pcls-location-attachment{grid-column:1/-1;margin-top:2px;padding:17px;border:1px solid rgba(124,231,255,.12);border-radius:20px;background:linear-gradient(145deg,rgba(124,231,255,.045),rgba(255,255,255,.025));box-shadow:inset 0 1px rgba(255,255,255,.045)}
-    .pcls-location-attachment-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}.pcls-location-attachment-title{font-size:.85rem;font-weight:760;color:#f7fbff}.pcls-location-attachment-help{margin-top:4px;color:#8794a8;font-size:.7rem;line-height:1.45}.pcls-location-attachment-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;color:#a9edff;background:rgba(100,210,255,.07);border:1px solid rgba(100,210,255,.12);font-size:.62rem;font-weight:760;white-space:nowrap}.pcls-location-drop{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px dashed rgba(124,231,255,.2);border-radius:16px;background:rgba(0,0,0,.12);cursor:pointer;transition:.2s ease}.pcls-location-drop:hover{border-color:rgba(124,231,255,.38);background:rgba(124,231,255,.045)}.pcls-location-drop strong{display:block;font-size:.78rem;color:#eaf8ff}.pcls-location-drop span{display:block;margin-top:4px;color:#79869a;font-size:.67rem}.pcls-location-input{display:none!important}.pcls-location-preview{display:none;align-items:center;gap:12px;margin-top:12px;padding:10px;border:1px solid rgba(99,230,190,.14);border-radius:15px;background:rgba(99,230,190,.045)}.pcls-location-preview.show{display:flex}.pcls-location-preview img{width:86px;height:64px;object-fit:cover;border-radius:11px;border:1px solid rgba(255,255,255,.09)}.pcls-location-preview-copy{min-width:0;flex:1}.pcls-location-preview-copy strong{display:block;color:#c8ffea;font-size:.74rem}.pcls-location-preview-copy span{display:block;margin-top:3px;color:#8391a3;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcls-location-remove{min-height:34px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,105,97,.17);background:rgba(255,105,97,.055);color:#ffb9b5;font:inherit;font-size:.64rem;font-weight:740;cursor:pointer}.pcls-location-submit-note{display:none;margin-top:9px;color:#9ee9ff;font-size:.66rem}.pcls-location-submit-note.show{display:block}@media(max-width:560px){.pcls-location-attachment-head{flex-direction:column}.pcls-location-badge{align-self:flex-start}.pcls-location-preview img{width:74px;height:56px}}
+    .pcls-location-attachment-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}.pcls-location-attachment-title{font-size:.85rem;font-weight:760;color:#f7fbff}.pcls-location-attachment-help{margin-top:4px;color:#8794a8;font-size:.7rem;line-height:1.45}.pcls-location-attachment-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;color:#a9edff;background:rgba(100,210,255,.07);border:1px solid rgba(100,210,255,.12);font-size:.62rem;font-weight:760;white-space:nowrap}.pcls-location-drop{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px dashed rgba(124,231,255,.2);border-radius:16px;background:rgba(0,0,0,.12);cursor:pointer;transition:.2s ease}.pcls-location-drop:hover{border-color:rgba(124,231,255,.38);background:rgba(124,231,255,.045)}.pcls-location-drop strong{display:block;font-size:.78rem;color:#eaf8ff}.pcls-location-drop span{display:block;margin-top:4px;color:#79869a;font-size:.67rem}.pcls-location-input{display:none!important}.pcls-location-preview{display:none;align-items:center;gap:12px;margin-top:12px;padding:10px;border:1px solid rgba(99,230,190,.14);border-radius:15px;background:rgba(99,230,190,.045)}.pcls-location-preview.show{display:flex}.pcls-location-preview img{width:86px;height:64px;object-fit:cover;border-radius:11px;border:1px solid rgba(255,255,255,.09)}.pcls-location-preview-copy{min-width:0;flex:1}.pcls-location-preview-copy strong{display:block;color:#c8ffea;font-size:.74rem}.pcls-location-preview-copy span{display:block;margin-top:3px;color:#8391a3;font-size:.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pcls-location-remove{min-height:34px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,105,97,.17);background:rgba(255,105,97,.055);color:#ffb9b5;font:inherit;font-size:.64rem;font-weight:740;cursor:pointer}.pcls-location-submit-note{display:none;margin-top:9px;color:#9ee9ff;font-size:.66rem}.pcls-location-submit-note.show{display:block}.pcls-location-paste-hint{margin-top:8px;color:#7f8da1;font-size:.63rem;line-height:1.4}@media(max-width:560px){.pcls-location-attachment-head{flex-direction:column}.pcls-location-badge{align-self:flex-start}.pcls-location-preview img{width:74px;height:56px}}
   `;
   document.head.appendChild(style);
 }
@@ -125,12 +125,14 @@ function uiForForm(form, index) {
       <div><div class="pcls-location-attachment-title">📍 Atașează o poză cu locația</div><div class="pcls-location-attachment-help">Fotografia va apărea ulterior în Detalii Cerere din Admin. JPG, PNG sau WEBP · maximum 8 MB.</div></div>
       <span class="pcls-location-attachment-badge">Opțional</span>
     </div>
-    <label class="pcls-location-drop"><input class="pcls-location-input" type="file" accept="image/jpeg,image/png,image/webp"><div><strong>Selectează fotografia locației</strong><span>Apasă aici pentru a alege imaginea.</span></div><span aria-hidden="true">＋</span></label>
+    <label class="pcls-location-drop"><input class="pcls-location-input" type="file" accept="image/jpeg,image/png,image/webp"><div><strong>Selectează fotografia locației</strong><span>Click pentru fișier sau folosește Ctrl+V pentru a lipi o imagine.</span></div><span aria-hidden="true">＋</span></label>
+    <div class="pcls-location-paste-hint">💡 Poți copia o imagine din Discord, Paint, browser sau capturi de ecran și să apeși <strong>Ctrl+V</strong> aici.</div>
     <div class="pcls-location-preview"><img alt="Preview locație"><div class="pcls-location-preview-copy"><strong>✓ Fotografie pregătită</strong><span></span></div><button type="button" class="pcls-location-remove">Elimină</button></div>
     <div class="pcls-location-submit-note">Fotografia este procesată și asociată automat cererii după trimitere.</div>
   `;
 
   const input = wrapper.querySelector(".pcls-location-input");
+  const drop = wrapper.querySelector(".pcls-location-drop");
   const preview = wrapper.querySelector(".pcls-location-preview");
   const previewImage = wrapper.querySelector("img");
   const previewText = wrapper.querySelector(".pcls-location-preview-copy span");
@@ -140,23 +142,61 @@ function uiForForm(form, index) {
   let selectedFile = null;
   let selectedDataUrl = null;
 
-  input.addEventListener("change", async () => {
-    const file = input.files?.[0];
-    selectedFile = file || null;
-    selectedDataUrl = null;
-    preview.classList.remove("show");
+  const setFile = async file => {
     if (!file) return;
     try {
-      selectedDataUrl = await compressImage(file);
+      const dataUrl = await compressImage(file);
+      selectedFile = file;
+      selectedDataUrl = dataUrl;
+
+      try {
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        input.files = transfer.files;
+      } catch (_) {
+        // Browserele care nu permit programatic input.files vor folosi în continuare
+        // selectedDataUrl pentru salvarea imaginii.
+      }
+
       previewImage.src = selectedDataUrl;
-      previewText.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB original`;
+      previewText.textContent = `${file.name || "Imagine lipită"} · ${Math.round(file.size / 1024)} KB original`;
       preview.classList.add("show");
       note.classList.add("show");
     } catch (error) {
       selectedFile = null;
+      selectedDataUrl = null;
       input.value = "";
+      console.error("PCLS location image:", error);
       alert(error.message || "Imaginea nu a putut fi procesată.");
     }
+  };
+
+  input.addEventListener("change", async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    await setFile(file);
+  });
+
+  // Ctrl+V: acceptă imagini lipite din clipboard în orice formular.
+  form.addEventListener("paste", async event => {
+    const items = Array.from(event.clipboardData?.items || []);
+    const imageItem = items.find(item => item.kind === "file" && item.type.startsWith("image/"));
+    if (!imageItem) return;
+    const file = imageItem.getAsFile();
+    if (!file) return;
+    event.preventDefault();
+    await setFile(new File([file], `locatie-paste-${Date.now()}.${file.type.split("/")[1] || "png"}`, { type: file.type }));
+  });
+
+  // Permite și paste direct pe zona vizuală, chiar dacă focusul nu este pe input.
+  drop.addEventListener("paste", async event => {
+    const items = Array.from(event.clipboardData?.items || []);
+    const imageItem = items.find(item => item.kind === "file" && item.type.startsWith("image/"));
+    if (!imageItem) return;
+    const file = imageItem.getAsFile();
+    if (!file) return;
+    event.preventDefault();
+    await setFile(new File([file], `locatie-paste-${Date.now()}.${file.type.split("/")[1] || "png"}`, { type: file.type }));
   });
 
   remove.addEventListener("click", () => {
