@@ -3,7 +3,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBst9kibZtc9Cx-KgJ21XcZUkouRtDI1Sc",
+  apiKey: "AIzaSyBst9kibTzc9Cx-KgJ21XcZUkouRtDI1Sc",
   authDomain: "pcls-portal.firebaseapp.com",
   projectId: "pcls-portal",
   storageBucket: "pcls-portal.firebasestorage.app",
@@ -86,6 +86,7 @@ window.addEventListener("DOMContentLoaded", () => {
   import("./discord-id-guard.js").catch(error => console.error("Discord ID guard:", error));
   import("./notification-center.js?v=20260814").catch(error => console.error("Centrul de notificări:", error));
   import("./rejection-popup-fix.js?v=20260814-rejection-popup-2").catch(error => console.error("Rejection popup fix:", error));
+  import("./approval-copy-fix.js?v=20260816-approval-copy-1").catch(error => console.error("Approval copy fix:", error));
   if (window.location.pathname.toLowerCase().endsWith("/audit.html")) {
     import("./audit-cleaner.js").catch(error => console.error("Audit cleaner:", error));
   }
@@ -104,4 +105,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-14-rejection-v6-status-based";
+export const FIREBASE_CONFIG_VERSION = "2026-08-16-approval-dispatch-permissions";
