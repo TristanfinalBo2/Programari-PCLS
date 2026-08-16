@@ -23,6 +23,10 @@ if (window.location.pathname === "/" || window.location.pathname.toLowerCase().e
 document.addEventListener("DOMContentLoaded", () => {
   import("./location-attachment.js?v=20260814-attachment").catch(error => console.error("Location attachment:", error));
 
+  if (window.location.pathname.toLowerCase().endsWith("/auth.html")) {
+    import("./auth-password-reset.js?v=20260816-password-reset-1").catch(error => console.error("Password reset:", error));
+  }
+
   if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
     import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
     import("./admin-rejection-v2.js?v=20260814-rejection-v2-1").catch(error => console.error("Admin rejection:", error));
@@ -105,4 +109,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-16-firebase-key-restored";
+export const FIREBASE_CONFIG_VERSION = "2026-08-16-firebase-key-restored-password-reset";
