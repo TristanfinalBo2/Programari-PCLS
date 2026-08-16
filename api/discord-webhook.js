@@ -1,5 +1,5 @@
 const PROJECT_ID = "pcls-portal";
-const ALLOWED_ROLES = new Set(["admin", "superadmin"]);
+const ALLOWED_ROLES = new Set(["admin", "superadmin", "conducere", "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"]);
 const WEBHOOK_ENV = {
   isuls: "DISCORD_WEBHOOK_ISULS",
   dsls: "DISCORD_WEBHOOK_DSLS",
