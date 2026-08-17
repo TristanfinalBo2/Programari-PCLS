@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Audit Log | Portal PCLS</title>
+<!-- Vercel Web Analytics -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root{color-scheme:dark;--bg:#05070c;--panel:rgba(18,25,40,.64);--line:rgba(255,255,255,.1);--text:#f7f9ff;--muted:#b8c0d0;--quiet:#7f8aa0;--accent:#64d2ff;--mint:#63e6be;--danger:#ff6961;--gold:#ffd60a;--violet:#bf5af2}
 *{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;padding:30px 16px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 12% 8%,rgba(10,132,255,.2),transparent 30%),radial-gradient(circle at 88% 8%,rgba(191,90,242,.14),transparent 28%),linear-gradient(145deg,#070b14,#05070c)}a{color:inherit;text-decoration:none}.page{width:min(1200px,100%);margin:auto}.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px}.kicker{color:var(--accent);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em}.title{margin-top:6px;font-size:clamp(2rem,5vw,2.8rem);font-weight:800;letter-spacing:-.045em}.sub{margin-top:8px;color:var(--muted);font-size:.86rem}.actions{display:flex;gap:8px}.btn{padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.05);color:var(--text);font-weight:700;cursor:pointer}.btn:hover{background:rgba(255,255,255,.09)}
@@ -24,7 +29,7 @@
   <input id="search" class="input" type="search" placeholder="Caută actor, acțiune, utilizator, ID sau departament..." autocomplete="off">
   <div class="custom-select" data-select="type"><button type="button" class="select-trigger">Toate tipurile</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate tipurile</button><button class="select-option" type="button" data-value="cerere">Cereri</button><button class="select-option" type="button" data-value="utilizator">Utilizatori</button></div></div>
   <div class="custom-select" data-select="role"><button type="button" class="select-trigger">Toate rolurile</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate rolurile</button></div></div>
-  <div class="custom-select" data-select="action"><button type="button" class="select-trigger">Toate acțiunile</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate acțiunile</button></div></div>
+  <div class="custom-select" data-select="action"><button type="button" class="select-trigger">Toate acțiunile</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate ac��iunile</button></div></div>
   <div class="custom-select" data-select="department"><button type="button" class="select-trigger">Toate departamentele</button><div class="select-menu"><button class="select-option selected" type="button" data-value="all">Toate departamentele</button><button class="select-option" type="button" data-value="isuls">ISULS</button><button class="select-option" type="button" data-value="dsls">DSLS</button><button class="select-option" type="button" data-value="mmls">MMLS</button><button class="select-option" type="button" data-value="ssmls">SSMLS</button></div></div>
 </section>
 <section class="toolbar-second">
