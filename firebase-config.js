@@ -16,13 +16,21 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Vercel Web Analytics — încărcat o singură dată pe fiecare pagină.
-if (!document.getElementById("vercel-analytics-script")) {
-  const analyticsScript = document.createElement("script");
-  analyticsScript.id = "vercel-analytics-script";
-  analyticsScript.defer = true;
-  analyticsScript.src = "https://cdn.vercel-insights.com/v1/script.debug.js";
-  document.head.appendChild(analyticsScript);
+// Vercel Web Analytics for this static HTML project.
+// The Vercel production script is served from the project's /_vercel/insights route
+// after Web Analytics is enabled for the Vercel project.
+if (typeof window !== "undefined" && typeof document !== "undefined") {
+  window.va = window.va || function (...args) {
+    (window.vaq = window.vaq || []).push(args);
+  };
+
+  if (!document.querySelector('script[data-pcls-vercel-analytics="true"]')) {
+    const analyticsScript = document.createElement("script");
+    analyticsScript.defer = true;
+    analyticsScript.src = "/_vercel/insights/script.js";
+    analyticsScript.dataset.pclsVercelAnalytics = "true";
+    document.head.appendChild(analyticsScript);
+  }
 }
 
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
