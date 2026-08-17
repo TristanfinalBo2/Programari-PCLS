@@ -16,6 +16,15 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// Vercel Web Analytics — încărcat o singură dată pe fiecare pagină.
+if (!document.getElementById("vercel-analytics-script")) {
+  const analyticsScript = document.createElement("script");
+  analyticsScript.id = "vercel-analytics-script";
+  analyticsScript.defer = true;
+  analyticsScript.src = "https://cdn.vercel-insights.com/v1/script.debug.js";
+  document.head.appendChild(analyticsScript);
+}
+
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
   import("./index-modernizer.js?v=20260814").catch(error => console.error("Index modernizer:", error));
 }
@@ -111,4 +120,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-17-live-age-priority";
+export const FIREBASE_CONFIG_VERSION = "2026-08-18-vercel-analytics";
