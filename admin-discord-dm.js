@@ -8,7 +8,7 @@ function normalizeStatus(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function getDiscordId(data = {}) {
+async function resolveDiscordId(data = {}) {
   const candidates = [
     data.discordId,
     data.discord_id,
@@ -24,9 +24,14 @@ function getDiscordId(data = {}) {
   const firebaseUid = [data.uid, data.userId, data.user_id, data.ownerUid, data.owner_uid]
     .map(value => String(value ?? "").trim())
     .find(Boolean);
-
   if (!firebaseUid) return "";
-  return `firebase:${firebaseUid}`;
+
+  const userSnap = await getDoc(doc(db, "utilizatori", firebaseUid));
+  if (!userSnap.exists()) return "";
+  const user = userSnap.data() || {};
+  return [user.discordId, user.discord_id, user.discordUserId, user.discord_user_id, user.discord, user.numeDiscord]
+    .map(value => String(value ?? "").trim())
+    .find(value => /^\d{17,20}$/.test(value)) || "";
 }
 
 function first(data, keys, fallback = "-") {
@@ -79,7 +84,9 @@ function buildMessage(requestId, data, status) {
 }
 
 async function sendDecision(requestId, data, status) {
-  const rawDiscordId = getDiscordId(data);
+  const discordUserId = await resolveDiscordId(data);
+  if (!discordUserId) throw new Error("Discord ID-ul solicitantului nu a fost găsit.");
+
   const token = await auth.currentUser?.getIdToken(false);
   if (!token) throw new Error("Sesiunea administratorului nu este disponibilă.");
 
@@ -91,15 +98,13 @@ async function sendDecision(requestId, data, status) {
     },
     body: JSON.stringify({
       requestId,
-      discordUserId: rawDiscordId,
+      discordUserId,
       content: buildMessage(requestId, data, status)
     })
   });
 
   const body = await response.json().catch(() => ({}));
-  if (!response.ok || !body.ok) {
-    throw new Error(body.error || `Discord DM API HTTP ${response.status}`);
-  }
+  if (!response.ok || !body.ok) throw new Error(body.error || `Discord DM API HTTP ${response.status}`);
 }
 
 function watchRequestDecision(requestId, expectedStatus) {
@@ -141,7 +146,6 @@ function watchRequestDecision(requestId, expectedStatus) {
   });
 
   pendingWatches.set(id, unsubscribe);
-
   setTimeout(() => {
     if (!finished) {
       finished = true;
@@ -162,16 +166,10 @@ function bind() {
       watchRequestDecision(approve.getAttribute("data-id"), "aprobat");
       return;
     }
-
     const reject = event.target.closest(".btn-reject[data-id]");
-    if (reject) {
-      watchRequestDecision(reject.getAttribute("data-id"), "respins");
-    }
+    if (reject) watchRequestDecision(reject.getAttribute("data-id"), "respins");
   }, true);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bind, { once: true });
-} else {
-  bind();
-}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind, { once: true });
+else bind();
