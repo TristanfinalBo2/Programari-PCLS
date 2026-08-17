@@ -135,15 +135,19 @@ if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
 
       decorated.sort((a, b) => {
         if (a.time === b.time) return a.index - b.index;
-        // Default: oldest first. Newest: newest first.
         return sortMode === "newest" ? b.time - a.time : a.time - b.time;
       });
 
-      const frag = document.createDocumentFragment();
-      decorated.forEach(({ card }) => frag.appendChild(card));
-      host.appendChild(frag);
+      const orderedCards = decorated.map(x => x.card);
+      const alreadyOrdered = orderedCards.every((card, index) => card === cards[index]);
 
-      updateAgeBadges(decorated.map(x => x.card));
+      if (!alreadyOrdered) {
+        const frag = document.createDocumentFragment();
+        orderedCards.forEach(card => frag.appendChild(card));
+        host.appendChild(frag);
+      }
+
+      updateAgeBadges(orderedCards);
     } finally {
       applying = false;
     }
@@ -161,17 +165,15 @@ if (window.location.pathname.toLowerCase().endsWith("/admin.html")) {
       if (mutations.some(m => m.addedNodes.length || m.removedNodes.length)) scheduleOrdering();
     });
     observer.observe(host, { childList: true });
-
-    document.querySelectorAll(".filter-btn, #cereri-search, #cereri-search-clear").forEach(el => {
-      el.addEventListener("click", scheduleOrdering);
-      el.addEventListener("input", scheduleOrdering);
-    });
   }
 
   function startSecondRefresh() {
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(() => {
-      applyOrdering();
+      const host = document.getElementById("cereri-container");
+      if (!host) return;
+      const cards = [...host.children].filter(el => el.classList?.contains("card"));
+      if (cards.length) updateAgeBadges(cards);
     }, 1000);
   }
 
