@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     import("./admin-location-preview.js?v=20260814-preview").catch(error => console.error("Admin location preview:", error));
     import("./admin-rejection-v2.js?v=20260814-rejection-v2-1").catch(error => console.error("Admin rejection:", error));
     import("./admin-age-priority.js?v=20260817-live-age-2").catch(error => console.error("Admin age priority:", error));
+    import("./admin-discord-dm.js?v=20260817-vercel-dm-1").catch(error => console.error("Admin Discord DM:", error));
   }
 
   if (window.location.pathname.toLowerCase().endsWith("/cererile_mele.html")) {
