@@ -23,14 +23,8 @@ const pick = (item, keys, fallback = "-") => {
 };
 
 function getDiscordId(item) {
-  return [
-    item?.discordId,
-    item?.discord_id,
-    item?.discordUserId,
-    item?.discord_user_id,
-    item?.discord_user,
-    item?.discord
-  ].map(value => String(value ?? "").trim())
+  return [item?.discordId, item?.discord_id, item?.discordUserId, item?.discord_user_id, item?.discord_user, item?.discord]
+    .map(value => String(value ?? "").trim())
     .find(value => /^\d{17,20}$/.test(value)) || "";
 }
 
@@ -66,7 +60,7 @@ function setRow(selector, label, value, highlight = false) {
 function applyRegistrationPreview(item) {
   if (!isRegistration(item)) return;
 
-  const telefon = pick(item, ["telefon", "telefon_contact", "telefonContact", "tel", "phone"] , "");
+  const telefon = pick(item, ["telefon", "telefon_contact", "telefonContact", "tel", "phone"], "");
   const email = pick(item, ["email", "email_aplicant", "e_mail", "email_contact", "mail"], "");
   const discord = getDiscordMention(item);
   const contact = [telefon, email, discord !== "-" ? discord : ""].filter(Boolean).join(" / ") || "-";
@@ -113,6 +107,19 @@ function clearRegistrationExtra() {
   document.querySelector("#approve-modal .summary-card .pcls-registration-preview-extra")?.remove();
 }
 
+function getVisibleRegistrationText() {
+  const summary = document.querySelector("#approve-modal .summary-card");
+  if (!summary) return "";
+  return Array.from(summary.querySelectorAll("p"))
+    .map(row => {
+      const label = row.querySelector("strong")?.textContent?.trim() || "";
+      const value = row.querySelector("span")?.textContent?.trim() || "";
+      return label ? `${label} ${value}`.trim() : "";
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
 function boot() {
   if (!window.location.pathname.toLowerCase().endsWith("/admin.html")) return;
 
@@ -135,12 +142,16 @@ function boot() {
     if (!button) return;
 
     const preview = document.getElementById("approval-dispatch-text");
-    if (!preview) return;
+    const summary = document.querySelector("#approve-modal .summary-card");
+    const hasRegistrationPreview = Boolean(summary?.querySelector(".pcls-registration-preview-extra"));
 
     event.preventDefault();
     event.stopImmediatePropagation();
 
-    const text = String(preview.value || preview.textContent || "").trim();
+    const text = hasRegistrationPreview
+      ? getVisibleRegistrationText()
+      : String(preview?.value || preview?.textContent || "").trim();
+
     if (!text) {
       window.showToast?.("Nu există date de copiat.", "error");
       return;
@@ -148,7 +159,7 @@ function boot() {
 
     try {
       await navigator.clipboard.writeText(text);
-      window.showToast?.("Mesajul din preview a fost copiat.", "success");
+      window.showToast?.("Datele afișate în preview au fost copiate.", "success");
       const original = button.innerHTML;
       button.innerHTML = "✓ Copiat!";
       setTimeout(() => { button.innerHTML = original; }, 1800);
