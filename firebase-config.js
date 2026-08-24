@@ -39,6 +39,7 @@ if (window.location.pathname === "/" || window.location.pathname.toLowerCase().e
 
 document.addEventListener("DOMContentLoaded", () => {
   import("./location-attachment.js?v=20260814-attachment").catch(error => console.error("Location attachment:", error));
+  import("./noroc-discord-photo.js?v=20260824-noroc-photo").catch(error => console.error("Noroc Discord photo:", error));
 
   if (window.location.pathname.toLowerCase().endsWith("/auth.html")) {
     import("./auth-password-reset.js?v=20260816-password-reset-1").catch(error => console.error("Password reset:", error));
