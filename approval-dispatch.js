@@ -28,19 +28,26 @@ const normalizeType = value => String(value || "")
   .toLowerCase()
   .trim();
 
-// DOAR aceste 3 tipuri folosesc confirmarea clasică din admin.html:
-// PROGRAMARE / INREGISTRARE / EVENIMENT.
-function isSimpleApprovalCase(o) {
+function isEventRequest(o) {
   const candidates = [o?.tip_cerere, o?.tip, o?.categorie, o?.eveniment]
+    .map(normalizeType)
+    .filter(Boolean);
+
+  return candidates.some(type => type === "eveniment" || type.includes("eveniment"));
+}
+
+function isSimpleApprovalCase(o) {
+  const candidates = [o?.tip_cerere, o?.tip, o?.categorie]
     .map(normalizeType)
     .filter(Boolean);
 
   return candidates.some(type =>
     type === "programare" ||
+    type.includes("programare") ||
     type === "inregistrare" ||
-    type === "eveniment"
+    type.includes("inregistrare")
   );
-};
+}
 
 function withTimeout(promise, ms = OP_TIMEOUT_MS, message = "Operația a durat prea mult. Reîncearcă.") {
   return Promise.race([
@@ -73,7 +80,119 @@ function controlTime(o) {
   return x.includes(" la ") ? x.split(" la ").slice(1).join(" la ").trim() : "-";
 }
 
+const TECHNICAL_KEYS = new Set([
+  "id", "uid", "userId", "ownerUid", "deleted", "status", "procesat_de", "data_procesare",
+  "createdAt", "created_at", "updatedAt", "updated_at", "data_creare", "dataCreare",
+  "locationImage", "locationImageName", "locationImageUpdatedAt", "discordDispatchSent",
+  "discordDispatchDepartment", "discordMessageId", "discordWebhook", "imageData", "imageUrl"
+]);
+
+const FIELD_LABELS = {
+  nume: "Nume",
+  nume_proprietar: "Nume proprietar",
+  proprietar: "Proprietar",
+  reprezentant: "Reprezentant",
+  nume_afacere: "Afacere",
+  unitate: "Unitate",
+  denumire_afacere: "Denumire afacere",
+  business_name: "Afacere",
+  telefon: "Telefon",
+  telefon_contact: "Telefon contact",
+  telefonContact: "Telefon contact",
+  email: "Email",
+  adresa: "Adresă",
+  adresa_control: "Adresă control",
+  strada: "Stradă",
+  street: "Stradă",
+  locatie: "Locație",
+  location: "Locație",
+  nr_locatie: "Nr. locație",
+  numar_locatie: "Nr. locație",
+  numarLocatie: "Nr. locație",
+  departament: "Departament",
+  department: "Departament",
+  eveniment: "Eveniment",
+  tip_eveniment: "Tip eveniment",
+  tipEveniment: "Tip eveniment",
+  data_eveniment: "Data eveniment",
+  dataEveniment: "Data eveniment",
+  data: "Data",
+  data_ora: "Data și ora",
+  dataOra: "Data și ora",
+  ora: "Ora",
+  ora_eveniment: "Ora eveniment",
+  oraEveniment: "Ora eveniment",
+  numar_persoane: "Număr persoane",
+  numarPersoane: "Număr persoane",
+  participanti: "Participanți",
+  descriere: "Descriere",
+  detalii: "Detalii",
+  observatii: "Observații",
+  observatii_eveniment: "Observații eveniment",
+  informatii_extra: "Informații extra",
+  informatiiExtra: "Informații extra",
+  extra_info: "Informații extra"
+};
+
+function humanizeKey(key) {
+  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+  return String(key || "Câmp")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/^./, c => c.toUpperCase())
+    .trim();
+}
+
+function formatEventValue(value) {
+  if (value === null || value === undefined) return "-";
+  if (value instanceof Date) return value.toLocaleString("ro-RO");
+  if (typeof value === "object") {
+    if (value?.toDate) {
+      try { return value.toDate().toLocaleString("ro-RO"); } catch (_) {}
+    }
+    try { return JSON.stringify(value); } catch (_) { return String(value); }
+  }
+  const text = String(value).trim();
+  if (!text) return "-";
+  return text.replace(/\s+/g, " ");
+}
+
+const EVENT_FIELD_ORDER = [
+  "eveniment", "tip_eveniment", "nume", "nume_proprietar", "proprietar", "reprezentant",
+  "nume_afacere", "unitate", "denumire_afacere", "telefon", "email", "data_eveniment",
+  "dataEveniment", "data", "data_ora", "dataOra", "ora_eveniment", "oraEveniment", "ora",
+  "adresa", "adresa_control", "strada", "street", "locatie", "location", "numar_persoane",
+  "numarPersoane", "participanti", "descriere", "detalii", "observatii", "observatii_eveniment",
+  "informatii_extra", "informatiiExtra", "extra_info"
+];
+
+function buildEventMessage(o) {
+  const priority = key => {
+    const index = EVENT_FIELD_ORDER.indexOf(key);
+    return index < 0 ? 999 : index;
+  };
+
+  const fields = Object.entries(o || {})
+    .filter(([key, value]) => !TECHNICAL_KEYS.has(key) && value !== null && value !== undefined)
+    .map(([key, value]) => ({ key, label: humanizeKey(key), value: formatEventValue(value) }))
+    .filter(item => item.value && item.value !== "-" && item.value !== "N/A")
+    .sort((a, b) => priority(a.key) - priority(b.key));
+
+  const lines = [
+    "📋 **Cerere Eveniment / PCLS**",
+    ...fields.map(item => `**${item.label}:** ${item.value}`)
+  ];
+
+  if (o?.locationImage) lines.push("📷 **Fotografie:** atașată la mesaj");
+
+  let content = lines.join("\n");
+  if (content.length > 1900) content = `${content.slice(0, 1890)}\n… **Câmpuri suplimentare ascunse din cauza limitei Discord.**`;
+  return content;
+}
+
 function buildMessage(o) {
+  if (isEventRequest(o)) return buildEventMessage(o);
+
   const d = dept(o);
   const business = val(o, ["nume_afacere", "unitate", "denumire_afacere", "business_name", "nume_proprietar", "proprietar", "reprezentant", "nume"]);
   const admin = val(o, ["nume_administrator", "numeAdministrator", "administrator", "admin", "nume_proprietar", "proprietar", "reprezentant", "nume"]);
@@ -109,7 +228,7 @@ function styles() {
   if (document.getElementById("approval-dispatch-style")) return;
   const s = document.createElement("style");
   s.id = "approval-dispatch-style";
-  s.textContent = `.approval-dispatch-preview{margin-top:18px;padding:0;border-radius:18px;border:0;background:transparent}.approval-dispatch-preview textarea{display:block;width:100%;min-height:260px;resize:vertical;padding:14px;border-radius:14px;border:1px solid rgba(88,166,255,.18);background:linear-gradient(145deg,rgba(13,28,48,.72),rgba(7,14,24,.52));color:#e7edf7;font:500 .75rem/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-sizing:border-box}.approval-dispatch-preview textarea[readonly]{cursor:default}.approval-dispatch-error{margin-top:10px;color:#ffd1d0;font-size:.7rem;font-weight:700}.approval-dispatch-ok{margin-top:10px;color:#caffec;font-size:.68rem;font-weight:700}`;
+  s.textContent = `.approval-dispatch-preview{margin-top:18px;padding:0;border-radius:18px;border:0;background:transparent}.approval-dispatch-preview textarea{display:block;width:100%;min-height:260px;resize:vertical;padding:14px;border-radius:14px;border:1px solid rgba(88,166,255,.18);background:linear-gradient(145deg,rgba(13,28,48,.72),rgba(7,14,24,.52));color:#e7edf7;font:500 .75rem/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-sizing:border-box}.approval-dispatch-preview textarea[readonly]{cursor:default}.approval-dispatch-image{display:none;margin-top:12px;width:100%;max-height:280px;object-fit:contain;border-radius:14px;border:1px solid rgba(88,166,255,.18);background:#060b13}.approval-dispatch-image.show{display:block}.approval-dispatch-image-caption{display:none;margin-top:7px;color:#93a3b7;font-size:.66rem}.approval-dispatch-image-caption.show{display:block}.approval-dispatch-error{margin-top:10px;color:#ffd1d0;font-size:.7rem;font-weight:700}.approval-dispatch-ok{margin-top:10px;color:#caffec;font-size:.68rem;font-weight:700}`;
   document.head.appendChild(s);
 }
 
@@ -122,7 +241,7 @@ function ensurePreview() {
   p = document.createElement("section");
   p.id = "approval-dispatch-preview";
   p.className = "approval-dispatch-preview";
-  p.innerHTML = `<textarea id="approval-dispatch-text" spellcheck="false" readonly aria-label="Mesaj Discord"></textarea><div id="approval-dispatch-error" class="approval-dispatch-error"></div><div id="approval-dispatch-ok" class="approval-dispatch-ok"></div>`;
+  p.innerHTML = `<textarea id="approval-dispatch-text" spellcheck="false" readonly aria-label="Mesaj Discord"></textarea><img id="approval-dispatch-image" class="approval-dispatch-image" alt="Preview fotografie eveniment"><div id="approval-dispatch-image-caption" class="approval-dispatch-image-caption"></div><div id="approval-dispatch-error" class="approval-dispatch-error"></div><div id="approval-dispatch-ok" class="approval-dispatch-ok"></div>`;
   summary.insertAdjacentElement("afterend", p);
   return p;
 }
@@ -134,8 +253,31 @@ function restoreClassicSummary() {
   if (preview) preview.remove();
 }
 
+function updatePreviewImage(container, o) {
+  const image = container?.querySelector("#approval-dispatch-image");
+  const caption = container?.querySelector("#approval-dispatch-image-caption");
+  if (!image || !caption) return;
+
+  if (o?.locationImage) {
+    image.src = o.locationImage;
+    image.classList.add("show");
+    caption.textContent = `📷 ${o.locationImageName || "Fotografie atașată"}`;
+    caption.classList.add("show");
+  } else {
+    image.removeAttribute("src");
+    image.classList.remove("show");
+    caption.textContent = "";
+    caption.classList.remove("show");
+  }
+}
+
 async function send(o, content) {
   if (!auth.currentUser) throw new Error("Sesiunea a expirat. Reautentifică-te.");
+  const department = dept(o);
+  if (!department || !DISCORD_DEPARTMENTS.has(department)) {
+    throw new Error("Cererea Eveniment nu are un departament Discord valid configurat.");
+  }
+
   const token = await withTimeout(
     auth.currentUser.getIdToken(true),
     OP_TIMEOUT_MS,
@@ -151,7 +293,7 @@ async function send(o, content) {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
-        department: dept(o),
+        department,
         content,
         locationImage: o.locationImage || null
       }),
@@ -217,7 +359,7 @@ async function confirmDiscord(e) {
     await send(latest, content);
 
     if (ok) ok.textContent = latest.locationImage
-      ? "✓ Mesajul și fotografia au fost trimise pe Discord."
+      ? "✓ Mesajul, fotografia și preview-ul au fost pregătite pe Discord."
       : "✓ Mesajul a fost trimis pe Discord.";
 
     await approve(latest, true);
@@ -251,7 +393,6 @@ function bind() {
 
   styles();
 
-  // Selectăm cererea curentă și pregătim DOAR preview-ul Discord pentru ISULS/DSLS/MMLS/SSMLS.
   document.addEventListener("click", async e => {
     const b = e.target.closest(".btn-approve");
     if (!b) return;
@@ -261,8 +402,6 @@ function bind() {
     try {
       selected = await load(id);
 
-      // Pentru Programare / Înregistrare / Eveniment nu atingem deloc
-      // handlerul existent din admin.html: popup-ul clasic rămâne intact.
       if (isSimpleApprovalCase(selected)) {
         restoreClassicSummary();
         return;
@@ -273,6 +412,7 @@ function bind() {
         p.querySelector("#approval-dispatch-text").value = buildMessage(selected);
         p.querySelector("#approval-dispatch-error").textContent = "";
         p.querySelector("#approval-dispatch-ok").textContent = "";
+        updatePreviewImage(p, selected);
       }
     } catch (err) {
       console.error("Approval preview:", err);
@@ -280,7 +420,6 @@ function bind() {
     }
   }, true);
 
-  // Interceptăm Confirmă & Acceptă NUMAI pentru fluxul Discord.
   document.addEventListener("click", e => {
     if (!e.target.closest("#approve-ok-btn")) return;
     if (!selected || isSimpleApprovalCase(selected)) return;
