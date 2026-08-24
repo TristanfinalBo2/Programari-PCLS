@@ -36,8 +36,6 @@ function isEventRequest(o) {
   return candidates.some(type => type === "eveniment" || type.includes("eveniment"));
 }
 
-// PROGRAMARE / INREGISTRARE păstrează confirmarea clasică.
-// EVENIMENT folosește acum preview Discord + trimitere Discord + fotografie.
 function isSimpleApprovalCase(o) {
   const candidates = [o?.tip_cerere, o?.tip, o?.categorie]
     .map(normalizeType)
@@ -159,20 +157,26 @@ function formatEventValue(value) {
   return text.replace(/\s+/g, " ");
 }
 
+const EVENT_FIELD_ORDER = [
+  "eveniment", "tip_eveniment", "nume", "nume_proprietar", "proprietar", "reprezentant",
+  "nume_afacere", "unitate", "denumire_afacere", "telefon", "email", "data_eveniment",
+  "dataEveniment", "data", "data_ora", "dataOra", "ora_eveniment", "oraEveniment", "ora",
+  "adresa", "adresa_control", "strada", "street", "locatie", "location", "numar_persoane",
+  "numarPersoane", "participanti", "descriere", "detalii", "observatii", "observatii_eveniment",
+  "informatii_extra", "informatiiExtra", "extra_info"
+];
+
 function buildEventMessage(o) {
+  const priority = key => {
+    const index = EVENT_FIELD_ORDER.indexOf(key);
+    return index < 0 ? 999 : index;
+  };
+
   const fields = Object.entries(o || {})
     .filter(([key, value]) => !TECHNICAL_KEYS.has(key) && value !== null && value !== undefined)
     .map(([key, value]) => ({ key, label: humanizeKey(key), value: formatEventValue(value) }))
     .filter(item => item.value && item.value !== "-" && item.value !== "N/A")
-    .sort((a, b) => {
-      const priority = key => [
-        "eveniment", "tip_eveniment", "nume", "nume_proprietar", "proprietar", "reprezentant",
-        "nume_afacere", "unitate", "denumire_afacere", "telefon", "email", "data_eveniment",
-        "data", "ora_eveniment", "ora", "adresa", "strada", "locatie", "numar_persoane",
-        "participanti", "descriere", "detalii", "observatii", "informatii_extra"
-      ].indexOf(key);
-      return (priority < 0 ? 999 : priority) - (key === b.key ? 0 : 0);
-    });
+    .sort((a, b) => priority(a.key) - priority(b.key));
 
   const lines = [
     "📋 **Cerere Eveniment / PCLS**",
@@ -398,8 +402,6 @@ function bind() {
     try {
       selected = await load(id);
 
-      // Programare / Înregistrare rămân clasice.
-      // Eveniment intră în noul preview Discord și păstrează fotografia atașată.
       if (isSimpleApprovalCase(selected)) {
         restoreClassicSummary();
         return;
