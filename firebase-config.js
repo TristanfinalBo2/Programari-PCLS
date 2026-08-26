@@ -125,6 +125,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   if (window.location.pathname.toLowerCase().endsWith("/setari.html")) {
     import("./gestionare-utilizatori-v2.js").catch(error => console.error("Gestionare utilizatori:", error));
+    import("./gestionare-utilizatori-role-null.js?v=20260826-role-null-1").catch(error => console.error("Gestionare utilizatori role null:", error));
     import("./discord-id-profile-loader.js").catch(error => console.error("Discord ID profil:", error));
   }
 });
