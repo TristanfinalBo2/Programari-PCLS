@@ -18,6 +18,13 @@ service cloud.firestore {
       );
     }
 
+    function canManageInvites() {
+      return request.auth != null && (
+        roleOfCurrentUser() in ["superadmin", "admin", "conducere"] ||
+        rolOfCurrentUser() in ["superadmin", "admin", "conducere"]
+      );
+    }
+
     match /cereri/{cerereId} {
       allow read: if true;
       allow create, update, delete: if request.auth != null;
@@ -45,6 +52,7 @@ service cloud.firestore {
 
     match /invite_codes/{codeId} {
       allow read: if true;
+      allow create: if canManageInvites();
       allow update: if request.auth != null;
     }
 
