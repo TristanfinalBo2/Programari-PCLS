@@ -44,8 +44,14 @@ function hashId(value) {
 
 function buildNotification(item, status) {
   const normalized = normalize(status);
-  // Respingerile sunt notificate direct de admin-rejection.js, cu destinatarul rezolvat sigur după UID/Discord.
+
+  // Respingerea este notificată direct de fluxul de respingere,
+  // cu destinatarul rezolvat sigur după UID/Discord.
   if (["respins", "respinsa", "rejected"].includes(normalized)) return null;
+
+  // Arhivarea este o acțiune administrativă internă și NU trebuie
+  // să genereze o notificare de status către proprietarul cererii.
+  if (["arhivat", "archived"].includes(normalized)) return null;
 
   const recipientId = ownerUid(item);
   if (!recipientId) return null;
@@ -62,10 +68,6 @@ function buildNotification(item, status) {
     type = "warning";
     title = "Cererea a fost mutată în Coș";
     message = "Cererea ta a fost mutată în Coș de către un administrator.";
-  } else if (["arhivat", "archived"].includes(normalized)) {
-    type = "warning";
-    title = "Cerere arhivată";
-    message = "Cererea ta a fost arhivată.";
   } else {
     return null;
   }
