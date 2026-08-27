@@ -1,0 +1,98 @@
+name: Fix admin actions
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch admin API and UI
+        shell: python
+        run: |
+          from pathlib import Path
+
+          api = Path('api/admin-data.js')
+          s = api.read_text(encoding='utf-8')
+
+          old = 'function normalizeRole(v){const r=String(v||"").trim().toLowerCase().replace(/\\s+/g,"");if(r==="conducerea")return"conducere";if(r==="mm"||r==="mmlls")return"mmls";if(r==="ssmmls")return"ssmls";return r}async function authorize'
+          new = 'function normalizeRole(v){const r=String(v||"").trim().toLowerCase().replace(/\\s+/g,"");if(r==="conducerea")return"conducere";if(r==="mm"||r==="mmlls")return"mmls";if(r==="ssmmls")return"ssmls";return r}async function resolveActorName(token,session){const profile=await findProfile(token,session);const custom=firstValue(profile,["nume","name","displayName","numeAfisat","nume_afisat","username"]);return custom||String(session.globalName||session.username||session.name||session.email||session.discordId||"Admin PCLS")}async function authorize'
+          if old not in s: raise SystemExit('admin-data normalizeRole marker not found')
+          s = s.replace(old,new,1)
+
+          old = 'const session=readSession(req);if(!session)return json(res,401,{ok:false,error:"Nu ești autentificat cu Discord."});const actor=String(session.username||session.name||session.email||session.discordId||"Admin PCLS").replace(/^@/,""),actorLabel=`@${actor}`;try{const sa=await serviceAccount(),token=await accessToken(sa),auth=await authorize(token,session);'
+          new = 'const session=readSession(req);if(!session)return json(res,401,{ok:false,error:"Nu ești autentificat cu Discord."});const fallbackActor=String(session.globalName||session.username||session.name||session.email||session.discordId||"Admin PCLS").replace(/^@/,"");try{const sa=await serviceAccount(),token=await accessToken(sa),auth=await authorize(token,session);const actor=String(await resolveActorName(token,session)||fallbackActor).replace(/^@/,"");const actorLabel=`@${actor}`;'
+          if old not in s: raise SystemExit('admin-data actor marker not found')
+          s = s.replace(old,new,1)
+          api.write_text(s,encoding='utf-8')
+
+          p = Path('admin.html')
+          h = p.read_text(encoding='utf-8')
+
+          h = h.replace('let pendingDeleteId = null;\nlet pendingApproveId = null;\nlet currentOpenItem = null;', 'let pendingDeleteId = null;\nlet pendingApproveId = null;\nlet pendingRejectId = null;\nlet currentOpenItem = null;',1)
+          h = h.replace('const approveCopyBtn = document.getElementById("approve-copy-btn");\nconst confirmModal', 'const approveCopyBtn = document.getElementById("approve-copy-btn");\nconst rejectModal = document.getElementById("reject-modal");\nconst rejectReason = document.getElementById("reject-reason");\nconst rejectOkBtn = document.getElementById("reject-ok-btn");\nconst rejectCancelBtn = document.getElementById("reject-cancel-btn");\nconst rejectCloseBtn = document.getElementById("reject-close");\nconst confirmModal',1)
+
+          marker = '  <div class="modal-overlay" id="confirm-modal">'
+          reject_html = '''  <div class="modal-overlay" id="reject-modal">\n    <div class="modal-box" style="max-width: 560px;">\n      <div class="modal-header">\n        <h3 class="modal-title" style="color: var(--accent-warning);">Motivul respingerii</h3>\n        <button class="modal-close" id="reject-close">&times;</button>\n      </div>\n      <div class="modal-body">\n        <p style="color:var(--text-muted);margin-bottom:16px;">Cererea va fi marcată ca respinsă. Motivul introdus aici va fi trimis utilizatorului și va apărea în notificările lui.</p>\n        <label for="reject-reason" style="display:block;color:var(--text-muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Motiv</label>\n        <textarea id="reject-reason" rows="5" maxlength="1000" placeholder="Scrie motivul respingerii..." style="width:100%;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(3,7,14,.82);color:var(--text-main);font:inherit;resize:vertical;outline:none;"></textarea>\n      </div>\n      <div class="modal-footer" style="justify-content:flex-end;">\n        <button class="btn-modal btn-modal-cancel" id="reject-cancel-btn">Anulează</button>\n        <button class="btn-modal btn-modal-danger" id="reject-ok-btn">Confirmă respingerea</button>\n      </div>\n    </div>\n  </div>\n\n'''
+          if marker not in h: raise SystemExit('confirm modal marker not found')
+          h = h.replace(marker,reject_html+marker,1)
+
+          old = '  document.querySelectorAll(".btn-reject").forEach(btn => btn.onclick = () => updateStatus(btn.dataset.id,"respins","Respins cererea"));'
+          new = '  document.querySelectorAll(".btn-reject").forEach(btn => btn.onclick = () => openRejectModal(btn.dataset.id));'
+          if old not in h: raise SystemExit('reject button binding not found')
+          h = h.replace(old,new,1)
+
+          old = 'function openApproveModal(id) {\n  const item=allCereri.find(x=>x.id===id); if(!item) return;'
+          new = 'function openRejectModal(id) { const item=allCereri.find(x=>x.id===id); if(!item) return; pendingRejectId=id; if(rejectReason) rejectReason.value=""; rejectModal?.classList.add("active"); rejectReason?.focus(); }\nfunction openApproveModal(id) {\n  const item=allCereri.find(x=>x.id===id); if(!item) return;'
+          if old not in h: raise SystemExit('approve function marker not found')
+          h = h.replace(old,new,1)
+
+          old = 'async function postAction(body) {\n  try { const r=await api("POST",body); await loadData(); return r; }\n  catch(e){ if(e.status===401) location.href="auth.html"; else toastMessage(e.message||"Eroare la operație","error"); throw e; }\n}\nasync function loadData() { const data=await api("GET"); currentUser=data.user; currentUserRole=data.role||data.user?.role; allCereri=Array.isArray(data.requests)?data.requests:[]; renderCereri(); }\nasync function updateStatus(id,status,actionName){ try{await postAction({action:"status",id,status,actionName});toastMessage(status==="aprobat"?"Cererea a fost aprobată.":status==="respins"?"Cererea a fost respinsă.":"Cererea a fost actualizată.",status==="respins"?"warning":"success");}catch{} }\nasync function toggleArchive(id,value){try{await postAction({action:"archive",id,value});toastMessage(value?"Cererea a fost arhivată.":"Cererea a fost desarhivată.","success");}catch{}}'
+          new = '''async function postAction(body) {\n  try { return await api("POST",body); }\n  catch(e){ if(e.status===401) location.href="auth.html"; else toastMessage(e.message||"Eroare la operație","error"); throw e; }\n}\nasync function loadData() { const data=await api("GET"); currentUser=data.user; currentUserRole=data.role||data.user?.role; allCereri=Array.isArray(data.requests)?data.requests:[]; renderCereri(); }\nfunction applyStatusLocal(id,status,actorLabel,reason="") {\n  const item=allCereri.find(x=>x.id===id); if(!item) return;\n  item.status=status; item.deleted=status==="in_cos"; item.procesat_de_nume=String(actorLabel||currentUser?.name||currentUser?.username||"Admin PCLS").replace(/^@/,"");\n  item.procesat_de=status==="aprobat"?`Aprobat de: @${item.procesat_de_nume}`:status==="respins"?`Respins de: @${item.procesat_de_nume}`:`Procesat de: @${item.procesat_de_nume}`;\n  if(reason) { item.motiv_respingere=reason; item.motivRespingere=reason; }\n}\nasync function updateStatus(id,status,actionName,reason=""){ try{const result=await postAction({action:"status",id,status,actionName,reason}); applyStatusLocal(id,status,result.actor,reason); renderCereri(); toastMessage(status==="aprobat"?"Cererea a fost aprobată.":status==="respins"?"Cererea a fost respinsă.":"Cererea a fost actualizată.",status==="respins"?"warning":"success"); return result;}catch{return null;} }\nasync function toggleArchive(id,value){try{const result=await postAction({action:"archive",id,value});const item=allCereri.find(x=>x.id===id);if(item){item.arhivat=value;item.archived=value;item.procesat_de_nume=String(result.actor||currentUser?.name||"").replace(/^@/,"");item.procesat_de=`@${item.procesat_de_nume} (${value?"Arhivat":"Desarhivat"})`;}renderCereri();toastMessage(value?"Cererea a fost arhivată.":"Cererea a fost desarhivată.","success");}catch{}}'''
+          if old not in h: raise SystemExit('action functions block not found')
+          h = h.replace(old,new,1)
+
+          marker = 'approveCloseBtn?.addEventListener("click",()=>approveModal.classList.remove("active"));'
+          reject_listeners = '''rejectCloseBtn?.addEventListener("click",()=>{pendingRejectId=null;rejectModal?.classList.remove("active")});\nrejectCancelBtn?.addEventListener("click",()=>{pendingRejectId=null;rejectModal?.classList.remove("active")});\nrejectOkBtn?.addEventListener("click",async()=>{if(!pendingRejectId)return;const reason=String(rejectReason?.value||"").trim();if(!reason){toastMessage("Introdu un motiv pentru respingere.","warning");rejectReason?.focus();return;}const id=pendingRejectId;const result=await updateStatus(id,"respins","Respins cererea",reason);if(result){pendingRejectId=null;rejectModal?.classList.remove("active")}});\n\n'''
+          if marker not in h: raise SystemExit('approve listeners marker not found')
+          h = h.replace(marker,reject_listeners+marker,1)
+
+          old = 'approveOkBtn?.addEventListener("click",async()=>{if(!pendingApproveId)return;await updateStatus(pendingApproveId,"aprobat","Aprobat cererea");pendingApproveId=null;approveModal.classList.remove("active");});'
+          new = 'approveOkBtn?.addEventListener("click",async()=>{if(!pendingApproveId)return;const id=pendingApproveId;const result=await updateStatus(id,"aprobat","Aprobat cererea");if(result){pendingApproveId=null;approveModal.classList.remove("active")}});'
+          if old not in h: raise SystemExit('approve ok binding not found')
+          h = h.replace(old,new,1)
+
+          old = 'confirmOkBtn?.addEventListener("click",async()=>{if(!pendingDeleteId)return;try{await postAction({action:"delete",id:pendingDeleteId});toastMessage("Cererea a fost ștearsă definitiv.","warning");}catch{}pendingDeleteId=null;confirmModal.classList.remove("active")});'
+          new = 'confirmOkBtn?.addEventListener("click",async()=>{if(!pendingDeleteId)return;const id=pendingDeleteId;try{await postAction({action:"delete",id});allCereri=allCereri.filter(x=>x.id!==id);renderCereri();toastMessage("Cererea a fost ștearsă definitiv.","warning");}catch{}pendingDeleteId=null;confirmModal.classList.remove("active")});'
+          if old not in h: raise SystemExit('delete binding not found')
+          h = h.replace(old,new,1)
+
+          h = h.replace('const activeCount = visible.filter(x => normalize(x.status) !== "in_cos" && !x.arhivat && !x.archived && !x.deleted).length;', 'const activeCount = visible.filter(x => normalize(x.status) !== "in_cos" && !x.arhivat && !x.archived && !x.deleted).length;',1)
+          p.write_text(h,encoding='utf-8')
+
+      - name: Verify patches
+        shell: bash
+        run: |
+          grep -q 'resolveActorName' api/admin-data.js
+          grep -q 'id="reject-modal"' admin.html
+          grep -q 'function openRejectModal' admin.html
+          grep -q 'const reason=String(rejectReason' admin.html
+          grep -q 'return await api("POST",body)' admin.html
+
+      - name: Remove one-time workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add api/admin-data.js admin.html
+          git commit -m 'Fix admin actor name rejection modal and action latency [skip ci]'
+          git push
+          git rm .github/workflows/fix-admin-actions.yml
+          git commit -m 'Remove one-time admin actions fixer [skip ci]'
+          git push
