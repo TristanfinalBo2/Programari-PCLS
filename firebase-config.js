@@ -29,22 +29,63 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     document.head.appendChild(analyticsScript);
   }
 
-  // Discord login is intentionally a full-page OAuth redirect.
-  // This capture listener runs before auth.html's legacy popup listener and cancels it.
+  // All Discord login/connect buttons use the server-side Discord OAuth cookie flow.
+  // Capture phase runs before legacy Firebase popup listeners on the forms.
   document.addEventListener("click", event => {
-    const button = event.target?.closest?.("#btnDiscordLogin");
+    const button = event.target?.closest?.(
+      "#btnDiscordLogin, #discord-modal-connect, #discord-trigger, #discordModalConnect, #discordIdConnect, #discordIdVerify, [data-discord-connect]"
+    );
     if (!button) return;
+
     event.preventDefault();
     event.stopImmediatePropagation();
-    window.location.assign("/api/discord-auth");
+
+    const returnTo = window.location.pathname + window.location.search + window.location.hash;
+    window.location.assign(`/api/discord-auth?return_to=${encodeURIComponent(returnTo)}`);
   }, true);
+
+  // Keep Discord identity available to every page/form without using Firebase OIDC.
+  window.PCLSDiscordSessionPromise = fetch("/api/me", {
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { Accept: "application/json" }
+  })
+    .then(response => response.ok ? response.json() : null)
+    .then(data => {
+      const user = data?.ok ? data.user : null;
+      const discordId = String(user?.discordId || "").trim();
+      if (!/^\d{17,20}$/.test(discordId)) return null;
+
+      const username = String(user?.username || user?.name || "").trim();
+      window.PCLSDiscordSession = { discordId, username, name: username, email: String(user?.email || "") };
+
+      document.querySelectorAll('input[name="discord"], input[name="discord_id"], input[name="discordId"], #discordIdInput, #discord-input').forEach(input => {
+        input.value = discordId;
+        input.setAttribute("value", discordId);
+        input.readOnly = true;
+        input.dataset.pclsDiscordAuto = "true";
+      });
+
+      const connectedBox = document.getElementById("discord-connected-box") || document.getElementById("discordConnectedBox");
+      const loginBox = document.getElementById("discord-login-box") || document.getElementById("discordLoginBox");
+      const submit = document.getElementById("submit");
+      if (connectedBox) connectedBox.style.display = "flex";
+      if (loginBox) loginBox.style.display = "none";
+      if (submit) submit.disabled = false;
+
+      document.dispatchEvent(new CustomEvent("pcls:discord-session-ready", { detail: window.PCLSDiscordSession }));
+      return window.PCLSDiscordSession;
+    })
+    .catch(error => {
+      console.warn("Discord cookie session unavailable:", error);
+      return null;
+    });
 }
 
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
   import("./index-modernizer.js?v=20260814").catch(error => console.error("Index modernizer:", error));
 }
 
-// Legacy custom auth helper is still loaded for compatibility with the existing page.
 if (window.location.pathname.toLowerCase().endsWith("/auth.html")) {
   import("./discord-custom-auth.js?v=20260827-cookie-redirect").catch(error => console.error("Custom Discord auth:", error));
 }
