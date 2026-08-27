@@ -99,11 +99,16 @@ module.exports = async function handler(req, res) {
       throw new Error("Profilul Discord nu a putut fi citit.");
     }
 
+    const username = String(discord.username || discord.global_name || "Utilizator Discord");
+    const globalName = String(discord.global_name || username);
+    const email = String(discord.email || "");
     const now = Math.floor(Date.now() / 1000);
     const session = encodeSession({
       discordId: String(discord.id),
-      name: String(discord.global_name || discord.username || "Utilizator Discord"),
-      email: String(discord.email || ""),
+      username,
+      globalName,
+      name: username,
+      email,
       iat: now,
       exp: now + SESSION_MAX_AGE
     }, clientSecret);
