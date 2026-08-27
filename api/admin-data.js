@@ -24,28 +24,22 @@ async function listCollection(token,collectionId){const out=[];let pageToken="";
 async function getDocument(token,collectionId,id){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}/${encodeURIComponent(id)}`,{headers:{Authorization:`Bearer ${token}`}});if(r.status===404)return null;if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(`Firestore read ${r.status}: ${d?.error?.message||"request failed"}`)}const d=await r.json();return {id:String(d.name).split("/").pop(),...decode(d.fields||{})}}
 async function patchDoc(token,collectionId,id,data){const url=new URL(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}/${encodeURIComponent(id)}`);for(const key of Object.keys(data))url.searchParams.append("updateMask.fieldPaths",key);const r=await fetch(url,{method:"PATCH",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({fields:encodeFields(data)})});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(`Firestore update ${r.status}: ${d?.error?.message||"request failed"}`)}}
 async function deleteDoc(token,collectionId,id){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}/${encodeURIComponent(id)}`,{method:"DELETE",headers:{Authorization:`Bearer ${token}`}});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(`Firestore delete ${r.status}: ${d?.error?.message||"request failed"}`)}}
-async function createDoc(token,collectionId,data){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({fields:encodeFields(data)})});if(!r.ok)throw new Error("Nu s-a putut crea documentul.");return r.json()}
+async function createDoc(token,collectionId,data){const r=await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/${encodeURIComponent("(default)")}/documents/${collectionId}`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({fields:encodeFields(data)})});if(!r.ok)throw new Error("Nu s-a putut crea documentul.");return r.json()}
 async function findProfile(token,session){const checks=[["discordId",session.discordId],["discord_id",session.discordId],["discord",session.discordId],["email",session.email]];for(const [field,value] of checks){if(!value)continue;const rows=await runQuery(token,"utilizatori",field,value,1);if(rows[0])return rows[0]}return null}
 function normalizeRole(v){const r=String(v||"").trim().toLowerCase().replace(/\s+/g,"");if(r==="conducerea")return "conducere";if(r==="mm"||r==="mmlls")return "mmls";if(r==="ssmmls")return "ssmls";return r}
-async function authorize(token,session){
-  const sessionRole=normalizeRole(session.role||"");
-  if(VALID_ROLES.includes(sessionRole)) return {ok:true,role:sessionRole,profile:null};
-  const profile=await findProfile(token,session);
-  const role=normalizeRole(profile?.role||profile?.rol||"");
-  if(!VALID_ROLES.includes(role)) return {ok:false,role};
-  return {ok:true,role,profile};
-}
+async function authorize(token,session){const sessionRole=normalizeRole(session.role||"");if(VALID_ROLES.includes(sessionRole))return {ok:true,role:sessionRole,profile:null};const profile=await findProfile(token,session);const role=normalizeRole(profile?.role||profile?.rol||"");if(!VALID_ROLES.includes(role))return {ok:false,role};return {ok:true,role,profile}}
 function canSee(role,item){if(role==="superadmin"||role==="admin")return true;const text=[item.departament,item.departament_medical,item.department,item.dept,item.tip_cerere,item.tip,item.eveniment].filter(Boolean).join(" ").toLowerCase();return (ROLE_PERMISSIONS[role]||[]).some(k=>k!=="all"&&text.includes(k))}
 module.exports=async function(req,res){
   res.setHeader("Cache-Control","no-store");
   const session=readSession(req); if(!session)return json(res,401,{ok:false,error:"Nu ești autentificat cu Discord."});
+  const actor=session.username||session.name||session.email||session.discordId;
   try{
     const sa=await serviceAccount(); const token=await accessToken(sa); const auth=await authorize(token,session);
     if(!auth.ok)return json(res,403,{ok:false,error:"Nu ai un rol de administrator.",role:auth.role||null});
     if(req.method==="GET"){
       const all=await listCollection(token,"cereri");
       const requests=all.filter(x=>canSee(auth.role,x)).sort((a,b)=>Date.parse(String(b.created_at||b.data_creare||b.createdAt||b.data||""))-Date.parse(String(a.created_at||a.data_creare||a.createdAt||a.data||"")));
-      return json(res,200,{ok:true,user:{discordId:session.discordId,name:session.name||"",email:session.email||"",role:auth.role},role:auth.role,requests});
+      return json(res,200,{ok:true,user:{discordId:session.discordId,name:actor,username:session.username||actor,email:session.email||"",role:auth.role},role:auth.role,requests});
     }
     if(req.method!=="POST")return json(res,405,{ok:false,error:"Method Not Allowed"});
     const body=typeof req.body==="object"&&req.body?req.body:{}; const action=String(body.action||"");
@@ -53,12 +47,12 @@ module.exports=async function(req,res){
       if(!["superadmin","admin","conducere"].includes(auth.role))return json(res,403,{ok:false,error:"Nu ai permisiunea."});
       const selected=String(body.role||"isuls").toLowerCase(); if(!["isuls","dsls","mmls","ssmls"].includes(selected))return json(res,400,{ok:false,error:"Rol invalid."});
       const code=`${selected.toUpperCase()}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
-      await createDoc(token,"invite_codes",{code,role:selected,used:false,created_at:new Date().toISOString(),created_by:session.name||session.email||session.discordId});
+      await createDoc(token,"invite_codes",{code,role:selected,used:false,created_at:new Date().toISOString(),created_by:actor});
       return json(res,200,{ok:true,code});
     }
     const id=String(body.id||""); if(!id)return json(res,400,{ok:false,error:"ID lipsă."});
     const item=await getDocument(token,"cereri",id); if(!item||!canSee(auth.role,item))return json(res,404,{ok:false,error:"Cererea nu există sau nu ai acces."});
-    const actor=session.name||session.email||session.discordId; const now=new Date().toLocaleString("ro-RO");
+    const now=new Date().toLocaleString("ro-RO");
     if(action==="status"){
       const status=String(body.status||""); const actionName=String(body.actionName||status);
       await patchDoc(token,"cereri",id,{status,procesat_de:`${actor} (${actionName})`,procesat_de_nume:actor,data_procesare:now,deleted:status==="in_cos"});
