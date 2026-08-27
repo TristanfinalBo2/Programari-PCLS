@@ -1,0 +1,145 @@
+name: Fix persistent notification center final
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch index notification center
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          h = p.read_text(encoding='utf-8')
+
+          # 1. Never let Firebase Auth destroy the Discord-cookie notification center.
+          pattern = re.compile(
+              r'// Centrul de notificări NU modifică authSection\..*?\n\}\);\n\n(?=onAuthStateChanged\(auth, async \(user\) =>)',
+              re.S
+          )
+          replacement = '''// Centrul de notificări folosește sesiunea Discord din cookie,
+// independent de starea Firebase Auth.
+async function initPersistentDiscordNotifications() {
+    try {
+        const response = await fetch('/api/me', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok || !data.user?.discordId) {
+            destroyNotificationCenter();
+            return;
+        }
+        mountDiscordNotificationCenter({
+            uid: String(data.user.discordId),
+            discordId: String(data.user.discordId),
+            providerData: [{ uid: String(data.user.discordId) }]
+        });
+    } catch (error) {
+        console.error('Eroare sesiune Discord notificări:', error);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPersistentDiscordNotifications, { once: true });
+} else {
+    initPersistentDiscordNotifications();
+}
+window.addEventListener('pageshow', () => {
+    initPersistentDiscordNotifications();
+});
+
+'''
+          h, n = pattern.subn(replacement, h, count=1)
+          if n != 1:
+              raise SystemExit('Firebase notification destroy block not found')
+
+          # 2. Replace the old Firestore notification listeners with the server endpoint.
+          start = re.compile(
+              r'function startNotificationListeners\(user\)\s*\{.*?\n\}\s*\n\s*function mountDiscordNotificationCenter',
+              re.S
+          )
+          new_start = '''async function startNotificationListeners(user) {
+    stopNotificationListeners();
+    notificationUserKey = String(user?.discordId || user?.uid || user?.providerData?.[0]?.uid || "discord");
+    await loadServerNotifications();
+    clearInterval(window.pclsNotificationPoll || 0);
+    window.pclsNotificationPoll = setInterval(() => {
+        if (document.visibilityState === "visible") loadServerNotifications();
+    }, 15000);
+}
+
+async function loadServerNotifications() {
+    try {
+        const response = await fetch('/api/notifications', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) return;
+        notificationItems = Array.isArray(data.notifications) ? data.notifications : [];
+        renderNotificationCenter();
+    } catch (error) {
+        console.error('Eroare notificări server:', error);
+    }
+}
+
+function mountDiscordNotificationCenter'''
+          h, n = start.subn(new_start, h, count=1)
+          if n != 1:
+              raise SystemExit('startNotificationListeners block not found')
+
+          # 3. Keep cleanup from clearing the new center during normal Firebase auth transitions.
+          h = h.replace(
+              'function stopNotificationListeners() {\n    notificationUnsubscribers.forEach(unsubscribe => {\n        try { unsubscribe(); } catch (_) {}\n    });\n    notificationUnsubscribers = [];\n    notificationRequestsBySource = { discord: new Map(), discord_id: new Map() };\n    notificationItems = [];\n}',
+              'function stopNotificationListeners() {\n    notificationUnsubscribers.forEach(unsubscribe => {\n        try { unsubscribe(); } catch (_) {}\n    });\n    notificationUnsubscribers = [];\n}'
+          )
+
+          p.write_text(h, encoding='utf-8')
+
+      - name: Patch notification API fallback
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('api/notifications.js')
+          s = p.read_text(encoding='utf-8')
+          if 'byRecipientId' not in s:
+              old = '''    const own = await queryByField(token, "recipientDiscordId", discordId, 50);\n    let items = own;\n    if (!items.length && session.email) items = await queryByField(token, "recipientEmail", String(session.email), 50);'''
+              new = '''    const byDiscord = await queryByField(token, "recipientDiscordId", discordId, 50);\n    const byRecipientId = await queryByField(token, "recipientId", discordId, 50);\n    const merged = new Map();\n    [...byDiscord, ...byRecipientId].forEach(item => merged.set(item.id, item));\n    let items = Array.from(merged.values());\n    if (!items.length && session.email) items = await queryByField(token, "recipientEmail", String(session.email), 50);'''
+              if old in s:
+                  s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+
+      - name: Verify
+        shell: bash
+        run: |
+          grep -q 'initPersistentDiscordNotifications' index.html
+          grep -q "fetch('/api/notifications'" index.html
+          grep -q 'byRecipientId' api/notifications.js
+          if grep -q 'destroyNotificationCenter();' index.html; then
+            ! grep -q 'onAuthStateChanged(auth, user => {\n    destroyNotificationCenter();' index.html || exit 1
+          fi
+
+      - name: Commit and remove workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html api/notifications.js
+          git commit -m 'Make Discord notification center persistent across navigation [skip ci]' || true
+          git push
+          git rm .github/workflows/fix-notification-center-final.yml
+          git commit -m 'Remove one-time notification center fixer [skip ci]' || true
+          git push || true
