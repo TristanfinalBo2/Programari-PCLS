@@ -29,16 +29,52 @@ async function findProfile(token,session){const checks=[["discordId",session.dis
 function normalizeRole(v){const r=String(v||"").trim().toLowerCase().replace(/\s+/g,"");if(r==="conducerea")return "conducere";if(r==="mm"||r==="mmlls")return "mmls";if(r==="ssmmls")return "ssmls";return r}
 async function authorize(token,session){const sessionRole=normalizeRole(session.role||"");if(VALID_ROLES.includes(sessionRole))return {ok:true,role:sessionRole,profile:null};const profile=await findProfile(token,session);const role=normalizeRole(profile?.role||profile?.rol||"");if(!VALID_ROLES.includes(role))return {ok:false,role};return {ok:true,role,profile}}
 function canSee(role,item){if(role==="superadmin"||role==="admin")return true;const text=[item.departament,item.departament_medical,item.department,item.dept,item.tip_cerere,item.tip,item.eveniment].filter(Boolean).join(" ").toLowerCase();return (ROLE_PERMISSIONS[role]||[]).some(k=>k!=="all"&&text.includes(k))}
+function actorDisplay(session){const u=String(session?.username||session?.name||session?.discordId||"Admin PCLS").trim();return u.startsWith("@")?u:`@${u}`}
+function firstValue(item,keys){for(const key of keys){const value=String(item?.[key]??"").trim();if(value)return value}return ""}
+async function notifyOwner(token,item,status,actor,reason){
+  const ownerUid=firstValue(item,["ownerUid","ownerUID","firebaseUid","firebaseUID","userUid","userUID","uid","userId","user_id","utilizatorId","createdByUid","created_by_uid","submittedByUid","requesterUid","requesterId"]);
+  let recipientId=ownerUid;
+  if(!recipientId){
+    const ownerProfile=await findProfile(token,{discordId:firstValue(item,["discordId","discord_id","discord"]),email:firstValue(item,["email","emailAddress"])});
+    recipientId=ownerProfile?.id||"";
+  }
+  if(!recipientId)return;
+  const normalized=String(status||"").toLowerCase();
+  const actorName=actor;
+  const isApproved=["aprobat","acceptat","approved"].includes(normalized);
+  const isRejected=["respins","respinsa","rejected"].includes(normalized);
+  if(!isApproved&&!isRejected)return;
+  const cleanReason=String(reason||"").trim();
+  const title=isApproved?"Cerere aprobată":"Cerere respinsă";
+  const message=isApproved
+    ? `Cererea ta a fost acceptată de ${actorName}.`
+    : `Cererea ta a fost respinsă de ${actorName}.${cleanReason?` Motiv: ${cleanReason}`:""}`;
+  await createDoc(token,"notificari",{
+    recipientId:String(recipientId),
+    title,
+    message,
+    type:isApproved?"success":"error",
+    requestId:String(item.id||""),
+    requestUrl:item.id?`cererile_mele.html?cerere=${encodeURIComponent(item.id)}`:null,
+    status:normalized,
+    actorName,
+    actorRole:"administrator",
+    rejectionReason:isRejected?(cleanReason||null):null,
+    read:false,
+    createdAt:new Date().toISOString()
+  });
+}
 module.exports=async function(req,res){
   res.setHeader("Cache-Control","no-store");
   const session=readSession(req); if(!session)return json(res,401,{ok:false,error:"Nu ești autentificat cu Discord."});
-  const actor=session.username||session.name||session.email||session.discordId;
+  const actor=String(session.username||session.name||session.email||session.discordId||"Admin PCLS").replace(/^@/,"");
+  const actorLabel=`@${actor}`;
   try{
     const sa=await serviceAccount(); const token=await accessToken(sa); const auth=await authorize(token,session);
     if(!auth.ok)return json(res,403,{ok:false,error:"Nu ai un rol de administrator.",role:auth.role||null});
     if(req.method==="GET"){
       const all=await listCollection(token,"cereri");
-      const requests=all.filter(x=>canSee(auth.role,x)).sort((a,b)=>Date.parse(String(b.created_at||b.data_creare||b.createdAt||b.data||""))-Date.parse(String(a.created_at||a.data_creare||a.createdAt||a.data||"")));
+      const requests=all.filter(x=>canSee(auth.role,x)).sort((a,b)=>Date.parse(String(b.created_at||b.data_creare||b.createdAt||b.data||""))-Date.parse(String(a.created_at||a.data_creare||a.createdAt||a.data||""));
       return json(res,200,{ok:true,user:{discordId:session.discordId,name:actor,username:session.username||actor,email:session.email||"",role:auth.role},role:auth.role,requests});
     }
     if(req.method!=="POST")return json(res,405,{ok:false,error:"Method Not Allowed"});
@@ -47,19 +83,23 @@ module.exports=async function(req,res){
       if(!["superadmin","admin","conducere"].includes(auth.role))return json(res,403,{ok:false,error:"Nu ai permisiunea."});
       const selected=String(body.role||"isuls").toLowerCase(); if(!["isuls","dsls","mmls","ssmls"].includes(selected))return json(res,400,{ok:false,error:"Rol invalid."});
       const code=`${selected.toUpperCase()}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
-      await createDoc(token,"invite_codes",{code,role:selected,used:false,created_at:new Date().toISOString(),created_by:actor});
+      await createDoc(token,"invite_codes",{code,role:selected,used:false,created_at:new Date().toISOString(),created_by:actorLabel});
       return json(res,200,{ok:true,code});
     }
     const id=String(body.id||""); if(!id)return json(res,400,{ok:false,error:"ID lipsă."});
     const item=await getDocument(token,"cereri",id); if(!item||!canSee(auth.role,item))return json(res,404,{ok:false,error:"Cererea nu există sau nu ai acces."});
     const now=new Date().toLocaleString("ro-RO");
     if(action==="status"){
-      const status=String(body.status||""); const actionName=String(body.actionName||status);
-      await patchDoc(token,"cereri",id,{status,procesat_de:`${actor} (${actionName})`,procesat_de_nume:actor,data_procesare:now,deleted:status==="in_cos"});
-      return json(res,200,{ok:true,actor,processedLabel:status==="aprobat"?`A fost acceptată de: ${actor}`:status==="respins"?`A fost respinsă de: ${actor}`:`Procesată de: ${actor}`});
+      const status=String(body.status||""); const actionName=String(body.actionName||status); const reason=firstValue(body,["reason","motiv","motivRespingere","rejectionReason"]);
+      const processedLabel=status==="aprobat"?`Aprobat de: ${actorLabel}`:status==="respins"?`Respins de: ${actorLabel}`:`Procesat de: ${actorLabel}`;
+      const updates={status,procesat_de:processedLabel,procesat_de_nume:actorLabel,data_procesare:now,deleted:status==="in_cos"};
+      if(status==="respins") { updates.motiv_respingere=reason||firstValue(item,["motiv_respingere","motivRespingere"])||""; updates.motivRespingere=updates.motiv_respingere; }
+      await patchDoc(token,"cereri",id,updates);
+      if(["aprobat","respins"].includes(status)) { try { await notifyOwner(token,{...item,...updates,id},status,actorLabel,updates.motiv_respingere||reason); } catch(notificationError) { console.error("Notification status error:",notificationError); } }
+      return json(res,200,{ok:true,actor:actorLabel,processedLabel:status==="aprobat"?`A fost acceptată de: ${actorLabel}`:status==="respins"?`A fost respinsă de: ${actorLabel}`:`Procesată de: ${actorLabel}`});
     }
     if(action==="archive"){
-      const yes=Boolean(body.value); await patchDoc(token,"cereri",id,{arhivat:yes,archived:yes,procesat_de:`${actor} (${yes?"Arhivat":"Desarhivat"})`,procesat_de_nume:actor,data_procesare:now}); return json(res,200,{ok:true,actor});
+      const yes=Boolean(body.value); await patchDoc(token,"cereri",id,{arhivat:yes,archived:yes,procesat_de:`${actorLabel} (${yes?"Arhivat":"Desarhivat"})`,procesat_de_nume:actorLabel,data_procesare:now}); return json(res,200,{ok:true,actor:actorLabel});
     }
     if(action==="delete"){await deleteDoc(token,"cereri",id);return json(res,200,{ok:true})}
     return json(res,400,{ok:false,error:"Acțiune necunoscută."});
