@@ -1275,7 +1275,7 @@ async function connectDiscord() {
             await setDoc(userRef, {
                 discordId: discordId,
                 numeDiscord: discordName,
-                ultimaLogare: serverTimestamp()
+                ultimaLogare: new Date().toISOString()
             }, { merge: true });
         } else {
             throw new Error("Nu s-a putut obține ID-ul Discord.");
@@ -1460,7 +1460,7 @@ onAuthStateChanged(auth, async (user) => {
 
         try {
             // --- 1. SALVARE ÎN FIREBASE FIRESTORE (PENTRU ADMIN) ---
-            await addDoc(collection(db, "cereri"), {
+            await window.__pclsSubmitPublicCerere( {
                 departament: "mmls",
                 subdepartament: "mmls",
                 tip_cerere: "Programare MMLS",
@@ -1481,7 +1481,7 @@ onAuthStateChanged(auth, async (user) => {
                 discord_id: discordId,
                 detalii: `Angajați: ${nrAngajati} | Locație/Extra: ${detaliiExtra}`,
                 status: "in_asteptare",
-                created_at: serverTimestamp(),
+                created_at: new Date().toISOString(),
                 data_creare: new Date().toISOString()
             });
 
@@ -1525,6 +1525,9 @@ onAuthStateChanged(auth, async (user) => {
             showError("A apărut o eroare la salvarea cererii. Încearcă din nou.");
         }
     });
+</script>
+<script>
+window.__pclsSubmitPublicCerere = window.__pclsSubmitPublicCerere || async function(data){const r=await fetch("/api/submit-public-request",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},credentials:"same-origin",body:JSON.stringify({data})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||("Server error ("+r.status+")"));return d;};
 </script>
 </body>
 </html>

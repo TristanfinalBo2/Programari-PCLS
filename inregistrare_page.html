@@ -1313,7 +1313,7 @@ textarea {
             await setDoc(userRef, {
                 discordId,
                 numeDiscord: discordName,
-                ultimaLogare: serverTimestamp()
+                ultimaLogare: new Date().toISOString()
             }, { merge: true });
 
             hideDiscordModal();
@@ -1465,7 +1465,7 @@ textarea {
 
             try {
                 // 1. Salvare structurată în Firestore (Compatibilă 100% cu admin.html)
-                await addDoc(collection(db, "cereri"), {
+                await window.__pclsSubmitPublicCerere( {
                     nume: formData.get("ID") || "-",
                     departament: "pcls",
                     proprietar: formData.get("ID") || "-",
@@ -1483,7 +1483,7 @@ textarea {
                     status: "in_asteptare",
                     arhivat: false,
                     created_at: new Date().toISOString(),
-                    data_creare: serverTimestamp()
+                    data_creare: new Date().toISOString()
                 });
 
                 // 2. Trimitere pe Discord Webhook
@@ -1517,6 +1517,9 @@ textarea {
             }
         });
     }
+</script>
+<script>
+window.__pclsSubmitPublicCerere = window.__pclsSubmitPublicCerere || async function(data){const r=await fetch("/api/submit-public-request",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},credentials:"same-origin",body:JSON.stringify({data})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||("Server error ("+r.status+")"));return d;};
 </script>
 </body>
 </html>
