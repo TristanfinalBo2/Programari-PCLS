@@ -1327,17 +1327,17 @@ async function api(method="GET", body=null) {
   return data;
 }
 
+const ADMIN_CACHE_KEY = "pcls_admin_cache_v2";
+function readAdminCache(){try{const raw=sessionStorage.getItem(ADMIN_CACHE_KEY);if(!raw)return null;const data=JSON.parse(raw);return data&&Array.isArray(data.requests)?data:null}catch{return null}}
+function writeAdminCache(data){try{sessionStorage.setItem(ADMIN_CACHE_KEY,JSON.stringify({user:data.user,role:data.role,requests:data.requests,timestamp:Date.now()}))}catch{}}
+function applyAdminData(data){currentUser=data.user||null;currentUserRole=data.role||data.user?.role||null;allCereri=Array.isArray(data.requests)?data.requests:[];if(currentUserRole){const generatorSection=document.getElementById("admin-generator-section");if(generatorSection)generatorSection.style.display=["superadmin","admin","conducere"].includes(currentUserRole)?"block":"none";adjustFilterButtonsForRole(currentUserRole);renderCereri();}}
 async function initAdmin() {
+  const cached=readAdminCache();
+  if(cached){applyAdminData(cached);}
   try {
     const data = await api("GET");
-    currentUser = data.user || null;
-    currentUserRole = data.role || data.user?.role || null;
-    allCereri = Array.isArray(data.requests) ? data.requests : [];
-    if (!currentUserRole) throw new Error("Rol administrator indisponibil.");
-    const generatorSection = document.getElementById("admin-generator-section");
-    if (generatorSection) generatorSection.style.display = ["superadmin","admin","conducere"].includes(currentUserRole) ? "block" : "none";
-    adjustFilterButtonsForRole(currentUserRole);
-    renderCereri();
+    applyAdminData(data);
+    writeAdminCache(data);
   } catch (error) {
     console.error("Cookie admin auth:", error);
     if (error.status === 401) return window.location.href = "auth.html";
