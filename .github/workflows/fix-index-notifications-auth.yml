@@ -1,0 +1,60 @@
+name: Restore notification button for Discord sessions
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index authentication bootstrap
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          h = p.read_text(encoding='utf-8')
+          old = '''onAuthStateChanged(auth, user => {
+    destroyNotificationCenter();
+    const isDiscordSession = Boolean(user && !user.isAnonymous && !user.email);
+    if (isDiscordSession) mountDiscordNotificationCenter(user);
+});'''
+          new = '''onAuthStateChanged(auth, user => {
+    destroyNotificationCenter();
+    if (user && !user.isAnonymous && !user.email) {
+        mountDiscordNotificationCenter(user);
+        return;
+    }
+    fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            if (data?.ok && data?.user?.discordId) {
+                mountDiscordNotificationCenter({
+                    uid: String(data.user.discordId),
+                    providerData: [{ uid: String(data.user.discordId) }]
+                });
+            }
+        })
+        .catch(() => {});
+});'''
+          if old not in h:
+              raise SystemExit('Expected notification auth block not found')
+          h = h.replace(old, new, 1)
+          p.write_text(h, encoding='utf-8')
+      - name: Verify
+        run: grep -q "fetch('/api/me'" index.html
+      - name: Commit and clean
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Restore notification button for Discord cookie sessions [skip ci]' || true
+          git push || true
+          git rm .github/workflows/fix-index-notifications-auth.yml
+          git commit -m 'Remove one-time notification auth fixer [skip ci]' || true
+          git push || true
