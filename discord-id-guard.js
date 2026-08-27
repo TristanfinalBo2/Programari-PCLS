@@ -3,11 +3,16 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const EXEMPT_PATHS = ["/auth.html", "/setari.html"];
-const normalizePath = () => {
+const DISCORD_ID_RE = /^\d{17,20}$/;
+
+function normalizePath() {
   const path = window.location.pathname.toLowerCase();
   return path.endsWith("/") ? "/index.html" : path;
-};
-const isExempt = () => EXEMPT_PATHS.includes(normalizePath());
+}
+
+function isExempt() {
+  return EXEMPT_PATHS.includes(normalizePath());
+}
 
 function injectStyles() {
   if (document.getElementById("discord-id-guard-style")) return;
@@ -30,32 +35,130 @@ function ensureOverlay() {
   if (overlay) return overlay;
   overlay = document.createElement("div");
   overlay.id = "discord-id-guard";
-  overlay.innerHTML = `<div class="discord-id-guard-box" role="dialog" aria-modal="true"><div class="discord-id-guard-icon">◎</div><div class="discord-id-guard-title">Completează Discord ID</div><div class="discord-id-guard-text">Pentru identificarea corectă a membrilor, contul tău trebuie să aibă un Discord ID salvat în profil. Completează-l în Setări înainte de a continua.</div><a class="discord-id-guard-button" href="setari.html">Deschide Setări</a></div>`;
+  overlay.innerHTML = `<div class="discord-id-guard-box" role="dialog" aria-modal="true"><div class="discord-id-guard-icon">◎</div><div class="discord-id-guard-title">Conectare Discord necesară</div><div class="discord-id-guard-text">Conectează-te cu Discord pentru ca ID-ul tău să fie preluat automat în acest formular.</div><a class="discord-id-guard-button" id="discord-id-guard-connect" href="#">Conectează Discord</a></div>`;
   document.body.appendChild(overlay);
+  overlay.querySelector("#discord-id-guard-connect")?.addEventListener("click", event => {
+    event.preventDefault();
+    window.location.href = `/api/discord-auth?return_to=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+  });
   return overlay;
 }
 
-async function verifyProfile(user) {
-  if (!user || isExempt() || !getApps().length) return;
-  injectStyles();
+function showGuard() {
+  ensureOverlay().classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function hideGuard() {
+  document.getElementById("discord-id-guard")?.classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+function setValue(input, value) {
+  if (!input) return;
+  input.value = value;
+  input.setAttribute("value", value);
+  input.dataset.pclsDiscordAuto = "true";
+  input.readOnly = true;
+  input.setAttribute("aria-readonly", "true");
+}
+
+function fillForms(profile) {
+  const discordId = String(profile?.discordId || "").trim();
+  if (!DISCORD_ID_RE.test(discordId)) return;
+  const username = String(profile?.username || "").trim();
+
+  window.PCLSSession = { discordId, username, name: username };
+
+  document.querySelectorAll("form").forEach(form => {
+    const fields = form.querySelectorAll('input[name="discord"], input[name="discord_id"], input[name="discordId"], #discordIdInput');
+    if (fields.length) fields.forEach(input => setValue(input, discordId));
+    else {
+      let hidden = form.querySelector('input[type="hidden"][name="discordId"]');
+      if (!hidden) {
+        hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = "discordId";
+        form.appendChild(hidden);
+      }
+      hidden.value = discordId;
+    }
+  });
+
+  const pclsInput = document.getElementById("discordIdInput");
+  const connectedBox = document.getElementById("discordConnectedBox");
+  const loginBox = document.getElementById("discordLoginBox");
+  const submit = document.getElementById("submit");
+  if (pclsInput) setValue(pclsInput, discordId);
+  if (connectedBox) connectedBox.style.display = "flex";
+  if (loginBox) loginBox.style.display = "none";
+  if (submit) submit.disabled = false;
+
+  document.dispatchEvent(new CustomEvent("pcls:discord-session-ready", { detail: window.PCLSSession }));
+}
+
+function installConnectInterceptor() {
+  document.addEventListener("click", event => {
+    const button = event.target?.closest?.("#discordModalConnect, #discordIdConnect, #discordIdVerify, [data-discord-connect]");
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    window.location.href = `/api/discord-auth?return_to=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+  }, true);
+}
+
+async function getCookieSession() {
   try {
-    const db = getFirestore(getApp());
-    const snap = await getDoc(doc(db, "utilizatori", user.uid));
-    const discordId = String(snap.data()?.discordId || snap.data()?.discord_id || "").trim();
-    const overlay = ensureOverlay();
-    const valid = /^\d{17,20}$/.test(discordId);
-    overlay.classList.toggle("show", !valid);
-    document.body.style.overflow = valid ? "" : "hidden";
+    const response = await fetch("/api/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
+    const data = await response.json().catch(() => ({}));
+    const discordId = String(data?.user?.discordId || "").trim();
+    if (!response.ok || !data?.ok || !DISCORD_ID_RE.test(discordId)) return null;
+    return { discordId, username: String(data.user.username || data.user.name || "").trim() };
   } catch (error) {
-    console.error("Discord ID guard:", error);
+    console.error("Discord cookie session:", error);
+    return null;
   }
 }
 
-function boot() {
-  if (!getApps().length || isExempt()) return;
-  const auth = getAuth(getApp());
-  onAuthStateChanged(auth, user => { void verifyProfile(user); });
+async function getFirebaseProfile(user) {
+  if (!user || !getApps().length) return null;
+  try {
+    const db = getFirestore(getApp());
+    const snap = await getDoc(doc(db, "utilizatori", user.uid));
+    if (!snap.exists()) return null;
+    const data = snap.data() || {};
+    const discordId = String(data.discordId || data.discord_id || "").trim();
+    if (!DISCORD_ID_RE.test(discordId)) return null;
+    return { discordId, username: String(data.discordUsername || data.numeDiscord || data.nume || user.displayName || "").trim() };
+  } catch (error) {
+    console.error("Discord Firebase profile:", error);
+    return null;
+  }
 }
 
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
-else boot();
+async function syncIdentity(firebaseUser = null) {
+  if (isExempt()) return;
+  injectStyles();
+  const profile = await getCookieSession() || await getFirebaseProfile(firebaseUser);
+  if (profile) {
+    fillForms(profile);
+    hideGuard();
+    return true;
+  }
+  showGuard();
+  return false;
+}
+
+async function boot() {
+  if (isExempt()) return;
+  installConnectInterceptor();
+  const connected = await syncIdentity();
+  if (getApps().length) {
+    const auth = getAuth(getApp());
+    onAuthStateChanged(auth, user => { if (!connected || user) void syncIdentity(user); });
+  }
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { void boot(); }, { once: true });
+else void boot();
