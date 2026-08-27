@@ -369,85 +369,26 @@ body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 .btn-secondary {
   color: var(--text);
-  background: rgba(255,255,255,.045);
-  border-color: rgba(255,255,255,.1);
-  box-shadow: none;
+  background: rgba(255,255,255,.05);
+  border-color: rgba(255,255,255,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
 }
-.btn-secondary:hover { background: rgba(255,255,255,.07); box-shadow: none; }
 
 .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
-.info-box {
-  min-height: 92px;
-  padding: 17px;
-  border-radius: 18px;
-  background: rgba(255,255,255,.025);
-  border: 1px solid rgba(255,255,255,.085);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.info-box span { display: block; margin-bottom: 7px; color: var(--text-3); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
-.info-box strong { color: var(--text); font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }
+.info-box { min-width: 0; padding: 15px 16px; border: 1px solid rgba(255,255,255,.075); border-radius: 18px; background: rgba(255,255,255,.025); }
+.info-box span { display: block; color: var(--text-3); font-size: .67rem; font-weight: 700; text-transform: uppercase; letter-spacing: .11em; }
+.info-box strong { display: block; margin-top: 8px; color: var(--text); font-size: .95rem; font-weight: 650; overflow-wrap: anywhere; }
 
-.alert-box {
-  display: none;
-  padding: 14px 16px;
-  border-radius: 16px;
-  font-size: .88rem;
-  line-height: 1.5;
-}
-.alert-success { color: #d3ffed; background: rgba(104,242,192,.07); border: 1px solid rgba(104,242,192,.18); }
-.alert-error { color: #ffd5dc; background: rgba(255,113,133,.08); border: 1px solid rgba(255,113,133,.22); }
+.alert-box { display:none; padding: 14px 16px; border-radius: 16px; font-size: .84rem; line-height: 1.5; }
+.alert-success { display:block; color:#d3ffed; background:rgba(104,242,192,.07); border:1px solid rgba(104,242,192,.16); }
+.alert-error { display:block; color:#ffd7dd; background:rgba(255,113,133,.07); border:1px solid rgba(255,113,133,.16); }
 
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 19px 32px;
-  color: var(--text-3);
-  font-size: .71rem;
-  letter-spacing: .04em;
-  border-top: 1px solid rgba(255,255,255,.055);
-}
-.footer strong { color: #dff7ff; font-weight: 650; }
+.footer { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:18px; padding: 0 2px; color: var(--text-3); font-size:.68rem; text-transform:uppercase; letter-spacing:.09em; }
+.footer strong { color: var(--cyan); font-weight:700; }
 
-@media (max-width: 760px) {
-  .header { align-items: flex-start; flex-direction: column; }
-  .form-grid, .info-grid { grid-template-columns: 1fr; }
-  .form-group.full { grid-column: auto; }
-  .actions-row { grid-template-columns: 1fr; }
-  .btn-submit { width: 100%; min-width: 0; }
-  .content { padding: 28px 24px 30px; }
-  .footer { flex-direction: column; text-align: center; }
-}
-
-@media (max-width: 620px) {
-  .page { width: min(100% - 18px, 1080px); padding-top: 78px; }
-  .back-btn { top: 14px; left: 14px; min-height: 42px; padding: 0 15px; }
-  .portal, .portal-inner { border-radius: 28px; }
-  .topbar { min-height: 68px; padding: 0 18px; border-radius: 28px 28px 0 0; }
-  .brand-mark { width: 40px; height: 40px; flex-basis: 40px; border-radius: 13px; }
-  .brand-copy strong { font-size: .9rem; }
-  .brand-copy span { font-size: .59rem; }
-  .status { padding: 8px 10px; font-size: .68rem; }
-  .content { padding: 22px 14px 24px; }
-  .header { margin-bottom: 18px; padding: 0 6px 18px; }
-  .header h1 { font-size: 1.82rem; }
-  .header p { font-size: .9rem; }
-  .settings-card { padding: 17px 14px; border-radius: 21px; }
-  .card-head { align-items: flex-start; }
-  .card-note { display: none; }
-  .actions-row { padding: 16px 14px; }
-  .footer { padding: 17px 18px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: .01ms !important; }
-}
-/* ==========================================
-   GESTIONARE UTILIZATORI
-   ========================================== */
+/* ==============================
+   04 - GESTIONARE UTILIZATORI
+   ============================== */
 
 .user-management-list {
   display: flex;
