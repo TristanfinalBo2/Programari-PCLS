@@ -232,7 +232,6 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* --- Discord Button & Divider --- */
         .divider {
             display: flex;
             align-items: center;
@@ -450,9 +449,7 @@
 
     <script type="module">
         import { auth, db } from "./firebase-config.js";
-        // Am adăugat importurile pentru OAuth și OIDC
-        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, OAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        // Am adăugat getDoc și serverTimestamp
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { doc, setDoc, getDoc, getDocs, updateDoc, collection, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const emailInput = document.getElementById('email');
@@ -470,13 +467,6 @@
             parolaInput.setAttribute('type', isPassword ? 'text' : 'password');
             eyeIcon.innerHTML = isPassword ? eyeClosedSVG : eyeOpenSVG;
         });
-
-        const getDiscordDisplayName = (user) => {
-            const providerData = user?.providerData || [];
-            const discordProvider = providerData.find(p => p.providerId === 'oidc.discord' || p.providerId.includes('discord'));
-            const firebaseUsername = user?.reloadUserInfo?.screenName || user?.reloadUserInfo?.displayName;
-            return firebaseUsername || discordProvider?.displayName || user?.displayName || user?.email || 'Utilizator Discord';
-        };
 
         // ==========================================
         // LOGICA DE ÎNREGISTRARE (EMAIL/PAROLĂ)
@@ -559,45 +549,46 @@
         // LOGICA DE CONECTARE / ÎNREGISTRARE CU DISCORD
         // ==========================================
         const btnDiscordLogin = document.getElementById('btnDiscordLogin');
+        const DISCORD_AUTH_URL = '/api/discord-auth';
+
+        function finalizeDiscordAuth(payload) {
+            if (!payload || payload.type !== 'PCLS_DISCORD_AUTH' || !payload.ok || !payload.token) {
+                throw new Error(payload?.error || 'Autentificarea Discord a eșuat.');
+            }
+            return signInWithCustomToken(auth, payload.token);
+        }
+
         if (btnDiscordLogin) {
-            btnDiscordLogin.addEventListener('click', async () => {
-                // Aici apelăm providerul generat în Firebase
-                const provider = new OAuthProvider('oidc.oidc.discord');
-                    provider.addScope('identify');
+            window.addEventListener('message', async (event) => {
+                if (event.origin !== window.location.origin) return;
+                const data = event.data;
+                if (!data || data.type !== 'PCLS_DISCORD_AUTH') return;
 
                 try {
                     mesajDiv.style.color = "var(--accent-green)";
-                    mesajDiv.textContent = "Se deschide Discord...";
-                    
-                    const result = await signInWithPopup(auth, provider);
+                    mesajDiv.textContent = "Se finalizează conectarea...";
+
+                    const result = await finalizeDiscordAuth(data);
                     const user = result.user;
-                    const numeDiscord = getDiscordDisplayName(user);
-                    console.log("Utilizator Discord autentificat:", user);
-                    console.log("Nume Discord:", numeDiscord);
+                    const numeDiscord = data.discordName || user.displayName || user.email || 'Utilizator Discord';
+                    const discordId = data.discordId || '';
 
-                    // Extragem ID-ul de Discord
-                    const discordData = user.providerData.find(p => p.providerId === 'oidc.discord' || p.providerId.includes('discord'));
-                    const discordId = discordData ? discordData.uid : null;
-
-                    // Verificăm dacă utilizatorul există deja în baza de date
                     const userRef = doc(db, "utilizatori", user.uid);
                     const userSnap = await getDoc(userRef);
 
                     if (!userSnap.exists()) {
-                        // Creăm profilul dacă e prima dată când intră pe site prin Discord
                         await setDoc(userRef, {
-                            email: user.email || "",
+                            email: user.email || data.discordEmail || "",
                             nume: numeDiscord,
-                            discordId: discordId,
-                            role: "user", // Membru standard
+                            discordId,
+                            role: "user",
                             stare: "Activ",
                             createdAt: serverTimestamp()
                         });
                     } else {
-                        // Dacă există, doar îi actualizăm Discord ID-ul și momentul logării (fără să-i stricăm rolul)
                         await setDoc(userRef, {
                             nume: numeDiscord,
-                            discordId: discordId,
+                            discordId,
                             ultimaLogare: serverTimestamp()
                         }, { merge: true });
                     }
@@ -607,8 +598,28 @@
                 } catch (error) {
                     console.error("Eroare la autentificarea cu Discord:", error);
                     mesajDiv.style.color = "var(--error)";
-                    mesajDiv.textContent = "A apărut o problemă la conectarea cu Discord.";
+                    mesajDiv.textContent = error?.message || "A apărut o problemă la conectarea cu Discord.";
                 }
+            });
+
+            btnDiscordLogin.addEventListener('click', () => {
+                mesajDiv.style.color = "var(--accent-green)";
+                mesajDiv.textContent = "Se deschide Discord...";
+
+                const width = 520;
+                const height = 760;
+                const left = Math.max(0, Math.round((window.screen.width - width) / 2));
+                const top = Math.max(0, Math.round((window.screen.height - height) / 2));
+                const features = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+                const popup = window.open(DISCORD_AUTH_URL, 'pcls_discord_auth', features);
+
+                if (!popup) {
+                    mesajDiv.style.color = "var(--error)";
+                    mesajDiv.textContent = "Browserul a blocat fereastra Discord. Permite pop-up-uri pentru acest site.";
+                    return;
+                }
+
+                try { popup.focus(); } catch (_) {}
             });
         }
     </script>
