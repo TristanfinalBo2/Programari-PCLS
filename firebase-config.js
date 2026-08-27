@@ -28,16 +28,25 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     analyticsScript.dataset.pclsVercelAnalytics = "true";
     document.head.appendChild(analyticsScript);
   }
+
+  // Discord login is intentionally a full-page OAuth redirect.
+  // This capture listener runs before auth.html's legacy popup listener and cancels it.
+  document.addEventListener("click", event => {
+    const button = event.target?.closest?.("#btnDiscordLogin");
+    if (!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.location.assign("/api/discord-auth");
+  }, true);
 }
 
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
   import("./index-modernizer.js?v=20260814").catch(error => console.error("Index modernizer:", error));
 }
 
-// Discord now uses the Vercel OAuth endpoint + Firebase custom token flow.
-// The script replaces the legacy Firebase OIDC button after auth.html has attached its listener.
+// Legacy custom auth helper is still loaded for compatibility with the existing page.
 if (window.location.pathname.toLowerCase().endsWith("/auth.html")) {
-  import("./discord-custom-auth.js?v=20260827-custom-discord-2").catch(error => console.error("Custom Discord auth:", error));
+  import("./discord-custom-auth.js?v=20260827-cookie-redirect").catch(error => console.error("Custom Discord auth:", error));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -133,4 +142,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-27-custom-discord-auth";
+export const FIREBASE_CONFIG_VERSION = "2026-08-27-cookie-discord-fullpage";
