@@ -16,9 +16,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Vercel Web Analytics for this static HTML project.
-// The Vercel production script is served from the project's /_vercel/insights route
-// after Web Analytics is enabled for the Vercel project.
 if (typeof window !== "undefined" && typeof document !== "undefined") {
   window.va = window.va || function (...args) {
     (window.vaq = window.vaq || []).push(args);
@@ -35,6 +32,12 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
 
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
   import("./index-modernizer.js?v=20260814").catch(error => console.error("Index modernizer:", error));
+}
+
+// Discord now uses the Vercel OAuth endpoint + Firebase custom token flow.
+// The script replaces the legacy Firebase OIDC button after auth.html has attached its listener.
+if (window.location.pathname.toLowerCase().endsWith("/auth.html")) {
+  import("./discord-custom-auth.js?v=20260827-custom-discord-2").catch(error => console.error("Custom Discord auth:", error));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -65,23 +68,23 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const emailPart = user.email ? user.email.split("@")[0] : "User";
-    const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
+    let displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
     const initial = displayName.charAt(0).toUpperCase();
     let isAdmin = user.email === "tsplayer18@gmail.com";
-    if (!isAdmin) {
-      try {
-        const snap = await getDoc(doc(db, "utilizatori", user.uid));
-        if (snap.exists()) {
-          const role = String(snap.data()?.role || snap.data()?.rol || "").toLowerCase();
-          isAdmin = ["admin", "superadmin", "isuls", "dsls", "mmls", "ssmls"].includes(role);
-        }
-      } catch (error) { console.error("Eroare verificare rol admin:", error); }
-    }
+    try {
+      const snap = await getDoc(doc(db, "utilizatori", user.uid));
+      if (snap.exists()) {
+        const profile = snap.data() || {};
+        displayName = profile.nume || profile.name || displayName;
+        const role = String(profile.role || profile.rol || "").toLowerCase();
+        isAdmin = isAdmin || ["admin", "superadmin", "isuls", "dsls", "mmls", "ssmls"].includes(role);
+      }
+    } catch (error) { console.error("Eroare verificare profil/rol:", error); }
     authContainer.innerHTML = `
       <div class="user-profile-premium">
         <button class="profile-btn-premium" id="profileToggle" type="button"><span>Salut, ${displayName}</span><div class="profile-avatar">${initial}</div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
         <div class="profile-dropdown-premium" id="profileDropdown">
-          <div class="dropdown-user-info"><span>Conectat cu adresa</span><strong>${user.email ? displayName : "Discord: " + displayName}</strong></div>
+          <div class="dropdown-user-info"><span>Conectat</span><strong>${displayName}</strong></div>
           <div class="dropdown-divider"></div>
           ${isAdmin ? `<a href="admin.html" class="dropdown-item-premium">Admin Panel</a>` : ""}
           <a href="setari.html" class="dropdown-item-premium">Setări cont</a>
@@ -130,4 +133,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-18-vercel-analytics";
+export const FIREBASE_CONFIG_VERSION = "2026-08-27-custom-discord-auth";
