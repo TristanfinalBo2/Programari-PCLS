@@ -1228,582 +1228,226 @@
 
   <div id="toast-container"></div>
 
-  <script type="module">
-  import { db, auth } from "./firebase-config.js";
-  import { collection, onSnapshot, doc, updateDoc, deleteDoc, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  <script>
+const ROLE_PERMISSIONS = {
+  superadmin: ["all"],
+  admin: ["all"],
+  conducere: ["isuls", "dsls", "mmls", "ssmls"],
+  isuls: ["isuls"], dsls: ["dsls"], mmls: ["mmls", "mm"], ssmls: ["ssmls", "ssmmls"]
+};
 
-  const ROLE_PERMISSIONS = {
-    superadmin: ["all"], admin: ["all"],
-    conducere: ["isuls", "dsls", "mmls", "ssmls"],
-    isuls: ["isuls"], dsls: ["dsls"], mmls: ["mmls", "mm"], ssmls: ["ssmls", "ssmmls"]
-  };
+let currentUser = null;
+let currentUserRole = null;
+let allCereri = [];
+let currentFilter = "all";
+let currentSearch = "";
+let pendingDeleteId = null;
+let pendingApproveId = null;
+let currentOpenItem = null;
 
-  let currentUserRole = null; 
-  let allCereri = [];
-  let currentFilter = "all";
-  let currentSearch = "";
-  let pendingDeleteId = null;
-  let pendingApproveId = null; 
-  let currentOpenItem = null;
+const cereriContainer = document.getElementById("cereri-container");
+const totalCountEl = document.getElementById("total-count");
+const filterButtons = document.querySelectorAll(".filter-btn");
+const searchInput = document.getElementById("cereri-search");
+const searchClearBtn = document.getElementById("cereri-search-clear");
+const approveModal = document.getElementById("approve-modal");
+const approveOkBtn = document.getElementById("approve-ok-btn");
+const approveCancelBtn = document.getElementById("approve-cancel-btn");
+const approveCloseBtn = document.getElementById("approve-close");
+const approveCopyBtn = document.getElementById("approve-copy-btn");
+const confirmModal = document.getElementById("confirm-modal");
+const confirmOkBtn = document.getElementById("confirm-ok-btn");
+const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
+const confirmCloseBtn = document.getElementById("confirm-close");
+const detailsModal = document.getElementById("details-modal");
+const detailsClose = document.getElementById("details-close");
+const detailsCloseBtn = document.getElementById("details-close-btn");
+const detailsTrashBtn = document.getElementById("details-trash-btn");
+const detailsCopyBtn = document.getElementById("details-copy-btn");
+const btnGenerateCode = document.getElementById("btn-generate-code");
+const inviteRoleSelect = document.getElementById("invite-role-select");
+const generatedCodeDisplay = document.getElementById("generated-code-display");
 
-  const btnGenerateCode = document.getElementById("btn-generate-code");
-  const inviteRoleSelect = document.getElementById("invite-role-select");
-  const generatedCodeDisplay = document.getElementById("generated-code-display");
-
-  const cereriContainer = document.getElementById("cereri-container");
-  const totalCountEl = document.getElementById("total-count");
-  const filterButtons = document.querySelectorAll(".filter-btn");
-  const searchInput = document.getElementById("cereri-search");
-  const searchClearBtn = document.getElementById("cereri-search-clear");
-
-  // Elemente Modal Aprobare
-  const approveModal = document.getElementById("approve-modal");
-  const approveOkBtn = document.getElementById("approve-ok-btn");
-  const approveCancelBtn = document.getElementById("approve-cancel-btn");
-  const approveCloseBtn = document.getElementById("approve-close");
-  const approveCopyBtn = document.getElementById("approve-copy-btn"); // Buton Copiere Aprobare
-
-  // Elemente Modal Stergere
-  const confirmModal = document.getElementById("confirm-modal");
-  const confirmOkBtn = document.getElementById("confirm-ok-btn");
-  const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
-  const confirmCloseBtn = document.getElementById("confirm-close");
-
-  // Elemente Modal Detalii
-  const detailsModal = document.getElementById("details-modal");
-  const detailsClose = document.getElementById("details-close");
-  const detailsCloseBtn = document.getElementById("details-close-btn");
-  const detailsTrashBtn = document.getElementById("details-trash-btn");
-  const detailsCopyBtn = document.getElementById("details-copy-btn"); // Buton Copiere Detalii
-
-  function getCurrentAdminName() {
-    if (auth && auth.currentUser) return auth.currentUser.email || auth.currentUser.displayName || "Admin PCLS";
-    return "Admin PCLS";
-  }
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        const validRoles = ["superadmin", "admin", "conducere", "isuls", "dsls", "mmls", "ssmls", "ssmmls"];
-        const userDocRef = doc(db, "utilizatori", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          const rawRole = (data.role || data.rol || "").toString().toLowerCase().trim();
-          const role = (rawRole === "ssmmls") ? "ssmls" : (rawRole === "mm" ? "mmls" : rawRole);
-          if (validRoles.includes(rawRole) || validRoles.includes(role)) {
-            currentUserRole = role;
-            
-            const generatorSection = document.getElementById("admin-generator-section");
-            if (generatorSection) {
-              if (["superadmin", "admin", "conducere"].includes(currentUserRole)) {
-                generatorSection.style.display = "block";
-              } else {
-                generatorSection.style.display = "none";
-              }
-            }
-
-            adjustFilterButtonsForRole(currentUserRole);
-            initFirestoreListener();
-          } else { window.location.href = "index.html"; }
-        } else { window.location.href = "index.html"; }
-      } catch (error) { console.error(error); }
-    } else { window.location.href = "auth.html"; }
-  });
-
-  function adjustFilterButtonsForRole(role) {
-    if (["superadmin", "admin"].includes(role)) return; 
-    filterButtons.forEach(btn => {
-      const filterVal = (btn.getAttribute("data-filter") || btn.textContent.trim()).toLowerCase();
-      if (role === "conducere") {
-        const conducereAllowedTabs = ["all", "toate", "in_asteptare", "în așteptare", "arhivat", "arhivă", "in_cos", "coș de gunoi", "isuls", "dsls", "mmls", "ssmls"];
-        if (!conducereAllowedTabs.includes(filterVal)) btn.style.display = "none";
-      } else {
-        const subdepartments = ["isuls", "dsls", "mmls", "ssmls", "ssmmls", "pcls"];
-        if (subdepartments.includes(filterVal) && filterVal !== role) btn.style.display = "none";
-      }
-    });
-  }
-
-  if (btnGenerateCode) {
-    btnGenerateCode.addEventListener("click", async () => {
-      const selectedRole = inviteRoleSelect ? inviteRoleSelect.value : "isuls";
-      const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const newCode = `${selectedRole.toUpperCase()}-${randomStr}`;
-      
-      try {
-        const originalText = btnGenerateCode.textContent;
-        btnGenerateCode.textContent = "Se generează...";
-        btnGenerateCode.disabled = true;
-
-        await addDoc(collection(db, "invite_codes"), {
-          code: newCode, role: selectedRole, used: false,
-          created_at: new Date().toISOString(), created_by: getCurrentAdminName()
-        });
-
-        if (generatedCodeDisplay) {
-          generatedCodeDisplay.innerHTML = `Cod generat: <span style="background: rgba(0,255,163,0.1); padding: 4px 10px; border-radius: 8px; user-select: all; border: 1px solid rgba(0,255,163,0.2);">${newCode}</span> <br><span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal; margin-top: 5px; display: block;">(Copiază-l și oferă-l adminului nou)</span>`;
-        }
-        
-        showToast("Cod generat și salvat cu succes!", "success");
-        btnGenerateCode.textContent = originalText;
-        btnGenerateCode.disabled = false;
-
-      } catch (error) {
-        if (generatedCodeDisplay) generatedCodeDisplay.textContent = "A apărut o eroare la salvarea codului.";
-        showToast("Eroare la generarea codului.", "error");
-        btnGenerateCode.textContent = "Generează Cod";
-        btnGenerateCode.disabled = false;
-      }
-    });
-  }
-
-  function initFirestoreListener() {
-    onSnapshot(collection(db, "cereri"), (snapshot) => {
-      allCereri = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-      allCereri.sort((a, b) => {
-        const getTime = (x) => {
-          if (x.created_at?.toMillis) return x.created_at.toMillis();
-          if (x.created_at) return new Date(x.created_at).getTime();
-          return 0;
-        };
-        return getTime(b) - getTime(a);
-      });
-      renderCereri();
-    });
-  }
-
-  filterButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      filterButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentFilter = btn.getAttribute("data-filter") || btn.textContent.trim();
-      renderCereri();
-    });
-  });
-
-  function normalizeSearchText(value) {
-    return String(value || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  if (searchInput) {
-    searchInput.addEventListener("input", () => {
-      currentSearch = normalizeSearchText(searchInput.value);
-      if (searchClearBtn) searchClearBtn.hidden = currentSearch.length === 0;
-      renderCereri();
-    });
-  }
-
-  if (searchClearBtn) {
-    searchClearBtn.addEventListener("click", () => {
-      currentSearch = "";
-      if (searchInput) {
-        searchInput.value = "";
-        searchInput.focus();
-      }
-      searchClearBtn.hidden = true;
-      renderCereri();
-    });
-  }
-
-  function renderCereri() {
-    if (!cereriContainer) return;
-    cereriContainer.innerHTML = "";
-
-    const roleAllowedCereri = allCereri.filter(item => {
-      if (["superadmin", "admin"].includes(currentUserRole)) return true;
-      const dep = (item.departament || "").toString().toLowerCase().trim();
-      const tipCerere = (item.tip_cerere || "").toString().toLowerCase().trim();
-if (currentUserRole === "conducere") {
-  const medicalDepartments = [
-    "isuls",
-    "dsls",
-    "mmls",
-    "mm",
-    "ssmls",
-    "ssmmls"
-  ];
-
-  const departmentText = String(
-    item.departament ||
-    item.departament_medical ||
-    item.department ||
-    item.dept ||
-    ""
-  )
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-
-  const requestText = [
-    item.departament,
-    item.departament_medical,
-    item.department,
-    item.dept,
-    item.tip_cerere,
-    item.tip,
-    item.eveniment
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-
-  const isMedicalRequest =
-    medicalDepartments.some(dept => departmentText === dept) ||
-    requestText.includes("isuls") ||
-    requestText.includes("dsls") ||
-    requestText.includes("mmls") ||
-    requestText.includes("ssmls") ||
-    requestText.includes("ssmmls");
-
-  if (!isMedicalRequest) return false;
-
-  return true;
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[c]));
 }
-      const allowedKeywords = ROLE_PERMISSIONS[currentUserRole.toLowerCase()] || [currentUserRole.toLowerCase()];
-      const itemText = [item.departament, item.tip_cerere, item.eveniment].filter(Boolean).join(" ").toLowerCase();
-      return allowedKeywords.some(kw => itemText.includes(kw.toLowerCase()));
-    });
+function normalize(value) {
+  return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+function roleCanSee(role, item) {
+  if (["superadmin", "admin"].includes(role)) return true;
+  const text = [item.departament,item.departament_medical,item.department,item.dept,item.tip_cerere,item.tip,item.eveniment].filter(Boolean).join(" ").toLowerCase();
+  return (ROLE_PERMISSIONS[role] || []).some(k => k !== "all" && text.includes(k));
+}
+function toastMessage(message, type="success") {
+  const host = document.getElementById("toast-container");
+  if (!host) return;
+  const div = document.createElement("div");
+  div.className = `toast ${type}`;
+  div.innerHTML = `<div class="toast-icon">${type === "success" ? "✓" : type === "warning" ? "!" : "×"}</div><div class="toast-content"><div class="toast-title">${type === "success" ? "Succes" : type === "warning" ? "Atenție" : "Eroare"}</div><div class="toast-message">${escapeHtml(message)}</div></div><div class="toast-progress"></div>`;
+  host.appendChild(div);
+  setTimeout(() => div.remove(), 3600);
+}
+function getCurrentAdminName() { return currentUser?.email || currentUser?.name || currentUser?.discordId || "Admin PCLS"; }
 
-    const activeCount = roleAllowedCereri.filter(c => c.status !== "in_cos" && !c.arhivat && !c.deleted).length;
-    if (totalCountEl) totalCountEl.textContent = activeCount;
+async function api(method="GET", body=null) {
+  const options = { method, credentials: "same-origin", cache: "no-store", headers: {} };
+  if (body) { options.headers["Content-Type"] = "application/json"; options.body = JSON.stringify(body); }
+  const response = await fetch("/api/admin-data", options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || `HTTP ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
 
-    let filtered = roleAllowedCereri.filter(item => {
-      const rawStatus = (item.status || "in_asteptare").toString().toLowerCase().trim();
-      const isTrash = rawStatus === "in_cos" || item.deleted === true;
-      const isArhivat = item.arhivat === true || item.archived === true || rawStatus === "arhivat";
-      const filterNorm = (currentFilter || "all").toString().trim().toLowerCase();
+async function initAdmin() {
+  try {
+    const data = await api("GET");
+    currentUser = data.user || null;
+    currentUserRole = data.role || data.user?.role || null;
+    allCereri = Array.isArray(data.requests) ? data.requests : [];
+    if (!currentUserRole) throw new Error("Rol administrator indisponibil.");
+    const generatorSection = document.getElementById("admin-generator-section");
+    if (generatorSection) generatorSection.style.display = ["superadmin","admin","conducere"].includes(currentUserRole) ? "block" : "none";
+    adjustFilterButtonsForRole(currentUserRole);
+    renderCereri();
+  } catch (error) {
+    console.error("Cookie admin auth:", error);
+    if (error.status === 401) return window.location.href = "auth.html";
+    if (error.status === 403) return window.location.href = "index.html";
+    if (cereriContainer) cereriContainer.innerHTML = `<div class="empty-state">${escapeHtml(error.message || "Nu s-au putut încărca cererile.")}</div>`;
+  }
+}
 
-      if (filterNorm === "in_cos") return isTrash;
-      if (isTrash) return false;
-      if (filterNorm === "arhivat") return isArhivat;
-      if (isArhivat) return false;
-      if (filterNorm === "all") return true;
-      if (filterNorm === "in_asteptare") return rawStatus.includes("asteptare");
-      if (filterNorm === "pcls") {
-        const normalizePclsText = (value) => String(value || "")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .trim();
+function adjustFilterButtonsForRole(role) {
+  filterButtons.forEach(btn => {
+    const filterVal = normalize(btn.getAttribute("data-filter") || btn.textContent);
+    btn.style.display = "";
+    if (["superadmin","admin"].includes(role)) return;
+    if (role === "conducere") return;
+    const allowed = {isuls:"isuls",dsls:"dsls",mmls:"mmls",ssmls:"ssmls"}[role];
+    const departmentFilters = ["isuls","dsls","mmls","ssmls","pcls"];
+    if (departmentFilters.includes(filterVal) && filterVal !== allowed) btn.style.display = "none";
+  });
+}
 
-        const itemDept = normalizePclsText(item.departament);
-        const medicalDepartments = ["isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"];
-        if (medicalDepartments.includes(itemDept)) return false;
-
-        const requestText = normalizePclsText([
-          item.tip_cerere,
-          item.tip,
-          item.categorie,
-          item.eveniment
-        ].filter(Boolean).join(" "));
-
-        const hasEventRequest = Boolean(String(item.eveniment || "").trim()) || requestText.includes("eveniment") || requestText.includes("event");
-        const hasAppointmentRequest = requestText.includes("programare");
-        const hasRegistrationRequest = requestText.includes("inregistrare");
-
-        return itemDept === "pcls" || hasEventRequest || hasAppointmentRequest || hasRegistrationRequest;
-      }
-      
-      const itemDept = (item.departament || "").toString().toLowerCase();
-      return itemDept === filterNorm;
-    });
-
-    if (currentSearch) {
-      filtered = filtered.filter(item => {
-        const personName = normalizeSearchText([
-          item.nume_proprietar,
-          item.proprietar,
-          item.reprezentant,
-          item.nume
-        ].filter(Boolean).join(" "));
-
-        const businessName = normalizeSearchText([
-          item.nume_afacere,
-          item.unitate,
-          item.denumire_afacere,
-          item.business_name
-        ].filter(Boolean).join(" "));
-
-        return personName.includes(currentSearch) || businessName.includes(currentSearch);
-      });
+function renderCereri() {
+  if (!cereriContainer) return;
+  const visible = allCereri.filter(item => roleCanSee(currentUserRole, item));
+  const activeCount = visible.filter(x => normalize(x.status) !== "in_cos" && !x.arhivat && !x.archived && !x.deleted).length;
+  if (totalCountEl) totalCountEl.textContent = activeCount;
+  let filtered = visible.filter(item => {
+    const status = normalize(item.status || "in_asteptare");
+    const trash = status === "in_cos" || item.deleted === true;
+    const archived = item.arhivat === true || item.archived === true || status === "arhivat";
+    const f = normalize(currentFilter);
+    if (f === "in_cos") return trash;
+    if (trash) return false;
+    if (f === "arhivat") return archived;
+    if (archived) return false;
+    if (f === "all") return true;
+    if (f === "in_asteptare") return status.includes("asteptare");
+    if (f === "pcls") {
+      const dep = normalize(item.departament);
+      if (["isuls","dsls","mmls","mm","ssmls","ssmmls"].includes(dep)) return false;
+      const text = normalize([item.tip_cerere,item.tip,item.categorie,item.eveniment].filter(Boolean).join(" "));
+      return dep === "pcls" || text.includes("eveniment") || text.includes("programare") || text.includes("inregistrare");
     }
-
-    if (filtered.length === 0) {
-      const emptyMessage = currentSearch
-        ? `Nu am găsit nicio persoană sau afacere pentru „${escapeHtml(searchInput ? searchInput.value.trim() : currentSearch)}”.`
-        : "Nu există cereri vizibile pentru filtrul selectat.";
-      cereriContainer.innerHTML = `<div class="empty-state">${emptyMessage}</div>`;
-      return;
-    }
-
-    filtered.forEach(item => {
-      const tip = item.eveniment || item.tip_cerere || item.tip || "PROGRAMARE";
-      const status = item.status || "in_asteptare";
-      const badgeClass = tip.toLowerCase().includes("eveniment") ? "eveniment" : "programare";
-      const numeProprietar = escapeHtml(item.nume_proprietar || item.proprietar || item.nume || '-');
-      const numeAfacere = escapeHtml(item.nume_afacere || item.unitate || '-');
-      const dataOra = escapeHtml(item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : '-'));
-      const rawStatusNorm = status.toLowerCase();
-
-      let actionsHTML = "";
-      if (rawStatusNorm === "in_cos" || item.deleted === true) {
-        actionsHTML = `<button class="btn-action btn-restore" data-id="${item.id}">Restaurează</button><button class="btn-action btn-trash" data-id="${item.id}">Șterge Definitiv</button>`;
-      } else if (item.arhivat === true || rawStatusNorm === "arhivat") {
-        actionsHTML = `<button class="btn-action btn-unarchive" data-id="${item.id}">Desarhivează</button><button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>`;
-      } else {
-        actionsHTML = `
-          <button class="btn-action btn-details" data-id="${item.id}">Detalii</button>
-          <button class="btn-action btn-approve" data-id="${item.id}">Acceptă</button>
-          <button class="btn-action btn-reject" data-id="${item.id}">Respinge</button>
-          <button class="btn-action btn-archive" data-id="${item.id}">Arhivă</button>
-          <button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>
-        `;
-      }
-
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="card-header">
-          <span class="type-badge ${badgeClass}">${escapeHtml(tip)}</span>
-          <span class="status-badge ${status.includes("aprobat") ? 'aprobat' : (status.includes("respins") ? 'respins' : (status === "in_cos" ? 'in_cos' : 'in_asteptare'))}">${escapeHtml(status.replace("_", " "))}</span>
-        </div>
-        <div class="card-body">
-          <p><strong>Nume</strong><span>${numeProprietar}</span></p>
-          <p><strong>Afacere / Tip</strong><span>${numeAfacere}</span></p>
-          <p><strong>Data & Ora</strong><span>${dataOra}</span></p>
-        </div>
-        <div class="card-actions">${actionsHTML}</div>
-      `;
-      cereriContainer.appendChild(card);
-    });
-    attachActionListeners();
-  }
-
-  function attachActionListeners() {
-    document.querySelectorAll(".btn-details").forEach(btn => {
-      btn.addEventListener("click", () => openDetailsModal(allCereri.find(c => c.id === btn.getAttribute("data-id"))));
-    });
-
-    // ==================== LOGICA PENTRU POP-UP "ACCEPTĂ" ====================
-    document.querySelectorAll(".btn-approve").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
-        const item = allCereri.find(c => c.id === id);
-        if (item) {
-          pendingApproveId = id;
-          
-          const nume = item.nume_proprietar || item.proprietar || item.reprezentant || item.nume || '-';
-          const adresa = item.adresa || item.locatie || item.detalii || '-';
-          const tipControl = item.eveniment || item.tip_cerere || item.tip || "PROGRAMARE";
-          const dataOra = item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare}` : (item.dataDorita ? `${item.dataDorita} la ${item.oraDorita}` : '-'));
-          
-          document.getElementById("app-nume").textContent = nume;
-          document.getElementById("app-adresa").textContent = adresa;
-          document.getElementById("app-tip").textContent = tipControl.toUpperCase();
-          document.getElementById("app-data").textContent = dataOra;
-          document.getElementById("app-admin").textContent = `@${getCurrentAdminName().split('@')[0]}`;
-          
-          approveModal.classList.add("active");
-        }
-      });
-    });
-
-    document.querySelectorAll(".btn-reject").forEach(btn => {
-      btn.addEventListener("click", async () => await updateStatus(btn.getAttribute("data-id"), "respins", "Respins cererea"));
-    });
-    document.querySelectorAll(".btn-archive").forEach(btn => {
-      btn.addEventListener("click", async () => await toggleArchive(btn.getAttribute("data-id"), true));
-    });
-    document.querySelectorAll(".btn-unarchive").forEach(btn => {
-      btn.addEventListener("click", async () => await toggleArchive(btn.getAttribute("data-id"), false));
-    });
-    document.querySelectorAll(".btn-trash").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-id");
-        const item = allCereri.find(c => c.id === id);
-        if (item && (item.status === "in_cos" || item.deleted === true)) { pendingDeleteId = id; confirmModal.classList.add("active"); } 
-        else { await updateStatus(id, "in_cos", "Mutat în Coș"); showToast("Cererea a fost mutată în Coș.", "warning"); }
-      });
-    });
-    document.querySelectorAll(".btn-restore").forEach(btn => {
-      btn.addEventListener("click", async () => { await updateStatus(btn.getAttribute("data-id"), "În Așteptare", "Restaurat cererea"); showToast("Cererea a fost restaurată!", "success"); });
-    });
-  }
-
-  // --- ACȚIUNI PENTRU MODALUL DE APROBARE ---
-  function closeApproveModal() { approveModal.classList.remove("active"); pendingApproveId = null; }
-  approveCloseBtn.addEventListener("click", closeApproveModal);
-  approveCancelBtn.addEventListener("click", closeApproveModal);
-  approveOkBtn.addEventListener("click", async () => {
-      if (pendingApproveId) {
-          await updateStatus(pendingApproveId, "aprobat", "Aprobat cererea");
-          closeApproveModal();
-      }
+    return normalize(item.departament) === f;
   });
-
-  // --- ACȚIUNE COPIERE CONFIRMARE APROBARE ---
-  approveCopyBtn.addEventListener("click", () => {
-    const nume = document.getElementById("app-nume").textContent;
-    const adresa = document.getElementById("app-adresa").textContent;
-    const tip = document.getElementById("app-tip").textContent;
-    const data = document.getElementById("app-data").textContent;
-    const admin = document.getElementById("app-admin").textContent;
-    
-    const textDeCopiat = `=== CONFIRMARE APROBARE ===\nNume / Reprezentant: ${nume}\nAdresă / Locație: ${adresa}\nTip Control / Cerere: ${tip}\nData & Ora: ${data}\nProcesat și Acceptat de: ${admin}`;
-
-    navigator.clipboard.writeText(textDeCopiat).then(() => {
-      showToast("Datele de aprobare au fost copiate!", "success");
-      
-      const textOriginal = approveCopyBtn.innerHTML;
-      approveCopyBtn.innerHTML = "✓ Copiat!";
-      approveCopyBtn.style.background = "rgba(0, 255, 163, 0.15)";
-      approveCopyBtn.style.color = "var(--accent-primary)";
-      approveCopyBtn.style.borderColor = "rgba(0, 255, 163, 0.3)";
-      
-      setTimeout(() => {
-        approveCopyBtn.innerHTML = textOriginal;
-        approveCopyBtn.style.background = "rgba(0, 150, 255, 0.15)";
-        approveCopyBtn.style.color = "var(--accent-secondary)";
-        approveCopyBtn.style.borderColor = "rgba(0, 150, 255, 0.3)";
-      }, 2500);
-    }).catch(err => {
-      console.error("Eroare la copiere: ", err);
-      showToast("Eroare la copierea datelor.", "error");
-    });
+  if (currentSearch) {
+    const q = normalize(currentSearch);
+    filtered = filtered.filter(item => normalize([item.nume_proprietar,item.proprietar,item.reprezentant,item.nume,item.nume_afacere,item.unitate,item.denumire_afacere,item.business_name].filter(Boolean).join(" ")).includes(q));
+  }
+  cereriContainer.innerHTML = "";
+  if (!filtered.length) {
+    cereriContainer.innerHTML = `<div class="empty-state">${currentSearch ? "Nu am găsit rezultate pentru căutarea ta." : "Nu există cereri vizibile pentru filtrul selectat."}</div>`;
+    return;
+  }
+  filtered.forEach(item => {
+    const tip = item.eveniment || item.tip_cerere || item.tip || "PROGRAMARE";
+    const status = item.status || "in_asteptare";
+    const raw = normalize(status);
+    const badgeClass = normalize(tip).includes("eveniment") ? "eveniment" : "programare";
+    const nume = escapeHtml(item.nume_proprietar || item.proprietar || item.reprezentant || item.nume || "-");
+    const afacere = escapeHtml(item.nume_afacere || item.unitate || "-");
+    const data = escapeHtml(item.data_ora || (item.dataProgramare ? `${item.dataProgramare} la ${item.oraProgramare || ""}` : "-"));
+    let actions = "";
+    if (raw === "in_cos" || item.deleted === true) actions = `<button class="btn-action btn-restore" data-id="${item.id}">Restaurează</button><button class="btn-action btn-trash" data-id="${item.id}">Șterge Definitiv</button>`;
+    else if (item.arhivat === true || item.archived === true || raw === "arhivat") actions = `<button class="btn-action btn-unarchive" data-id="${item.id}">Desarhivează</button><button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>`;
+    else actions = `<button class="btn-action btn-details" data-id="${item.id}">Detalii</button><button class="btn-action btn-approve" data-id="${item.id}">Acceptă</button><button class="btn-action btn-reject" data-id="${item.id}">Respinge</button><button class="btn-action btn-archive" data-id="${item.id}">Arhivă</button><button class="btn-action btn-trash" data-id="${item.id}">Șterge</button>`;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div class="card-header"><span class="type-badge ${badgeClass}">${escapeHtml(tip)}</span><span class="status-badge ${raw.includes("aprobat") ? "aprobat" : raw.includes("respins") ? "respins" : raw === "in_cos" ? "in_cos" : "in_asteptare"}">${escapeHtml(String(status).replace("_"," "))}</span></div><div class="card-body"><p><strong>Nume</strong><span>${nume}</span></p><p><strong>Afacere / Tip</strong><span>${afacere}</span></p><p><strong>Data & Ora</strong><span>${data}</span></p></div><div class="card-actions">${actions}</div>`;
+    cereriContainer.appendChild(card);
   });
+  attachActionListeners();
+}
 
-  async function toggleArchive(id, shouldArchive) {
-    try {
-      await updateDoc(doc(db, "cereri", id), { arhivat: shouldArchive, archived: shouldArchive, procesat_de: `${getCurrentAdminName()} (${shouldArchive ? 'Arhivat' : 'Desarhivat'})`, data_procesare: new Date().toLocaleString("ro-RO") });
-      showToast(shouldArchive ? "Cererea a fost arhivată." : "Cererea a fost desarhivată.", "success");
-    } catch (e) { showToast("Eroare.", "error"); }
-  }
-
-  async function updateStatus(id, newStatus, actionName) {
-    try {
-      const updateData = { status: newStatus, procesat_de: `${getCurrentAdminName()} (${actionName})`, data_procesare: new Date().toLocaleString("ro-RO") };
-      if (newStatus === "in_cos") updateData.deleted = true; else updateData.deleted = false;
-      await updateDoc(doc(db, "cereri", id), updateData);
-      if (newStatus !== "in_cos") showToast(`Cererea a fost aprobată cu succes!`, "success");
-    } catch (e) { showToast("Eroare la salvare.", "error"); }
-  }
-
-  function closeConfirmModal() { confirmModal.classList.remove("active"); pendingDeleteId = null; }
-  confirmCancelBtn.addEventListener("click", closeConfirmModal);
-  confirmCloseBtn.addEventListener("click", closeConfirmModal);
-  confirmOkBtn.addEventListener("click", async () => {
-    if (pendingDeleteId) { await deleteDoc(doc(db, "cereri", pendingDeleteId)); showToast("Ștearsă definitiv.", "error"); closeConfirmModal(); }
+function attachActionListeners() {
+  document.querySelectorAll(".btn-details").forEach(btn => btn.onclick = () => openDetailsModal(allCereri.find(x=>x.id===btn.dataset.id)));
+  document.querySelectorAll(".btn-approve").forEach(btn => btn.onclick = () => openApproveModal(btn.dataset.id));
+  document.querySelectorAll(".btn-reject").forEach(btn => btn.onclick = () => updateStatus(btn.dataset.id,"respins","Respins cererea"));
+  document.querySelectorAll(".btn-archive").forEach(btn => btn.onclick = () => toggleArchive(btn.dataset.id,true));
+  document.querySelectorAll(".btn-unarchive").forEach(btn => btn.onclick = () => toggleArchive(btn.dataset.id,false));
+  document.querySelectorAll(".btn-restore").forEach(btn => btn.onclick = () => updateStatus(btn.dataset.id,"În Așteptare","Restaurat cererea"));
+  document.querySelectorAll(".btn-trash").forEach(btn => btn.onclick = async () => {
+    const id=btn.dataset.id, item=allCereri.find(x=>x.id===id);
+    if (item && (item.status === "in_cos" || item.deleted === true)) { pendingDeleteId=id; confirmModal.classList.add("active"); }
+    else { await updateStatus(id,"in_cos","Mutat în Coș"); }
   });
+}
 
-  function openDetailsModal(item) {
-    document.getElementById("details-code-tag").textContent = item.codEveniment || item.cod_eveniment || item.cod || "PCLS-CERERE";
-    const userAction = item.procesat_de ? `${item.procesat_de} pe ${item.data_procesare || '-'}` : "Nicio acțiune";
-    const fields = [
-      { label: "Departament", value: (item.departament || "ISULS").toUpperCase(), size: "third" },
-      { label: "Status Curent", value: item.status || "În Așteptare", size: "third" },
-      { label: "Data & Ora", value: item.data_ora || item.dataProgramare || '-', size: "third" },
-      { label: "Procesată de User", value: userAction, highlight: true, full: true },
-      { label: "Proprietar / Reprezentant", value: item.nume_proprietar || item.proprietar || item.nume || '-', size: "half" },
-      { label: "Telefon Contact", value: item.telefon || item.tel || '-', size: "half" },
-      { label: "Nume Afacere", value: item.nume_afacere || item.unitate || '-', size: "half" },
-      { label: "Tip Business", value: item.tip_afacere || item.tipSpatiu || '-', size: "half" },
-      { label: "Detalii Extra / Locație", value: item.detalii || item.adresa || '-', full: true }
-    ];
-    document.getElementById("details-container").innerHTML = fields.map(f => `
-      <div class="details-item ${f.full ? 'full-width' : ''} ${f.size === 'half' ? 'half-width' : ''} ${f.size === 'third' ? 'third-width' : ''} ${f.highlight ? 'highlight-user' : ''}">
-        <label>${f.label}</label><span>${escapeHtml(f.value || '-')}</span>
-      </div>
-    `).join('');
-    
-    if (detailsTrashBtn) {
-      if (item.status === "in_cos" || item.deleted === true) detailsTrashBtn.textContent = "Șterge Definitiv";
-      else detailsTrashBtn.textContent = "Mută în Coș";
-      
-      currentOpenItem = item;
-    }
-    
-    detailsModal.classList.add("active");
-  }
+function openApproveModal(id) {
+  const item=allCereri.find(x=>x.id===id); if(!item) return;
+  pendingApproveId=id;
+  document.getElementById("app-nume").textContent=item.nume_proprietar||item.proprietar||item.reprezentant||item.nume||"-";
+  document.getElementById("app-adresa").textContent=item.adresa||item.locatie||item.detalii||"-";
+  document.getElementById("app-tip").textContent=(item.eveniment||item.tip_cerere||item.tip||"PROGRAMARE").toUpperCase();
+  document.getElementById("app-data").textContent=item.data_ora||(item.dataProgramare?`${item.dataProgramare} la ${item.oraProgramare||""}`:(item.dataDorita?`${item.dataDorita} la ${item.oraDorita||""}`:"-"));
+  document.getElementById("app-admin").textContent=`@${getCurrentAdminName().split('@')[0]}`;
+  approveModal.classList.add("active");
+}
+function openDetailsModal(item) {
+  if(!item) return;
+  currentOpenItem=item;
+  document.getElementById("details-code-tag").textContent=item.codEveniment||item.cod_eveniment||item.cod||"PCLS-CERERE";
+  const userAction=item.procesat_de?`${item.procesat_de} pe ${item.data_procesare||"-"}`:"Nicio acțiune";
+  const fields=[
+    {label:"Departament",value:(item.departament||"ISULS").toUpperCase(),size:"third"},{label:"Status Curent",value:item.status||"În Așteptare",size:"third"},{label:"Data & Ora",value:item.data_ora||item.dataProgramare||"-",size:"third"},{label:"Procesată de User",value:userAction,highlight:true,full:true},{label:"Proprietar / Reprezentant",value:item.nume_proprietar||item.proprietar||item.nume||"-",size:"half"},{label:"Telefon Contact",value:item.telefon||item.tel||"-",size:"half"},{label:"Nume Afacere",value:item.nume_afacere||item.unitate||"-",size:"half"},{label:"Tip Business",value:item.tip_afacere||item.tipSpatiu||"-",size:"half"},{label:"Detalii Extra / Locație",value:item.detalii||item.adresa||"-",full:true}
+  ];
+  document.getElementById("details-container").innerHTML=fields.map(f=>`<div class="details-item ${f.full?"full-width":""} ${f.size==="half"?"half-width":""} ${f.size==="third"?"third-width":""} ${f.highlight?"highlight-user":""}"><label>${f.label}</label><span>${escapeHtml(f.value)}</span></div>`).join("");
+  detailsTrashBtn.textContent=(item.status==="in_cos"||item.deleted===true)?"Șterge Definitiv":"Mută în Coș";
+  detailsModal.classList.add("active");
+}
+async function postAction(body) {
+  try { const r=await api("POST",body); await loadData(); return r; }
+  catch(e){ if(e.status===401) location.href="auth.html"; else toastMessage(e.message||"Eroare la operație","error"); throw e; }
+}
+async function loadData() { const data=await api("GET"); currentUser=data.user; currentUserRole=data.role||data.user?.role; allCereri=Array.isArray(data.requests)?data.requests:[]; renderCereri(); }
+async function updateStatus(id,status,actionName){ try{await postAction({action:"status",id,status,actionName});toastMessage(status==="aprobat"?"Cererea a fost aprobată.":status==="respins"?"Cererea a fost respinsă.":"Cererea a fost actualizată.",status==="respins"?"warning":"success");}catch{} }
+async function toggleArchive(id,value){try{await postAction({action:"archive",id,value});toastMessage(value?"Cererea a fost arhivată.":"Cererea a fost desarhivată.","success");}catch{}}
 
-  function closeDetailsModal() { detailsModal.classList.remove("active"); currentOpenItem = null; }
-  detailsClose.addEventListener("click", closeDetailsModal);
-  detailsCloseBtn.addEventListener("click", closeDetailsModal);
+approveCloseBtn?.addEventListener("click",()=>approveModal.classList.remove("active"));
+approveCancelBtn?.addEventListener("click",()=>approveModal.classList.remove("active"));
+approveOkBtn?.addEventListener("click",async()=>{if(!pendingApproveId)return;await updateStatus(pendingApproveId,"aprobat","Aprobat cererea");pendingApproveId=null;approveModal.classList.remove("active");});
+approveCopyBtn?.addEventListener("click",()=>{const t=`=== CONFIRMARE APROBARE ===\nNume / Reprezentant: ${document.getElementById("app-nume").textContent}\nAdresă / Locație: ${document.getElementById("app-adresa").textContent}\nTip Control / Cerere: ${document.getElementById("app-tip").textContent}\nData & Ora: ${document.getElementById("app-data").textContent}\nProcesat și Acceptat de: ${document.getElementById("app-admin").textContent}`;navigator.clipboard.writeText(t).then(()=>toastMessage("Datele au fost copiate.","success"));});
+confirmCancelBtn?.addEventListener("click",()=>{pendingDeleteId=null;confirmModal.classList.remove("active")});
+confirmCloseBtn?.addEventListener("click",()=>{pendingDeleteId=null;confirmModal.classList.remove("active")});
+confirmOkBtn?.addEventListener("click",async()=>{if(!pendingDeleteId)return;try{await postAction({action:"delete",id:pendingDeleteId});toastMessage("Cererea a fost ștearsă definitiv.","warning");}catch{}pendingDeleteId=null;confirmModal.classList.remove("active")});
+detailsClose?.addEventListener("click",()=>detailsModal.classList.remove("active"));
+detailsCloseBtn?.addEventListener("click",()=>detailsModal.classList.remove("active"));
+detailsTrashBtn?.addEventListener("click",async()=>{if(!currentOpenItem)return;const id=currentOpenItem.id;if(currentOpenItem.status==="in_cos"||currentOpenItem.deleted===true){pendingDeleteId=id;detailsModal.classList.remove("active");confirmModal.classList.add("active");}else{await updateStatus(id,"in_cos","Mutat în Coș din Detalii");detailsModal.classList.remove("active");}});
+detailsCopyBtn?.addEventListener("click",()=>{const items=document.querySelectorAll("#details-container .details-item");let t=`=== DETALII CERERE: ${document.getElementById("details-code-tag").textContent} ===\n\n`;items.forEach(x=>t+=`${x.querySelector("label").textContent}: ${x.querySelector("span").textContent}\n`);navigator.clipboard.writeText(t).then(()=>toastMessage("Detaliile au fost copiate.","success"));});
+filterButtons.forEach(btn=>btn.addEventListener("click",()=>{filterButtons.forEach(b=>b.classList.remove("active"));btn.classList.add("active");currentFilter=btn.dataset.filter||"all";renderCereri();}));
+searchInput?.addEventListener("input",()=>{currentSearch=searchInput.value;searchClearBtn.hidden=!currentSearch;renderCereri();});
+searchClearBtn?.addEventListener("click",()=>{currentSearch="";searchInput.value="";searchClearBtn.hidden=true;searchInput.focus();renderCereri();});
+btnGenerateCode?.addEventListener("click",async()=>{try{btnGenerateCode.disabled=true;const data=await postAction({action:"generateInvite",role:inviteRoleSelect?.value||"isuls"});if(generatedCodeDisplay)generatedCodeDisplay.innerHTML=`Cod generat: <span style="background:rgba(0,255,163,.1);padding:4px 10px;border-radius:8px;user-select:all;border:1px solid rgba(0,255,163,.2);">${escapeHtml(data.code)}</span>`;toastMessage("Cod generat și salvat cu succes.","success");}catch{}finally{btnGenerateCode.disabled=false;}});
 
-  if (detailsTrashBtn) {
-    detailsTrashBtn.addEventListener("click", async () => {
-      if (!currentOpenItem) return;
-      const id = currentOpenItem.id;
-      if (currentOpenItem.status === "in_cos" || currentOpenItem.deleted === true) {
-        pendingDeleteId = id; closeDetailsModal(); confirmModal.classList.add("active");
-      } else {
-        await updateStatus(id, "in_cos", "Mutat în Coș din Detalii");
-        closeDetailsModal(); showToast("Cererea a fost mutată în Coș.", "warning");
-      }
-    });
-  }
-
-  // --- ACȚIUNE COPIERE DETALII ---
-  detailsCopyBtn.addEventListener("click", () => {
-    const detailsItems = document.querySelectorAll("#details-container .details-item");
-    const codCerere = document.getElementById("details-code-tag").textContent;
-    
-    let textDeCopiat = `=== DETALII CERERE: ${codCerere} ===\n\n`;
-    
-    detailsItems.forEach(item => {
-      const label = item.querySelector("label").textContent;
-      const valoare = item.querySelector("span").textContent;
-      textDeCopiat += `${label}: ${valoare}\n`;
-    });
-
-    navigator.clipboard.writeText(textDeCopiat).then(() => {
-      showToast("Toate detaliile au fost copiate cu succes!", "success");
-      
-      const textOriginal = detailsCopyBtn.innerHTML;
-      detailsCopyBtn.innerHTML = "✓ Copiat!";
-      detailsCopyBtn.style.background = "rgba(0, 255, 163, 0.15)";
-      detailsCopyBtn.style.color = "var(--accent-primary)";
-      detailsCopyBtn.style.borderColor = "rgba(0, 255, 163, 0.3)";
-      
-      setTimeout(() => {
-        detailsCopyBtn.innerHTML = textOriginal;
-        detailsCopyBtn.style.background = "rgba(0, 150, 255, 0.15)";
-        detailsCopyBtn.style.color = "var(--accent-secondary)";
-        detailsCopyBtn.style.borderColor = "rgba(0, 150, 255, 0.3)";
-      }, 2500);
-    }).catch(err => {
-      console.error("Eroare la copiere: ", err);
-      showToast("Eroare la copierea detaliilor.", "error");
-    });
-  });
-
-  function escapeHtml(str) { return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  
-  function showToast(message, type = "success") {
-    const container = document.getElementById("toast-container");
-    if (!container) return;
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<div class="toast-icon">${type === 'success' ? '✓' : '!'}</div><div class="toast-content"><div class="toast-title">${type === 'success' ? 'Succes' : 'Atenție'}</div><div class="toast-message">${escapeHtml(message)}</div></div><div class="toast-progress"></div>`;
-    container.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, 3500);
-  }
-
-  // ÎNCHIDERE LA CLICK ÎN AFARĂ
-  window.addEventListener('click', (event) => {
-    if (event.target === detailsModal) closeDetailsModal();
-    if (event.target === confirmModal) closeConfirmModal();
-    if (event.target === approveModal) closeApproveModal();
-  });
-  </script>
-</body>
+initAdmin();
+setInterval(()=>{if(document.visibilityState==="visible" && currentUserRole) loadData().catch(()=>{});},15000);
+</script></body>
 </html>
