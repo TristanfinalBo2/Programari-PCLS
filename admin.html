@@ -1333,16 +1333,16 @@ function writeAdminCache(data){try{sessionStorage.setItem(ADMIN_CACHE_KEY,JSON.s
 function applyAdminData(data){currentUser=data.user||null;currentUserRole=data.role||data.user?.role||null;allCereri=Array.isArray(data.requests)?data.requests:[];if(currentUserRole){const generatorSection=document.getElementById("admin-generator-section");if(generatorSection)generatorSection.style.display=["superadmin","admin","conducere"].includes(currentUserRole)?"block":"none";adjustFilterButtonsForRole(currentUserRole);renderCereri();}}
 async function initAdmin() {
   const cached=readAdminCache();
-  if(cached){applyAdminData(cached);}
+  if(cached) applyAdminData(cached);
   try {
-    const data = await api("GET");
+    const data=await api("GET");
     applyAdminData(data);
     writeAdminCache(data);
   } catch (error) {
-    console.error("Cookie admin auth:", error);
-    if (error.status === 401) return window.location.href = "auth.html";
-    if (error.status === 403) return window.location.href = "index.html";
-    if (cereriContainer) cereriContainer.innerHTML = `<div class="empty-state">${escapeHtml(error.message || "Nu s-au putut încărca cererile.")}</div>`;
+    console.error("Cookie admin auth:",error);
+    if(error.status===401)return window.location.href="auth.html";
+    if(error.status===403)return window.location.href="index.html";
+    if(cereriContainer)cereriContainer.innerHTML=`<div class="empty-state">${escapeHtml(error.message||"Nu s-au putut încărca cererile.")}</div>`;
   }
 }
 
