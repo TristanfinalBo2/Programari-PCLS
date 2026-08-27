@@ -88,6 +88,27 @@ async function queryByField(token, fieldPath, value, limit = 50) {
   const rows = await r.json().catch(() => []);
   return Array.isArray(rows) ? rows.filter(x => x.document).map(x => ({ id: String(x.document.name).split("/").pop(), ...decode(x.document.fields || {}) })) : [];
 }
+async function queryUserProfileId(token, discordId, email) {
+  const base = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
+  const checks = [["discordId", discordId], ["discord_id", discordId], ["discord", discordId]];
+  if (email) checks.push(["email", email]);
+  for (const [fieldPath, value] of checks) {
+    const r = await fetch(base, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ structuredQuery: {
+        from: [{ collectionId: "utilizatori" }],
+        where: { fieldFilter: { field: { fieldPath }, op: "EQUAL", value: fv(value) } },
+        limit: 1
+      }})
+    });
+    if (!r.ok) continue;
+    const rows = await r.json().catch(() => []);
+    const doc = Array.isArray(rows) ? rows.find(x => x.document)?.document : null;
+    if (doc?.name) return String(doc.name).split("/").pop();
+  }
+  return "";
+}
 async function patchNotification(token, id, data) {
   const url = new URL(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/notificari/${encodeURIComponent(id)}`);
   for (const k of Object.keys(data)) url.searchParams.append("updateMask.fieldPaths", k);
@@ -102,19 +123,36 @@ module.exports = async function handler(req, res) {
   try {
     const token = await accessToken();
     const discordId = String(session.discordId);
-    const own = await queryByField(token, "recipientDiscordId", discordId, 50);
-    let items = own;
-    if (!items.length && session.email) items = await queryByField(token, "recipientEmail", String(session.email), 50);
+    const email = String(session.email || "");
+
+    const queries = [
+      queryByField(token, "recipientDiscordId", discordId, 50),
+      queryByField(token, "recipientId", discordId, 50)
+    ];
+    if (email) queries.push(queryByField(token, "recipientEmail", email, 50));
+    const profileId = await queryUserProfileId(token, discordId, email);
+    if (profileId) queries.push(queryByField(token, "recipientId", profileId, 50));
+
+    const lists = await Promise.all(queries);
+    const unique = new Map();
+    for (const list of lists) for (const item of list) unique.set(item.id, item);
+    const items = Array.from(unique.values()).sort((a, b) => {
+      const ta = Date.parse(String(a.createdAt || "")) || 0;
+      const tb = Date.parse(String(b.createdAt || "")) || 0;
+      return tb - ta;
+    });
+
     if (req.method === "POST") {
       const body = typeof req.body === "object" && req.body ? req.body : {};
+      if (body.action === "readAll") {
+        for (const item of items.filter(x => x.read !== true)) await patchNotification(token, item.id, { read: true });
+        return json(res, 200, { ok: true });
+      }
       const id = String(body.id || "");
       if (!id) return json(res, 400, { ok: false, error: "ID notificare lipsă." });
       const allowed = items.find(x => x.id === id);
       if (!allowed) return json(res, 404, { ok: false, error: "Notificarea nu există." });
       if (body.action === "read") await patchNotification(token, id, { read: true });
-      if (body.action === "readAll") {
-        for (const item of items.filter(x => item.read !== true)) await patchNotification(token, item.id, { read: true });
-      }
       return json(res, 200, { ok: true });
     }
     if (req.method !== "GET") return json(res, 405, { ok: false, error: "Method Not Allowed" });
