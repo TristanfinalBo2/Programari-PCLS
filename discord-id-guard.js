@@ -14,6 +14,11 @@ function isExempt() {
   return EXEMPT_PATHS.includes(normalizePath());
 }
 
+function discordAuthUrl() {
+  const returnTo = window.location.pathname + window.location.search + window.location.hash;
+  return `/api/discord-auth?return_to=${encodeURIComponent(returnTo)}`;
+}
+
 function injectStyles() {
   if (document.getElementById("discord-id-guard-style")) return;
   const style = document.createElement("style");
@@ -39,7 +44,7 @@ function ensureOverlay() {
   document.body.appendChild(overlay);
   overlay.querySelector("#discord-id-guard-connect")?.addEventListener("click", event => {
     event.preventDefault();
-    window.location.href = `/api/discord-auth?return_to=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    window.location.href = discordAuthUrl();
   });
   return overlay;
 }
@@ -68,10 +73,10 @@ function fillForms(profile) {
   if (!DISCORD_ID_RE.test(discordId)) return;
   const username = String(profile?.username || "").trim();
 
-  window.PCLSSession = { discordId, username, name: username };
+  window.PCLSSession = { discordId, username, name: username, email: String(profile?.email || "") };
 
   document.querySelectorAll("form").forEach(form => {
-    const fields = form.querySelectorAll('input[name="discord"], input[name="discord_id"], input[name="discordId"], #discordIdInput');
+    const fields = form.querySelectorAll('input[name="discord"], input[name="discord_id"], input[name="discordId"], #discordIdInput, #discord-input');
     if (fields.length) fields.forEach(input => setValue(input, discordId));
     else {
       let hidden = form.querySelector('input[type="hidden"][name="discordId"]');
@@ -85,9 +90,9 @@ function fillForms(profile) {
     }
   });
 
-  const pclsInput = document.getElementById("discordIdInput");
-  const connectedBox = document.getElementById("discordConnectedBox");
-  const loginBox = document.getElementById("discordLoginBox");
+  const pclsInput = document.getElementById("discord-input") || document.getElementById("discordIdInput");
+  const connectedBox = document.getElementById("discord-connected-box") || document.getElementById("discordConnectedBox");
+  const loginBox = document.getElementById("discord-login-box") || document.getElementById("discordLoginBox");
   const submit = document.getElementById("submit");
   if (pclsInput) setValue(pclsInput, discordId);
   if (connectedBox) connectedBox.style.display = "flex";
@@ -99,22 +104,30 @@ function fillForms(profile) {
 
 function installConnectInterceptor() {
   document.addEventListener("click", event => {
-    const button = event.target?.closest?.("#discordModalConnect, #discordIdConnect, #discordIdVerify, [data-discord-connect]");
+    const button = event.target?.closest?.("#discord-modal-connect, #discord-trigger, #discordModalConnect, #discordIdConnect, #discordIdVerify, [data-discord-connect]");
     if (!button) return;
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation?.();
-    window.location.href = `/api/discord-auth?return_to=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    window.location.href = discordAuthUrl();
   }, true);
 }
 
 async function getCookieSession() {
   try {
-    const response = await fetch("/api/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
+    const response = await fetch("/api/me", {
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" }
+    });
     const data = await response.json().catch(() => ({}));
     const discordId = String(data?.user?.discordId || "").trim();
     if (!response.ok || !data?.ok || !DISCORD_ID_RE.test(discordId)) return null;
-    return { discordId, username: String(data.user.username || data.user.name || "").trim() };
+    return {
+      discordId,
+      username: String(data.user.username || data.user.name || "").trim(),
+      email: String(data.user.email || "").trim()
+    };
   } catch (error) {
     console.error("Discord cookie session:", error);
     return null;
@@ -130,7 +143,11 @@ async function getFirebaseProfile(user) {
     const data = snap.data() || {};
     const discordId = String(data.discordId || data.discord_id || "").trim();
     if (!DISCORD_ID_RE.test(discordId)) return null;
-    return { discordId, username: String(data.discordUsername || data.numeDiscord || data.nume || user.displayName || "").trim() };
+    return {
+      discordId,
+      username: String(data.discordUsername || data.numeDiscord || data.nume || user.displayName || "").trim(),
+      email: String(user.email || data.email || "").trim()
+    };
   } catch (error) {
     console.error("Discord Firebase profile:", error);
     return null;
@@ -160,5 +177,8 @@ async function boot() {
   }
 }
 
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { void boot(); }, { once: true });
-else void boot();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => { void boot(); }, { once: true });
+} else {
+  void boot();
+}
