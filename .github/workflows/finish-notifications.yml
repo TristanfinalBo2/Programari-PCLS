@@ -13,31 +13,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Make Discord ID sufficient for notification delivery
+      - name: Fix notification recipient identifiers
         shell: python
         run: |
           from pathlib import Path
           p = Path('api/admin-data.js')
           s = p.read_text(encoding='utf-8')
+
           old = 'if(!recipientId){const ownerProfile=await findProfile(token,{discordId,email:firstValue(item,["email","emailAddress"])});recipientId=ownerProfile?.id||""}if(!recipientId)return;'
           new = 'if(!recipientId){const ownerProfile=await findProfile(token,{discordId,email:firstValue(item,["email","emailAddress"])});recipientId=ownerProfile?.id||discordId||""}if(!recipientId)return;'
-          if old not in s: raise SystemExit('notification recipient marker not found')
-          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          old2 = 'const discordId=firstValue(item,["discordId","discord_id","discord"]);if(!recipientId){const ownerProfile=await findProfile(token,{discordId,email:firstValue(item,["email","emailAddress"])});recipientId=ownerProfile?.id||discordId||""}if(!recipientId)return;'
+          new2 = 'let discordId=firstValue(item,["discordId","discord_id","discord"]);if(!recipientId||!discordId){const ownerProfile=await findProfile(token,{discordId,email:firstValue(item,["email","emailAddress"])});if(!recipientId)recipientId=ownerProfile?.id||"";if(!discordId)discordId=firstValue(ownerProfile,["discordId","discord_id","discord"])}if(!recipientId)return;'
+          if old2 in s:
+              s = s.replace(old2, new2, 1)
+
+          p.write_text(s, encoding='utf-8')
 
       - name: Verify
         shell: bash
         run: |
-          grep -q 'recipientId=ownerProfile?.id||discordId||""' api/admin-data.js
-          grep -q "fetch('/api/notifications'" index.html
+          grep -q 'discordId=firstValue(ownerProfile' api/admin-data.js
+          grep -q 'recipientDiscordId:discordId' api/admin-data.js
 
-      - name: Commit and clean workflow
+      - name: Commit changes
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add api/admin-data.js
-          git commit -m 'Ensure status notifications resolve by Discord ID [skip ci]'
-          git push
-          git rm .github/workflows/finish-notifications.yml
-          git commit -m 'Remove one-time notification delivery fixer [skip ci]'
-          git push
+          git commit -m 'Persist Discord identifier on status notifications [skip ci]' || true
+          git push || true
