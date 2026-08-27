@@ -45,11 +45,9 @@ function removeRedundantSections() {
 function reorderHomeSections() {
   const main = document.querySelector("main");
   if (!main || main.getAttribute(ORDER_READY_ATTR) === "1") return;
-
   const hero = document.querySelector(".portal-hero");
   const process = document.getElementById("proces");
   if (!hero || !process) return;
-
   [hero, process].forEach(section => main.appendChild(section));
   main.setAttribute(ORDER_READY_ATTR, "1");
 }
@@ -71,7 +69,7 @@ function renderCookieUser(user) {
         <div class="dropdown-user-info"><span>Conectat</span><strong>${escapeHtml(name)}</strong></div>
         <div class="dropdown-divider"></div>
         <a href="cererile_mele.html" class="dropdown-item-premium">Cererile Mele</a>
-        <a href="setari.html" class="dropdown-item-premium">Setări cont</a>
+        <a href="setari-discord.html" class="dropdown-item-premium">Setări cont</a>
         <div class="dropdown-divider"></div>
         <button id="btnLogout" class="dropdown-item-premium" style="color:#ff6b6b;background:none;border:none;width:100%;text-align:left;cursor:pointer;">Deconectare</button>
       </div>
