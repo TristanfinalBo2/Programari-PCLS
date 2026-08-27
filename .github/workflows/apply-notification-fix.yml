@@ -1,0 +1,139 @@
+name: Apply notification center fix
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fix index notification center
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          h = p.read_text(encoding='utf-8')
+
+          start = h.find('\nfunction startNotificationListeners(user) {')
+          end = h.find('\n\nfunction mountDiscordNotificationCenter', start)
+          if start < 0 or end < 0:
+              raise SystemExit('notification listener block not found')
+
+          replacement = '''
+async function startNotificationListeners(user) {
+    notificationUserKey = String(user?.discordId || user?.uid || user?.providerData?.[0]?.uid || "discord");
+    try {
+        const response = await fetch('/api/notifications', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.ok) {
+            notificationItems = Array.isArray(data.notifications) ? data.notifications : [];
+            renderNotificationCenter();
+        }
+    } catch (error) {
+        console.error('Eroare notificări server:', error);
+    }
+}'''
+          h = h[:start] + replacement + h[end:]
+
+          old_auth = '''onAuthStateChanged(auth, user => {
+    destroyNotificationCenter();
+    const isDiscordSession = Boolean(user && !user.isAnonymous && !user.email);
+    if (isDiscordSession) mountDiscordNotificationCenter(user);
+});'''
+          h = h.replace(old_auth, '', 1)
+
+          anchor = 'function mountDiscordNotificationCenter(user) {'
+          if anchor not in h:
+              raise SystemExit('mount function not found')
+
+          if 'initPersistentDiscordNotificationCenter' not in h:
+              persistent = '''async function initPersistentDiscordNotificationCenter() {
+    try {
+        const response = await fetch('/api/me', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok || !data.user?.discordId) return;
+        mountDiscordNotificationCenter({
+            uid: String(data.user.discordId),
+            discordId: String(data.user.discordId),
+            providerData: [{ uid: String(data.user.discordId) }]
+        });
+    } catch (error) {
+        console.error('Eroare sesiune Discord notificări:', error);
+    }
+}
+
+'''
+              h = h.replace(anchor, persistent + anchor, 1)
+
+          marker = 'onAuthStateChanged(auth, async (user) => {'
+          if marker not in h:
+              raise SystemExit('main auth listener not found')
+
+          boot = '''if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPersistentDiscordNotificationCenter, { once: true });
+} else {
+    initPersistentDiscordNotificationCenter();
+}
+window.addEventListener('pageshow', initPersistentDiscordNotificationCenter);
+
+'''
+          if 'document.addEventListener(\'DOMContentLoaded\', initPersistentDiscordNotificationCenter' not in h:
+              h = h.replace(marker, boot + marker, 1)
+
+          p.write_text(h, encoding='utf-8')
+          PY
+
+      - name: Fix notification API lookup
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('api/notifications.js')
+          s = p.read_text(encoding='utf-8')
+          old = '''    const own = await queryByField(token, "recipientDiscordId", discordId, 50);
+    let items = own;
+    if (!items.length && session.email) items = await queryByField(token, "recipientEmail", String(session.email), 50);'''
+          new = '''    const byDiscord = await queryByField(token, "recipientDiscordId", discordId, 50);
+    const byRecipientId = await queryByField(token, "recipientId", discordId, 50);
+    const merged = new Map();
+    [...byDiscord, ...byRecipientId].forEach(item => merged.set(item.id, item));
+    let items = Array.from(merged.values());
+    if (!items.length && session.email) items = await queryByField(token, "recipientEmail", String(session.email), 50);'''
+          if old in s:
+              s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Verify
+        shell: bash
+        run: |
+          grep -q 'initPersistentDiscordNotificationCenter' index.html
+          grep -q "async function startNotificationListeners" index.html
+          if grep -q 'onAuthStateChanged(auth, user => {' index.html; then exit 1; fi
+          grep -q 'byRecipientId' api/notifications.js
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html api/notifications.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Persist Discord notification center across navigation [skip ci]'
+          git push
