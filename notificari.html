@@ -5,138 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notificări | Portal PCLS</title>
 <!-- Vercel Web Analytics -->
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script><script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root{color-scheme:dark;--bg:#05070c;--glass:rgba(18,25,40,.62);--line:rgba(255,255,255,.11);--text:#f7f9ff;--muted:#b8c0d0;--quiet:#7f8aa0;--accent:#64d2ff;--mint:#63e6be;--danger:#ff6961;--gold:#ffd60a;--violet:#bf5af2}
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;padding:40px 16px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 15% 10%,rgba(10,132,255,.24),transparent 30%),radial-gradient(circle at 85% 12%,rgba(191,90,242,.16),transparent 28%),linear-gradient(145deg,#070b14,#090d18 40%,#05070c)}
-a{color:inherit;text-decoration:none}
-.page{width:min(980px,100%);margin:auto}
-.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}
-.eyebrow{color:var(--accent);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
-.title{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.05em}
-.subtitle{margin-top:7px;color:var(--muted);font-size:.9rem;line-height:1.5}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:11px 15px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:700;cursor:pointer}
-.btn:hover{background:rgba(255,255,255,.09)}
-.btn-primary{border-color:rgba(100,210,255,.3);background:linear-gradient(135deg,rgba(10,132,255,.2),rgba(100,210,255,.08))}
-.status-note{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03);color:var(--muted);font-size:.78rem}
-.status-count{color:var(--accent);font-weight:800}
-.notification-list{display:grid;gap:12px}
-.notification{position:relative;padding:19px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(145deg,rgba(18,25,40,.67),rgba(15,19,34,.48));box-shadow:inset 0 1px rgba(255,255,255,.04),0 18px 50px rgba(0,0,0,.12);transition:.22s ease}
-.notification:hover{transform:translateY(-2px);border-color:rgba(100,210,255,.25)}
-.notification.unread{box-shadow:inset 3px 0 0 var(--accent),0 18px 50px rgba(0,0,0,.12)}
-.notification.success.unread{border-color:rgba(99,230,190,.23)}
-.notification.error.unread{border-color:rgba(255,105,97,.23)}
-.notification.warning.unread{border-color:rgba(255,214,10,.23)}
-.notification.info.unread{border-color:rgba(100,210,255,.23)}
-.top{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:start}
-.icon{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05)}
-.icon svg{width:21px;height:21px}
-.success .icon{color:var(--mint);background:rgba(99,230,190,.1);border-color:rgba(99,230,190,.2)}
-.error .icon{color:var(--danger);background:rgba(255,105,97,.1);border-color:rgba(255,105,97,.2)}
-.warning .icon{color:var(--gold);background:rgba(255,214,10,.1);border-color:rgba(255,214,10,.2)}
-.info .icon{color:var(--accent);background:rgba(100,210,255,.1);border-color:rgba(100,210,255,.2)}
-.copy h2{font-size:1rem;line-height:1.35}
-.copy p{margin-top:7px;color:var(--muted);line-height:1.55;font-size:.9rem}
-.copy small{display:block;margin-top:8px;color:var(--quiet);font-size:.7rem}
-.type-badge{padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
-.success .type-badge{color:var(--mint);background:rgba(99,230,190,.11);border:1px solid rgba(99,230,190,.22)}
-.error .type-badge{color:var(--danger);background:rgba(255,105,97,.11);border:1px solid rgba(255,105,97,.22)}
-.warning .type-badge{color:var(--gold);background:rgba(255,214,10,.11);border:1px solid rgba(255,214,10,.22)}
-.info .type-badge{color:var(--accent);background:rgba(100,210,255,.11);border:1px solid rgba(100,210,255,.22)}
-.notification-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
-.empty{padding:55px 22px;text-align:center;border:1px solid var(--line);border-radius:22px;background:rgba(18,25,40,.42);color:var(--quiet)}
-@media(max-width:650px){.header{align-items:flex-start;flex-direction:column}.actions,.btn{width:100%}.top{grid-template-columns:40px minmax(0,1fr)}.type-badge{grid-column:2}.notification-actions{flex-direction:column}.notification-actions .btn{width:100%}}
+*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;padding:40px 16px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 15% 10%,rgba(10,132,255,.24),transparent 30%),radial-gradient(circle at 85% 12%,rgba(191,90,242,.16),transparent 28%),linear-gradient(145deg,#070b14,#090d18 40%,#05070c)}a{color:inherit;text-decoration:none}.page{width:min(980px,100%);margin:auto}.header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}.eyebrow{color:var(--accent);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}.title{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.05em}.subtitle{margin-top:7px;color:var(--muted);font-size:.9rem;line-height:1.5}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{padding:11px 15px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:700;cursor:pointer}.btn:hover{background:rgba(255,255,255,.09)}.btn-primary{border-color:rgba(100,210,255,.3);background:linear-gradient(135deg,rgba(10,132,255,.2),rgba(100,210,255,.08))}.status-note{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03);color:var(--muted);font-size:.78rem}.status-count{color:var(--accent);font-weight:800}.notification-list{display:grid;gap:12px}.notification{position:relative;padding:19px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(145deg,rgba(18,25,40,.67),rgba(15,19,34,.48));box-shadow:inset 0 1px rgba(255,255,255,.04),0 18px 50px rgba(0,0,0,.12);transition:.22s ease}.notification:hover{transform:translateY(-2px);border-color:rgba(100,210,255,.25)}.notification.unread{box-shadow:inset 3px 0 0 var(--accent),0 18px 50px rgba(0,0,0,.12)}.notification.success.unread{border-color:rgba(99,230,190,.23)}.notification.error.unread{border-color:rgba(255,105,97,.23)}.notification.warning.unread{border-color:rgba(255,214,10,.23)}.notification.info.unread{border-color:rgba(100,210,255,.23)}.top{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:start}.icon{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05)}.icon svg{width:21px;height:21px}.success .icon{color:var(--mint);background:rgba(99,230,190,.1);border-color:rgba(99,230,190,.2)}.error .icon{color:var(--danger);background:rgba(255,105,97,.1);border-color:rgba(255,105,97,.2)}.warning .icon{color:var(--gold);background:rgba(255,214,10,.1);border-color:rgba(255,214,10,.2)}.info .icon{color:var(--accent);background:rgba(100,210,255,.1);border-color:rgba(100,210,255,.2)}.copy h2{font-size:1rem;line-height:1.35}.copy p{margin-top:7px;color:var(--muted);line-height:1.55;font-size:.9rem}.copy small{display:block;margin-top:8px;color:var(--quiet);font-size:.7rem}.type-badge{padding:6px 10px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.success .type-badge{color:var(--mint);background:rgba(99,230,190,.11);border:1px solid rgba(99,230,190,.22)}.error .type-badge{color:var(--danger);background:rgba(255,105,97,.11);border:1px solid rgba(255,105,97,.22)}.warning .type-badge{color:var(--gold);background:rgba(255,214,10,.11);border:1px solid rgba(255,214,10,.22)}.info .type-badge{color:var(--accent);background:rgba(100,210,255,.11);border:1px solid rgba(100,210,255,.22)}.notification-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.empty{padding:55px 22px;text-align:center;border:1px solid var(--line);border-radius:22px;background:rgba(18,25,40,.42);color:var(--quiet)}@media(max-width:650px){.header{align-items:flex-start;flex-direction:column}.actions,.btn{width:100%}.top{grid-template-columns:40px minmax(0,1fr)}.type-badge{grid-column:2}.notification-actions{flex-direction:column}.notification-actions .btn{width:100%}}
 </style>
 </head>
 <body>
-<div class="page">
- <div class="header">
-   <div>
-     <div class="eyebrow">Portal PCLS</div>
-     <div class="title">Centrul de notificări</div>
-     <div class="subtitle">Actualizările contului și ale cererilor tale apar aici în timp real.</div>
-   </div>
-   <div class="actions">
-     <a class="btn" href="index.html">← Portal</a>
-     <button id="mark-all" class="btn btn-primary" type="button">Marchează toate citite</button>
-   </div>
- </div>
- <div id="status" class="status-note"><span>Se încarcă notificările...</span><span id="unread-count" class="status-count"></span></div>
- <div id="notification-list" class="notification-list"></div>
-</div>
-
+<div class="page"><div class="header"><div><div class="eyebrow">Portal PCLS</div><div class="title">Centrul de notificări</div><div class="subtitle">Actualizările contului și ale cererilor tale apar aici în timp real.</div></div><div class="actions"><a class="btn" href="index.html">← Portal</a><button id="mark-all" class="btn btn-primary" type="button">Marchează toate citite</button></div></div><div id="status" class="status-note"><span>Se încarcă notificările...</span><span id="unread-count" class="status-count"></span></div><div id="notification-list" class="notification-list"></div></div>
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, doc, onSnapshot, query, updateDoc, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const list=document.getElementById("notification-list");
-const status=document.getElementById("status");
-const unreadCount=document.getElementById("unread-count");
-const markAllBtn=document.getElementById("mark-all");
-let unsubscribe=null;
-const ICONS={
- info:'<path d="M12 8h.01"></path><path d="M11 12h1v5h1"></path><circle cx="12" cy="12" r="9"></circle>',
- success:'<path d="m8 12 2.5 2.5L16 9"></path><circle cx="12" cy="12" r="9"></circle>',
- warning:'<path d="M12 8v4"></path><path d="M12 16h.01"></path><path d="m10.3 3.8-7 12.1A2 2 0 0 0 5 19h14a2 2 0 0 0 1.7-3.1l-7-12.1a2 2 0 0 0-3.4 0Z"></path>',
- error:'<circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6"></path><path d="m15 9-6 6"></path>'
-};
-function esc(v){return String(v??"").replace(/[&<>\'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[c]));}
+const list=document.getElementById("notification-list"),status=document.getElementById("status"),unreadCount=document.getElementById("unread-count"),markAllBtn=document.getElementById("mark-all");let unsubscribe=null;
+const ICONS={info:'<path d="M12 8h.01"></path><path d="M11 12h1v5h1"></path><circle cx="12" cy="12" r="9"></circle>',success:'<path d="m8 12 2.5 2.5L16 9"></path><circle cx="12" cy="12" r="9"></circle>',warning:'<path d="M12 8v4"></path><path d="M12 16h.01"></path><path d="m10.3 3.8-7 12.1A2 2 0 0 0 5 19h14a2 2 0 0 0 1.7-3.1l-7-12.1a2 2 0 0 0-3.4 0Z"></path>',error:'<circle cx="12" cy="12" r="9"></circle><path d="m9 9 6 6"></path><path d="m15 9-6 6"></path>'};
+function esc(v){return String(v??"").replace(/[&<>\'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[c]))}
 function dateValue(v){try{if(!v)return null;if(typeof v.toDate==="function")return v.toDate();const d=new Date(v);return Number.isNaN(d.getTime())?null:d}catch{return null}}
 function relative(v){const d=dateValue(v);if(!d)return"acum";const m=Math.floor((Date.now()-d.getTime())/60000);if(m<1)return"acum";if(m<60)return`acum ${m} min`;const h=Math.floor(m/60);if(h<24)return`acum ${h} h`;const days=Math.floor(h/24);if(days<7)return`acum ${days} zile`;return new Intl.DateTimeFormat("ro-RO",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(d)}
 function typeLabel(type){return({success:"Succes",error:"Alertă",warning:"Atenție",info:"Info"}[type]||"Info")}
-function render(items){
- const unread=items.filter(x=>x.read!==true).length;
- status.querySelector("span:first-child").textContent=unread?`${items.length} notificări · ${unread} necitite`:`${items.length} notificări · totul este citit`;
- unreadCount.textContent=unread?`${unread} necitite`:"";
- markAllBtn.disabled=unread===0;
- if(!items.length){list.innerHTML='<div class="empty">Nu ai notificări pentru contul tău.<br><small>Centrul se actualizează automat.</small></div>';return}
- list.innerHTML=items.map(n=>{
-  const type=["info","success","warning","error"].includes(n.type)?n.type:"info";
-  const url=n.requestUrl||(n.requestId?`cererile_mele.html?cerere=${encodeURIComponent(n.requestId)}`:"index.html");
-  return `<article class="notification ${type} ${n.read===true?"":"unread"}" data-id="${esc(n.id)}" data-url="${esc(url)}">
-   <div class="top">
-    <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[type]}</svg></div>
-    <div class="copy"><h2>${esc(n.title||"Notificare")}</h2><p>${esc(n.message||"")}</p><small>${esc(relative(n.createdAt))}${n.actorName?` · ${esc(n.actorName)}`:""}${n.requestId?` · Cerere ${esc(n.requestId)}`:""}</small></div>
-    <span class="type-badge">${typeLabel(type)}</span>
-   </div>
-   <div class="notification-actions">
-    ${n.read===true?"":`<button class="btn" data-read="${esc(n.id)}" type="button">Marchează citită</button>`}
-    <a class="btn btn-primary" href="${esc(url)}">${n.requestId?"Deschide cererea":"Deschide"}</a>
-   </div>
-  </article>`;
- }).join("");
-}
-
-list.addEventListener("click",async e=>{
- const readBtn=e.target.closest("[data-read]");
- if(readBtn){try{await updateDoc(doc(db,"notificari",readBtn.dataset.read),{read:true})}catch(err){console.error(err)};return}
- const card=e.target.closest(".notification[data-id]");
- if(!card||e.target.closest("a"))return;
- try{await updateDoc(doc(db,"notificari",card.dataset.id),{read:true})}catch(err){console.error(err)}
- window.location.href=card.dataset.url||"index.html";
-});
-markAllBtn.addEventListener("click",async()=>{
- const ids=[...list.querySelectorAll("[data-read]")].map(x=>x.dataset.read);
- if(!ids.length)return;
- const batch=writeBatch(db);ids.forEach(id=>batch.update(doc(db,"notificari",id),{read:true}));
- try{await batch.commit()}catch(err){console.error(err)}
-});
-
-onAuthStateChanged(auth,user=>{
- if(unsubscribe)unsubscribe();
- if(!user){window.location.href="auth.html";return}
- const q=query(collection(db,"notificari"),where("recipientId","==",user.uid));
- unsubscribe=onSnapshot(q,snap=>{
-  const items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(dateValue(b.createdAt)?.getTime()||0)-(dateValue(a.createdAt)?.getTime()||0));
-  render(items);
- },err=>{console.error("Eroare notificari:",err);status.querySelector("span:first-child").textContent="Nu s-au putut încărca notificările.";list.innerHTML='<div class="empty">Verifică regulile Firestore pentru colecția „notificari”.</div>'});
-});
+function render(items){const unread=items.filter(x=>x.read!==true).length;status.querySelector("span:first-child").textContent=unread?`${items.length} notificări · ${unread} necitite`:`${items.length} notificări · totul este citit`;unreadCount.textContent=unread?`${unread} necitite`:"";markAllBtn.disabled=unread===0;if(!items.length){list.innerHTML='<div class="empty">Nu ai notificări pentru contul tău.<br><small>Centrul se actualizează automat.</small></div>';return}list.innerHTML=items.map(n=>{const type=["info","success","warning","error"].includes(n.type)?n.type:"info";const url=n.requestUrl||(n.requestId?`cererile_mele.html?cerere=${encodeURIComponent(n.requestId)}`:"index.html");return `<article class="notification ${type} ${n.read===true?"":"unread"}" data-id="${esc(n.id)}" data-url="${esc(url)}"><div class="top"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[type]}</svg></div><div class="copy"><h2>${esc(n.title||"Notificare")}</h2><p>${esc(n.message||"")}</p><small>${esc(relative(n.createdAt))}${n.actorName?` · ${esc(n.actorName)}`:""}${n.requestId?` · Cerere ${esc(n.requestId)}`:""}</small></div><span class="type-badge">${typeLabel(type)}</span></div><div class="notification-actions">${n.read===true?"":`<button class="btn" data-read="${esc(n.id)}" type="button">Marchează citită</button>`}<a class="btn btn-primary" href="${esc(url)}">${n.requestId?"Deschide cererea":"Deschide"}</a></div></article>`}).join("")}
+async function cookieMode(){try{const r=await fetch("/api/my-notifications",{credentials:"same-origin",cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)return false;render(Array.isArray(d.notifications)?d.notifications:[]);list.onclick=async e=>{const b=e.target.closest("[data-read]");const card=e.target.closest(".notification[data-id]");if(b){await fetch("/api/my-notifications",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"read",id:b.dataset.read})});await cookieMode();return}if(!card||e.target.closest("a"))return;await fetch("/api/my-notifications",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"read",id:card.dataset.id})});window.location.href=card.dataset.url||"index.html"};markAllBtn.onclick=async()=>{await fetch("/api/my-notifications",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"readAll"})});await cookieMode()};return true}catch(e){console.error("Cookie notifications:",e);return false}}
+async function boot(){if(await cookieMode()){if(unsubscribe)unsubscribe();return}onAuthStateChanged(auth,user=>{if(unsubscribe)unsubscribe();if(!user){window.location.href="auth.html";return}const q=query(collection(db,"notificari"),where("recipientId","==",user.uid));unsubscribe=onSnapshot(q,snap=>{const items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(dateValue(b.createdAt)?.getTime()||0)-(dateValue(a.createdAt)?.getTime()||0));render(items)},err=>{console.error("Eroare notificari:",err);status.querySelector("span:first-child").textContent="Nu s-au putut încărca notificările.";list.innerHTML='<div class="empty">Nu s-au putut încărca notificările.</div>'})})}
+boot();
 </script>
-</body>
-</html>
+</body></html>
