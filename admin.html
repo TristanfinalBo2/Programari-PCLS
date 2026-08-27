@@ -1185,6 +1185,24 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="reject-modal">
+    <div class="modal-box" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: var(--accent-warning);">Motivul respingerii</h3>
+        <button class="modal-close" id="reject-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-muted);margin-bottom:16px;">Cererea va fi marcată ca respinsă. Motivul introdus aici va fi trimis utilizatorului și va apărea în notificările lui.</p>
+        <label for="reject-reason" style="display:block;color:var(--text-muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Motiv</label>
+        <textarea id="reject-reason" rows="5" maxlength="1000" placeholder="Scrie motivul respingerii..." style="width:100%;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(3,7,14,.82);color:var(--text-main);font:inherit;resize:vertical;outline:none;"></textarea>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <button class="btn-modal btn-modal-cancel" id="reject-cancel-btn">Anulează</button>
+        <button class="btn-modal btn-modal-danger" id="reject-ok-btn">Confirmă respingerea</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="confirm-modal">
     <div class="modal-box" style="max-width: 500px;">
       <div class="modal-header">
@@ -1243,6 +1261,7 @@ let currentFilter = "all";
 let currentSearch = "";
 let pendingDeleteId = null;
 let pendingApproveId = null;
+let pendingRejectId = null;
 let currentOpenItem = null;
 
 const cereriContainer = document.getElementById("cereri-container");
@@ -1255,6 +1274,11 @@ const approveOkBtn = document.getElementById("approve-ok-btn");
 const approveCancelBtn = document.getElementById("approve-cancel-btn");
 const approveCloseBtn = document.getElementById("approve-close");
 const approveCopyBtn = document.getElementById("approve-copy-btn");
+const rejectModal = document.getElementById("reject-modal");
+const rejectReason = document.getElementById("reject-reason");
+const rejectOkBtn = document.getElementById("reject-ok-btn");
+const rejectCancelBtn = document.getElementById("reject-cancel-btn");
+const rejectCloseBtn = document.getElementById("reject-close");
 const confirmModal = document.getElementById("confirm-modal");
 const confirmOkBtn = document.getElementById("confirm-ok-btn");
 const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
@@ -1390,7 +1414,7 @@ function renderCereri() {
 function attachActionListeners() {
   document.querySelectorAll(".btn-details").forEach(btn => btn.onclick = () => openDetailsModal(allCereri.find(x=>x.id===btn.dataset.id)));
   document.querySelectorAll(".btn-approve").forEach(btn => btn.onclick = () => openApproveModal(btn.dataset.id));
-  document.querySelectorAll(".btn-reject").forEach(btn => btn.onclick = () => updateStatus(btn.dataset.id,"respins","Respins cererea"));
+  document.querySelectorAll(".btn-reject").forEach(btn => btn.onclick = () => openRejectModal(btn.dataset.id));
   document.querySelectorAll(".btn-archive").forEach(btn => btn.onclick = () => toggleArchive(btn.dataset.id,true));
   document.querySelectorAll(".btn-unarchive").forEach(btn => btn.onclick = () => toggleArchive(btn.dataset.id,false));
   document.querySelectorAll(".btn-restore").forEach(btn => btn.onclick = () => updateStatus(btn.dataset.id,"În Așteptare","Restaurat cererea"));
@@ -1401,6 +1425,7 @@ function attachActionListeners() {
   });
 }
 
+function openRejectModal(id) { const item=allCereri.find(x=>x.id===id); if(!item) return; pendingRejectId=id; if(rejectReason) rejectReason.value=""; rejectModal?.classList.add("active"); rejectReason?.focus(); }
 function openApproveModal(id) {
   const item=allCereri.find(x=>x.id===id); if(!item) return;
   pendingApproveId=id;
@@ -1424,20 +1449,30 @@ function openDetailsModal(item) {
   detailsModal.classList.add("active");
 }
 async function postAction(body) {
-  try { const r=await api("POST",body); await loadData(); return r; }
+  try { return await api("POST",body); }
   catch(e){ if(e.status===401) location.href="auth.html"; else toastMessage(e.message||"Eroare la operație","error"); throw e; }
 }
 async function loadData() { const data=await api("GET"); currentUser=data.user; currentUserRole=data.role||data.user?.role; allCereri=Array.isArray(data.requests)?data.requests:[]; renderCereri(); }
-async function updateStatus(id,status,actionName){ try{await postAction({action:"status",id,status,actionName});toastMessage(status==="aprobat"?"Cererea a fost aprobată.":status==="respins"?"Cererea a fost respinsă.":"Cererea a fost actualizată.",status==="respins"?"warning":"success");}catch{} }
-async function toggleArchive(id,value){try{await postAction({action:"archive",id,value});toastMessage(value?"Cererea a fost arhivată.":"Cererea a fost desarhivată.","success");}catch{}}
+function applyStatusLocal(id,status,actorLabel,reason="") {
+  const item=allCereri.find(x=>x.id===id); if(!item) return;
+  item.status=status; item.deleted=status==="in_cos"; item.procesat_de_nume=String(actorLabel||currentUser?.name||currentUser?.username||"Admin PCLS").replace(/^@/,"");
+  item.procesat_de=status==="aprobat"?`Aprobat de: @${item.procesat_de_nume}`:status==="respins"?`Respins de: @${item.procesat_de_nume}`:`Procesat de: @${item.procesat_de_nume}`;
+  if(reason) { item.motiv_respingere=reason; item.motivRespingere=reason; }
+}
+async function updateStatus(id,status,actionName,reason=""){ try{const result=await postAction({action:"status",id,status,actionName,reason}); applyStatusLocal(id,status,result.actor,reason); renderCereri(); toastMessage(status==="aprobat"?"Cererea a fost aprobată.":status==="respins"?"Cererea a fost respinsă.":"Cererea a fost actualizată.",status==="respins"?"warning":"success"); return result;}catch{return null;} }
+async function toggleArchive(id,value){try{const result=await postAction({action:"archive",id,value});const item=allCereri.find(x=>x.id===id);if(item){item.arhivat=value;item.archived=value;item.procesat_de_nume=String(result.actor||currentUser?.name||"").replace(/^@/,"");item.procesat_de=`@${item.procesat_de_nume} (${value?"Arhivat":"Desarhivat"})`;}renderCereri();toastMessage(value?"Cererea a fost arhivată.":"Cererea a fost desarhivată.","success");}catch{}}
+
+rejectCloseBtn?.addEventListener("click",()=>{pendingRejectId=null;rejectModal?.classList.remove("active")});
+rejectCancelBtn?.addEventListener("click",()=>{pendingRejectId=null;rejectModal?.classList.remove("active")});
+rejectOkBtn?.addEventListener("click",async()=>{if(!pendingRejectId)return;const reason=String(rejectReason?.value||"").trim();if(!reason){toastMessage("Introdu un motiv pentru respingere.","warning");rejectReason?.focus();return;}const id=pendingRejectId;const result=await updateStatus(id,"respins","Respins cererea",reason);if(result){pendingRejectId=null;rejectModal?.classList.remove("active")}});
 
 approveCloseBtn?.addEventListener("click",()=>approveModal.classList.remove("active"));
 approveCancelBtn?.addEventListener("click",()=>approveModal.classList.remove("active"));
-approveOkBtn?.addEventListener("click",async()=>{if(!pendingApproveId)return;await updateStatus(pendingApproveId,"aprobat","Aprobat cererea");pendingApproveId=null;approveModal.classList.remove("active");});
+approveOkBtn?.addEventListener("click",async()=>{if(!pendingApproveId)return;const id=pendingApproveId;const result=await updateStatus(id,"aprobat","Aprobat cererea");if(result){pendingApproveId=null;approveModal.classList.remove("active")}});
 approveCopyBtn?.addEventListener("click",()=>{const t=`=== CONFIRMARE APROBARE ===\nNume / Reprezentant: ${document.getElementById("app-nume").textContent}\nAdresă / Locație: ${document.getElementById("app-adresa").textContent}\nTip Control / Cerere: ${document.getElementById("app-tip").textContent}\nData & Ora: ${document.getElementById("app-data").textContent}\nProcesat și Acceptat de: ${document.getElementById("app-admin").textContent}`;navigator.clipboard.writeText(t).then(()=>toastMessage("Datele au fost copiate.","success"));});
 confirmCancelBtn?.addEventListener("click",()=>{pendingDeleteId=null;confirmModal.classList.remove("active")});
 confirmCloseBtn?.addEventListener("click",()=>{pendingDeleteId=null;confirmModal.classList.remove("active")});
-confirmOkBtn?.addEventListener("click",async()=>{if(!pendingDeleteId)return;try{await postAction({action:"delete",id:pendingDeleteId});toastMessage("Cererea a fost ștearsă definitiv.","warning");}catch{}pendingDeleteId=null;confirmModal.classList.remove("active")});
+confirmOkBtn?.addEventListener("click",async()=>{if(!pendingDeleteId)return;const id=pendingDeleteId;try{await postAction({action:"delete",id});allCereri=allCereri.filter(x=>x.id!==id);renderCereri();toastMessage("Cererea a fost ștearsă definitiv.","warning");}catch{}pendingDeleteId=null;confirmModal.classList.remove("active")});
 detailsClose?.addEventListener("click",()=>detailsModal.classList.remove("active"));
 detailsCloseBtn?.addEventListener("click",()=>detailsModal.classList.remove("active"));
 detailsTrashBtn?.addEventListener("click",async()=>{if(!currentOpenItem)return;const id=currentOpenItem.id;if(currentOpenItem.status==="in_cos"||currentOpenItem.deleted===true){pendingDeleteId=id;detailsModal.classList.remove("active");confirmModal.classList.add("active");}else{await updateStatus(id,"in_cos","Mutat în Coș din Detalii");detailsModal.classList.remove("active");}});
