@@ -29,8 +29,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     document.head.appendChild(analyticsScript);
   }
 
-  // All Discord login/connect buttons use the server-side Discord OAuth cookie flow.
-  // Capture phase runs before legacy Firebase popup listeners on the forms.
+  // Discord auth always uses the server-side OAuth cookie flow.
+  // Capture phase runs before every legacy Firebase popup listener.
   document.addEventListener("click", event => {
     const button = event.target?.closest?.(
       "#btnDiscordLogin, #discord-modal-connect, #discord-trigger, #discordModalConnect, #discordIdConnect, #discordIdVerify, [data-discord-connect]"
@@ -38,48 +38,74 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     if (!button) return;
 
     event.preventDefault();
-    event.stopImmediatePropagation();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
 
     const returnTo = window.location.pathname + window.location.search + window.location.hash;
     window.location.assign(`/api/discord-auth?return_to=${encodeURIComponent(returnTo)}`);
   }, true);
 
-  // Keep Discord identity available to every page/form without using Firebase OIDC.
-  window.PCLSDiscordSessionPromise = fetch("/api/me", {
-    credentials: "same-origin",
-    cache: "no-store",
-    headers: { Accept: "application/json" }
-  })
-    .then(response => response.ok ? response.json() : null)
-    .then(data => {
-      const user = data?.ok ? data.user : null;
-      const discordId = String(user?.discordId || "").trim();
-      if (!/^\d{17,20}$/.test(discordId)) return null;
+  function applyDiscordSession(user) {
+    const discordId = String(user?.discordId || "").trim();
+    if (!/^\d{17,20}$/.test(discordId)) return false;
 
-      const username = String(user?.username || user?.name || "").trim();
-      window.PCLSDiscordSession = { discordId, username, name: username, email: String(user?.email || "") };
+    const username = String(user?.username || user?.name || "").trim();
+    window.PCLSDiscordSession = {
+      discordId,
+      username,
+      name: username,
+      email: String(user?.email || "")
+    };
 
-      document.querySelectorAll('input[name="discord"], input[name="discord_id"], input[name="discordId"], #discordIdInput, #discord-input').forEach(input => {
-        input.value = discordId;
-        input.setAttribute("value", discordId);
-        input.readOnly = true;
-        input.dataset.pclsDiscordAuto = "true";
-      });
-
-      const connectedBox = document.getElementById("discord-connected-box") || document.getElementById("discordConnectedBox");
-      const loginBox = document.getElementById("discord-login-box") || document.getElementById("discordLoginBox");
-      const submit = document.getElementById("submit");
-      if (connectedBox) connectedBox.style.display = "flex";
-      if (loginBox) loginBox.style.display = "none";
-      if (submit) submit.disabled = false;
-
-      document.dispatchEvent(new CustomEvent("pcls:discord-session-ready", { detail: window.PCLSDiscordSession }));
-      return window.PCLSDiscordSession;
-    })
-    .catch(error => {
-      console.warn("Discord cookie session unavailable:", error);
-      return null;
+    document.querySelectorAll(
+      'input[name="discord"], input[name="discord_id"], input[name="discordId"], #discordIdInput, #discord-input'
+    ).forEach(input => {
+      input.value = discordId;
+      input.setAttribute("value", discordId);
+      input.readOnly = true;
+      input.dataset.pclsDiscordAuto = "true";
     });
+
+    const connectedBox = document.getElementById("discord-connected-box") || document.getElementById("discordConnectedBox");
+    const loginBox = document.getElementById("discord-login-box") || document.getElementById("discordLoginBox");
+    const submit = document.getElementById("submit");
+    if (connectedBox) connectedBox.style.display = "flex";
+    if (loginBox) loginBox.style.display = "none";
+    if (submit) submit.disabled = false;
+
+    document.dispatchEvent(new CustomEvent("pcls:discord-session-ready", { detail: window.PCLSDiscordSession }));
+    return true;
+  }
+
+  async function readDiscordSession() {
+    try {
+      const response = await fetch("/api/me", {
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok || !data?.user) return false;
+      return applyDiscordSession(data.user);
+    } catch (error) {
+      console.warn("Discord cookie session unavailable:", error);
+      return false;
+    }
+  }
+
+  // Public promise for pages that need the server-side Discord identity.
+  window.PCLSDiscordSessionPromise = readDiscordSession();
+
+  // Re-apply briefly after page load because legacy Firebase onAuthStateChanged
+  // handlers may initially report null and clear the old visible Discord field.
+  window.addEventListener("DOMContentLoaded", () => {
+    let attempts = 0;
+    const timer = window.setInterval(async () => {
+      attempts += 1;
+      await readDiscordSession();
+      if (attempts >= 12) window.clearInterval(timer);
+    }, 250);
+  });
 }
 
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
@@ -155,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
-    document.getElementById("btnLogout")?.addEventListener("click", async () => { try { await signOut(auth); window.location.reload(); } catch (error) { console.error("Eroare logout:", error); } });
+    document.getElementById("btnLogout")?.addEventListener("click", async () => { try { await signOut(auth); await fetch("/api/logout", { method: "POST", credentials: "same-origin" }).catch(() => {}); window.location.reload(); } catch (error) { console.error("Eroare logout:", error); } });
   });
 });
 
