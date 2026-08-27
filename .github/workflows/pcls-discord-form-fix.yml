@@ -1,0 +1,103 @@
+name: Fix PCLS Discord connect from form
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'Fix PCLS Discord connect from form') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch only Discord connection logic in pcls_page.html
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path('pcls_page.html')
+          s = p.read_text(encoding='utf-8')
+
+          connect_pattern = re.compile(r'async function connectDiscord\(\) \{.*?\n\}', re.S)
+          connect_replacement = '''async function connectDiscord() {
+        window.location.href = "/api/discord-auth?return_to=/pcls_page.html";
+    }'''
+          s2, n = connect_pattern.subn(connect_replacement, s, count=1)
+          if n != 1:
+              raise SystemExit('connectDiscord function not found')
+          s = s2
+
+          auth_pattern = re.compile(r'onAuthStateChanged\(auth, async \(user\) => \{.*?\n\}\);\n\n    // Prevenire dev tools', re.S)
+          auth_replacement = '''onAuthStateChanged(auth, async (user) => {
+        let discordVal = "";
+
+        try {
+            const response = await fetch("/api/me", {
+                method: "GET",
+                credentials: "same-origin",
+                cache: "no-store",
+                headers: { Accept: "application/json" }
+            });
+            const data = await response.json().catch(() => ({}));
+            if (response.ok && data?.ok && data?.user?.discordId) {
+                discordVal = String(data.user.discordId).trim();
+            }
+        } catch (error) {
+            console.warn("Sesiunea Discord nu a putut fi citită:", error);
+        }
+
+        if (!discordVal && user) {
+            try {
+                const userSnap = await getDoc(doc(db, "utilizatori", user.uid));
+                if (userSnap.exists()) {
+                    const data = userSnap.data() || {};
+                    discordVal = String(data.discordId || data.discord_id || "").trim();
+                }
+            } catch (error) {
+                console.warn("Discord ID din profil nu a putut fi citit:", error);
+            }
+        }
+
+        currentDiscordValue = discordVal;
+        discordInput.value = discordVal;
+        discordConnectedBox.style.display = discordVal ? "flex" : "none";
+        discordLoginBox.style.display = discordVal ? "none" : "block";
+        if (submitButton) submitButton.disabled = !discordVal;
+    });
+
+    // Prevenire dev tools'''
+          s2, n = auth_pattern.subn(auth_replacement, s, count=1)
+          if n != 1:
+              raise SystemExit('auth state block not found')
+          s = s2
+
+          p.write_text(s, encoding='utf-8')
+
+      - name: Verify file still looks like a complete HTML page
+        shell: bash
+        run: |
+          test -s pcls_page.html
+          grep -q '<!DOCTYPE html>' pcls_page.html
+          grep -q '</html>' pcls_page.html
+          grep -q 'async function connectDiscord' pcls_page.html
+          grep -q '/api/discord-auth?return_to=/pcls_page.html' pcls_page.html
+          ! grep -q 'signInWithPopup(auth, provider)' pcls_page.html
+
+      - name: Commit patch and remove this one-time workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pcls_page.html
+          git commit -m 'Fix PCLS Discord connect from form' || exit 0
+          git push
+          git rm .github/workflows/pcls-discord-form-fix.yml
+          git commit -m 'Remove one-time PCLS Discord form fix workflow'
+          git push
