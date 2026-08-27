@@ -1,0 +1,100 @@
+name: Fix notification center
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch notifications
+        shell: python
+        run: |
+          from pathlib import Path
+
+          api = Path('api/notifications.js')
+          s = api.read_text(encoding='utf-8')
+          s = s.replace('for (const item of items.filter(x => item.read !== true))', 'for (const item of items.filter(x => x.read !== true))')
+          api.write_text(s, encoding='utf-8')
+
+          p = Path('index.html')
+          h = p.read_text(encoding='utf-8')
+
+          # Disable the old Firestore client listeners for notifications.
+          start = h.find('function setupNotificationListeners(')
+          if start == -1:
+              raise SystemExit('setupNotificationListeners not found')
+          body_start = h.find('{', start)
+          depth = 0
+          end = None
+          for i in range(body_start, len(h)):
+              if h[i] == '{': depth += 1
+              elif h[i] == '}':
+                  depth -= 1
+                  if depth == 0:
+                      end = i + 1
+                      break
+          if end is None:
+              raise SystemExit('setupNotificationListeners end not found')
+          replacement = '''async function setupNotificationListeners(accountIdentifier) {\n    notificationUnsubscribers.forEach(fn => { try { fn(); } catch {} });\n    notificationUnsubscribers = [];\n    notificationRequestsBySource = { discord: new Map(), discord_id: new Map() };\n    notificationItems = [];\n    notificationUserKey = String(accountIdentifier || \"\");\n    await loadServerNotifications();\n    renderNotifications();\n}\n\nasync function loadServerNotifications() {\n    try {\n        const response = await fetch('/api/notifications', { credentials: 'same-origin', cache: 'no-store' });\n        const data = await response.json().catch(() => ({}));\n        if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);\n        notificationItems = Array.isArray(data.notifications) ? data.notifications : [];\n        renderNotifications();\n    } catch (error) {\n        console.error('Eroare notificări server:', error);\n    }\n}\n'''
+          h = h[:start] + replacement + h[end:]
+
+          # Replace notification request-merging source with server notification data.
+          start = h.find('function mergeNotificationRequests()')
+          if start == -1:
+              raise SystemExit('mergeNotificationRequests not found')
+          body_start = h.find('{', start)
+          depth = 0
+          end = None
+          for i in range(body_start, len(h)):
+              if h[i] == '{': depth += 1
+              elif h[i] == '}':
+                  depth -= 1
+                  if depth == 0:
+                      end = i + 1
+                      break
+          if end is None:
+              raise SystemExit('mergeNotificationRequests end not found')
+          replacement = '''function mergeNotificationRequests() {\n    notificationItems = [];\n    renderNotifications();\n}\n'''
+          h = h[:start] + replacement + h[end:]
+
+          # Make the renderer understand server notification records.
+          marker = 'function renderNotifications() {'
+          if marker not in h:
+              raise SystemExit('renderNotifications not found')
+          inject = '''function renderNotifications() {\n    if (!notificationListEl) return;\n    const serverItems = Array.isArray(notificationItems) ? notificationItems.slice() : [];\n    if (serverItems.length) {\n        notificationListEl.innerHTML = serverItems.map(item => {\n            const approved = String(item.type || item.status || '').toLowerCase() === 'success' || String(item.status || '').toLowerCase().includes('aprobat');\n            const title = item.title || (approved ? 'Cerere aprobată' : 'Cerere respinsă');\n            const message = item.message || (approved ? 'Cererea ta a fost acceptată.' : `Cererea ta a fost respinsă.${item.rejectionReason ? ` Motiv: ${item.rejectionReason}` : ''}`);\n            const date = notificationDateToMs(item.createdAt);\n            const unread = item.read !== true;\n            return `<article class="notification-item ${approved ? 'approved' : 'rejected'} ${unread ? 'unread' : ''}">\n                <div class="notification-icon">${approved ? '✓' : '×'}</div>\n                <div class="notification-copy"><strong>${escapeNotificationHtml(title)}</strong><p>${escapeNotificationHtml(message)}</p><small>${date ? new Date(date).toLocaleString('ro-RO') : ''}</small></div>\n                <button class="notification-open" type="button" data-notification-id="${escapeNotificationHtml(item.id || '')}" aria-label="Deschide notificarea">›</button>\n                ${unread ? '<span class="notification-unread-dot"></span>' : ''}\n            </article>`;\n        }).join('');\n        if (notificationBadgeEl) { const unreadCount = serverItems.filter(x => x.read !== true).length; notificationBadgeEl.hidden = unreadCount === 0; notificationBadgeEl.textContent = unreadCount > 99 ? '99+' : String(unreadCount); }\n        notificationListEl.querySelectorAll('[data-notification-id]').forEach(btn => btn.addEventListener('click', async () => { const id = btn.dataset.notificationId; if (!id) return; try { await fetch('/api/notifications', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'read',id}) }); } catch {} await loadServerNotifications(); }));\n        return;\n    }\n\n'''
+          # Keep existing fallback renderer after the injected server block by renaming original function.
+          h = h.replace(marker, inject + '    // Fallback: legacy request-based notifications.\n', 1)
+
+          # Reload server notifications periodically while signed in.
+          anchor = 'const notificationSection = document.getElementById("notification-section-premium");'
+          if anchor in h and 'setInterval(loadServerNotifications' not in h:
+              h = h.replace(anchor, anchor + '\nsetInterval(() => { if (document.visibilityState === "visible" && notificationUserKey) loadServerNotifications(); }, 10000);', 1)
+
+          p.write_text(h, encoding='utf-8')
+
+      - name: Verify
+        shell: bash
+        run: |
+          grep -q "fetch('/api/notifications'" index.html
+          grep -q 'function setupNotificationListeners' index.html
+          grep -q 'notificationItems = Array.isArray(data.notifications)' index.html
+          grep -q 'recipientDiscordId' api/admin-data.js
+
+      - name: Commit generated changes
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html api/notifications.js
+          git commit -m 'Fix user status notifications in notification center [skip ci]'
+          git push
+          git rm .github/workflows/fix-notifications.yml
+          git commit -m 'Remove one-time notification fixer [skip ci]'
+          git push
