@@ -546,82 +546,56 @@
         });
 
         // ==========================================
-        // LOGICA DE CONECTARE / ÎNREGISTRARE CU DISCORD
+        // LOGICA DE CONECTARE CU DISCORD - COOKIE SERVER-SIDE
         // ==========================================
         const btnDiscordLogin = document.getElementById('btnDiscordLogin');
-        const DISCORD_AUTH_URL = '/api/discord-auth';
+        let discordPopup = null;
 
-        function finalizeDiscordAuth(payload) {
-            if (!payload || payload.type !== 'PCLS_DISCORD_AUTH' || !payload.ok || !payload.token) {
-                throw new Error(payload?.error || 'Autentificarea Discord a eșuat.');
+        window.addEventListener('message', (event) => {
+            if (event.origin !== 'https://programari-pcls.vercel.app') return;
+            const data = event.data || {};
+            if (data.type !== 'PCLS_DISCORD_AUTH') return;
+
+            if (discordPopup && !discordPopup.closed) discordPopup.close();
+
+            if (data.ok) {
+                mesajDiv.style.color = "var(--accent-green)";
+                mesajDiv.textContent = `Conectat cu succes! Bun venit, ${data.discordName || 'Utilizator Discord'}`;
+                setTimeout(() => { window.location.href = 'index.html'; }, 350);
+            } else {
+                mesajDiv.style.color = "var(--error)";
+                mesajDiv.textContent = data.error || 'Autentificarea Discord a eșuat.';
             }
-            return signInWithCustomToken(auth, payload.token);
-        }
+        });
 
         if (btnDiscordLogin) {
-            window.addEventListener('message', async (event) => {
-                if (event.origin !== window.location.origin) return;
-                const data = event.data;
-                if (!data || data.type !== 'PCLS_DISCORD_AUTH') return;
-
-                try {
-                    mesajDiv.style.color = "var(--accent-green)";
-                    mesajDiv.textContent = "Se finalizează conectarea...";
-
-                    const result = await finalizeDiscordAuth(data);
-                    const user = result.user;
-                    const numeDiscord = data.discordName || user.displayName || user.email || 'Utilizator Discord';
-                    const discordId = data.discordId || '';
-
-                    const userRef = doc(db, "utilizatori", user.uid);
-                    const userSnap = await getDoc(userRef);
-
-                    if (!userSnap.exists()) {
-                        await setDoc(userRef, {
-                            email: user.email || data.discordEmail || "",
-                            nume: numeDiscord,
-                            discordId,
-                            role: "user",
-                            stare: "Activ",
-                            createdAt: serverTimestamp()
-                        });
-                    } else {
-                        await setDoc(userRef, {
-                            nume: numeDiscord,
-                            discordId,
-                            ultimaLogare: serverTimestamp()
-                        }, { merge: true });
-                    }
-
-                    mesajDiv.textContent = `Conectat cu succes! Bun venit, ${numeDiscord}`;
-                    window.location.href = "index.html";
-                } catch (error) {
-                    console.error("Eroare la autentificarea cu Discord:", error);
-                    mesajDiv.style.color = "var(--error)";
-                    mesajDiv.textContent = error?.message || "A apărut o problemă la conectarea cu Discord.";
-                }
-            });
-
             btnDiscordLogin.addEventListener('click', () => {
                 mesajDiv.style.color = "var(--accent-green)";
                 mesajDiv.textContent = "Se deschide Discord...";
-
                 const width = 520;
                 const height = 760;
                 const left = Math.max(0, Math.round((window.screen.width - width) / 2));
                 const top = Math.max(0, Math.round((window.screen.height - height) / 2));
-                const features = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
-                const popup = window.open(DISCORD_AUTH_URL, 'pcls_discord_auth', features);
-
-                if (!popup) {
-                    mesajDiv.style.color = "var(--error)";
-                    mesajDiv.textContent = "Browserul a blocat fereastra Discord. Permite pop-up-uri pentru acest site.";
+                discordPopup = window.open(
+                    '/api/discord-auth',
+                    'pcls_discord_auth',
+                    `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+                );
+                if (!discordPopup) {
+                    window.location.href = '/api/discord-auth';
                     return;
                 }
-
-                try { popup.focus(); } catch (_) {}
+                const timer = setInterval(() => {
+                    if (discordPopup.closed) {
+                        clearInterval(timer);
+                        if (!document.hidden && !location.href.includes('discord_error=')) {
+                            mesajDiv.textContent = 'Fereastra Discord a fost închisă.';
+                        }
+                    }
+                }, 600);
             });
         }
+
     </script>
 </body>
 </html>
