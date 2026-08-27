@@ -1,0 +1,173 @@
+name: Fix all public Firestore form submissions
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch every public cereri Firestore write
+        shell: python
+        run: |
+          from pathlib import Path
+
+          ROOT = Path('.')
+          EXCLUDED = {'.git', 'node_modules'}
+          TARGET = 'await addDoc(collection(db, "cereri"),'
+          TARGET_ALT = 'await addDoc(collection(db, \'cereri\'),'
+
+          def matching_brace(text, start):
+              depth = 0
+              quote = None
+              escape = False
+              i = start
+              while i < len(text):
+                  ch = text[i]
+                  nxt = text[i + 1] if i + 1 < len(text) else ''
+
+                  if quote:
+                      if escape:
+                          escape = False
+                      elif ch == '\\':
+                          escape = True
+                      elif ch == quote:
+                          quote = None
+                      i += 1
+                      continue
+
+                  if ch in ('"', "'", '`'):
+                      quote = ch
+                      i += 1
+                      continue
+
+                  if ch == '/' and nxt == '/':
+                      end = text.find('\n', i + 2)
+                      i = len(text) if end == -1 else end
+                      continue
+                  if ch == '/' and nxt == '*':
+                      end = text.find('*/', i + 2)
+                      i = len(text) if end == -1 else end + 2
+                      continue
+
+                  if ch == '{':
+                      depth += 1
+                  elif ch == '}':
+                      depth -= 1
+                      if depth == 0:
+                          return i
+                  i += 1
+              return -1
+
+          def patch_file(path):
+              text = path.read_text(encoding='utf-8')
+              changed = False
+              counter = 0
+              pos = 0
+
+              while True:
+                  a = text.find(TARGET, pos)
+                  b = text.find(TARGET_ALT, pos)
+                  starts = [x for x in (a, b) if x != -1]
+                  if not starts:
+                      break
+                  call_start = min(starts)
+                  open_brace = text.find('{', call_start)
+                  if open_brace == -1:
+                      raise SystemExit(f'Nu am putut găsi obiectul formularului în {path}')
+                  close_brace = matching_brace(text, open_brace)
+                  if close_brace == -1:
+                      raise SystemExit(f'Paranteze neînchise în {path}')
+
+                  end = close_brace + 1
+                  while end < len(text) and text[end].isspace():
+                      end += 1
+                  if not text.startswith(');', end):
+                      raise SystemExit(f'Apel addDoc neașteptat în {path}')
+                  end += 2
+
+                  counter += 1
+                  variable = f'__pclsPublicFormData{counter}'
+                  response_var = f'__pclsPublicFormResponse{counter}'
+                  result_var = f'__pclsPublicFormResult{counter}'
+                  object_text = text[open_brace:close_brace + 1]
+                  object_text = object_text.replace('serverTimestamp()', 'new Date().toISOString()')
+
+                  replacement = (
+                      f'const {variable} = {object_text};\n'
+                      f'const {response_var} = await fetch("/api/submit-public-request", {{\n'
+                      f'    method: "POST",\n'
+                      f'    headers: {{ "Content-Type": "application/json", "Accept": "application/json" }},\n'
+                      f'    credentials: "same-origin",\n'
+                      f'    body: JSON.stringify({{ data: {variable} }})\n'
+                      f'}});\n'
+                      f'const {result_var} = await {response_var}.json().catch(() => ({{}}));\n'
+                      f'if (!{response_var}.ok || !{result_var}.ok) {{\n'
+                      f'    throw new Error({result_var}.error || `Server error (${{{response_var}.status}})`);\n'
+                      f'}}'
+                  )
+
+                  text = text[:call_start] + replacement + text[end:]
+                  pos = call_start + len(replacement)
+                  changed = True
+
+              if changed:
+                  path.write_text(text, encoding='utf-8')
+              return changed, counter
+
+          patched = []
+          for path in ROOT.rglob('*.html'):
+              if any(part in EXCLUDED for part in path.parts):
+                  continue
+              try:
+                  changed, count = patch_file(path)
+              except UnicodeDecodeError:
+                  continue
+              if changed:
+                  patched.append((str(path), count))
+
+          print('Formulare patch-uite:', patched)
+          if not patched:
+              print('Nu există alte apeluri directe addDoc(... cereri ...) de patch-uit.')
+
+      - name: Verify no public direct Firestore writes remain
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          bad = []
+          for p in Path('.').rglob('*.html'):
+              if any(x in p.parts for x in ('.git', 'node_modules')):
+                  continue
+              s = p.read_text(encoding='utf-8', errors='ignore')
+              if 'await addDoc(collection(db, "cereri"),' in s or "await addDoc(collection(db, 'cereri')," in s:
+                  bad.append(str(p))
+          if bad:
+              print('Au rămas scrieri directe în:', bad)
+              raise SystemExit(1)
+          print('OK: nu mai există scrieri publice directe către cereri.')
+          PY
+
+      - name: Commit all patched forms and remove this one-time workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add '*.html' . || true
+          if git diff --cached --quiet; then
+            echo 'Nu există modificări HTML.'
+          else
+            git commit -m 'Route all public form submissions through server endpoint [skip ci]'
+            git push
+          fi
+          git rm .github/workflows/fix-all-public-forms.yml
+          git commit -m 'Remove one-time all-forms fixer [skip ci]'
+          git push
