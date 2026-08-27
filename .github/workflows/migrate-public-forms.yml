@@ -1,0 +1,65 @@
+name: Migrate all public forms
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Migrate direct cereri writes
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          pattern = re.compile(r'await\s+addDoc\s*\(\s*collection\(db,\s*["\']cereri["\']\s*\)\s*,', re.S)
+          helper = '''<script>\nwindow.__pclsSubmitPublicCerere = window.__pclsSubmitPublicCerere || async function(data){const r=await fetch("/api/submit-public-request",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},credentials:"same-origin",body:JSON.stringify({data})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||("Server error ("+r.status+")"));return d;};\n</script>'''
+
+          changed = []
+          for p in Path('.').rglob('*.html'):
+              if '.git' in p.parts or 'node_modules' in p.parts: continue
+              s = p.read_text(encoding='utf-8', errors='ignore')
+              n, count = pattern.subn('await window.__pclsSubmitPublicCerere(', s)
+              if not count: continue
+              n = n.replace('serverTimestamp()', 'new Date().toISOString()')
+              if 'window.__pclsSubmitPublicCerere = window.__pclsSubmitPublicCerere ||' not in n:
+                  n = n.replace('</body>', helper + '\n</body>', 1) if '</body>' in n else n + '\n' + helper
+              p.write_text(n, encoding='utf-8')
+              changed.append(f'{p}:{count}')
+          print('\n'.join(changed) or 'No direct cereri writes found')
+
+      - name: Verify
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          pattern = re.compile(r'await\s+addDoc\s*\(\s*collection\(db,\s*["\']cereri["\']\s*\)\s*,', re.S)
+          bad=[]
+          for p in Path('.').rglob('*.html'):
+              if '.git' in p.parts or 'node_modules' in p.parts: continue
+              if pattern.search(p.read_text(encoding='utf-8', errors='ignore')): bad.append(str(p))
+          if bad:
+              print('Remaining:', bad)
+              raise SystemExit(1)
+          print('OK')
+
+      - name: Commit and finish
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- '*.html'
+          git commit -m 'Migrate all public forms to server submission endpoint [skip ci]' || true
+          git push || true
+          git rm .github/workflows/migrate-public-forms.yml
+          git commit -m 'Remove completed public forms migration workflow [skip ci]'
+          git push
