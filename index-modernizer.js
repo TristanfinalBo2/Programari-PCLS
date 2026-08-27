@@ -24,13 +24,7 @@ function ensureStyle() {
 .hero-meta{margin-top:30px !important;gap:10px !important;}
 .hero-meta div{min-height:94px !important;padding:16px !important;border-radius:18px !important;}
 .hero-meta strong{font-size:1.42rem !important;}
-#proces{margin-top:56px !important;margin-bottom:54px !important;padding:30px !important;border-radius:28px !important;gap:24px !important;}
-#proces h2{font-size:clamp(1.75rem,3vw,2.55rem) !important;}
-.step-list{gap:10px !important;}
-.step{min-height:135px !important;padding:15px !important;border-radius:18px !important;}
-.step::before{width:40px;height:40px;border-radius:13px;font-size:.75rem;}
-.step strong{font-size:.9rem !important;}
-.step span{font-size:.78rem !important;}
+.cookie-user-profile{position:relative;}
 @media(max-width:900px){.topbar-container{grid-template-columns:1fr auto !important;padding:12px 18px !important}.nav-premium{display:none !important}.brand-text span{display:none !important}}
 @media(max-width:560px){.topbar-container{min-height:74px !important}.brand-logo-wrapper{width:44px !important;height:44px !important}.header-actions-premium{gap:7px !important}.notification-btn-premium{width:42px !important;height:42px !important}.hero-meta{margin-top:22px !important;}.hero-meta div{min-height:82px !important;}}
   `;
@@ -52,11 +46,45 @@ function reorderHomeSections() {
   main.setAttribute(ORDER_READY_ATTR, "1");
 }
 
+function isAdminRole(role) {
+  const normalized = String(role || "").trim().toLowerCase().replace(/\s+/g, "");
+  return [
+    "admin",
+    "superadmin",
+    "conducere",
+    "conducerea",
+    "isuls",
+    "dsls",
+    "mmls",
+    "mmlls",
+    "ssmls",
+    "adminisuls",
+    "admindsls",
+    "adminmmls",
+    "adminssmls"
+  ].includes(normalized);
+}
+
+function renderAdminNav(user) {
+  const container = document.getElementById("admin-nav-container");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!isAdminRole(user?.role)) return;
+
+  const link = document.createElement("a");
+  link.href = "admin.html";
+  link.className = "nav-item";
+  link.textContent = "Cereri Admin";
+  container.appendChild(link);
+}
+
 function renderCookieUser(user) {
   const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
   if (!authContainer) return;
   const name = String(user?.name || "Utilizator Discord").trim();
   const initial = (name.charAt(0) || "U").toUpperCase();
+
+  renderAdminNav(user);
 
   authContainer.innerHTML = `
     <div class="user-profile-premium">
@@ -69,7 +97,7 @@ function renderCookieUser(user) {
         <div class="dropdown-user-info"><span>Conectat</span><strong>${escapeHtml(name)}</strong></div>
         <div class="dropdown-divider"></div>
         <a href="cererile_mele.html" class="dropdown-item-premium">Cererile Mele</a>
-        <a href="setari-discord.html" class="dropdown-item-premium">Setări cont</a>
+        <a href="setari.html" class="dropdown-item-premium">Setări cont</a>
         <div class="dropdown-divider"></div>
         <button id="btnLogout" class="dropdown-item-premium" style="color:#ff6b6b;background:none;border:none;width:100%;text-align:left;cursor:pointer;">Deconectare</button>
       </div>
