@@ -70,13 +70,9 @@ async function serviceAccount() {
   return sa;
 }
 
-function base64Url(value) {
-  return Buffer.from(value).toString("base64").replace(/=/g, "").replace(/\\+/g, "-").replace(/\\//g, "_");
-}
-
 function signJwt(header, payload, privateKey) {
-  const encodedHeader = base64Url(JSON.stringify(header));
-  const encodedPayload = base64Url(JSON.stringify(payload));
+  const encodedHeader = Buffer.from(JSON.stringify(header)).toString("base64url");
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const input = `${encodedHeader}.${encodedPayload}`;
   const signature = crypto.createSign("RSA-SHA256").update(input).end().sign(privateKey);
   return `${input}.${signature.toString("base64url")}`;
@@ -150,7 +146,8 @@ module.exports = async function handler(req, res) {
       ok: true,
       user: {
         discordId: discordId,
-        name: String(session.name || "Utilizator Discord"),
+        name: String(session.username || session.name || "Utilizator Discord"),
+        username: String(session.username || session.name || "Utilizator Discord"),
         email: String(session.email || "")
       },
       requests
