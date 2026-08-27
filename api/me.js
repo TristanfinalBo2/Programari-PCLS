@@ -2,6 +2,11 @@ const crypto = require("crypto");
 const SESSION_COOKIE = "pcls_discord_session";
 const MAX_AGE = 60 * 60 * 24 * 7;
 
+let cachedGoogleToken = null;
+let cachedGoogleTokenExp = 0;
+const profileCache = new Map();
+const PROFILE_TTL = 30_000;
+
 function parseCookie(req, name) {
   const raw = String(req.headers.cookie || "");
   for (const part of raw.split(";")) {
@@ -34,12 +39,14 @@ function decodeString(fields, key) {
 }
 
 async function googleAccessToken() {
+  const now = Math.floor(Date.now() / 1000);
+  if (cachedGoogleToken && cachedGoogleTokenExp > now + 120) return cachedGoogleToken;
+
   const raw = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "").trim();
   if (!raw) throw new Error("Lipsește FIREBASE_SERVICE_ACCOUNT_JSON în Vercel.");
   const sa = JSON.parse(raw);
   if (!sa.client_email || !sa.private_key) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON este invalid.");
 
-  const now = Math.floor(Date.now() / 1000);
   const b64 = value => Buffer.from(value).toString("base64url");
   const header = b64(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const payload = b64(JSON.stringify({
@@ -64,53 +71,54 @@ async function googleAccessToken() {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.access_token) throw new Error("Nu s-a putut obține tokenul Google pentru Firebase Admin.");
-  return data.access_token;
+
+  cachedGoogleToken = String(data.access_token);
+  cachedGoogleTokenExp = now + Number(data.expires_in || 3600);
+  return cachedGoogleToken;
 }
 
 async function findUserProfile(accessToken, discordId, email) {
+  const cacheKey = `${discordId}|${email}`;
+  const cached = profileCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.profile;
+
   const base = "https://firestore.googleapis.com/v1/projects/pcls-portal/databases/(default)/documents:runQuery";
-  const values = [
-    ["discordId", discordId],
-    ["discord", discordId],
-    ["discord_id", discordId]
-  ];
-  if (email) values.push(["email", email]);
+  const fields = ["discordId", "discord", "discord_id"];
+  if (email) fields.push("email");
 
-  for (const [fieldPath, value] of values) {
-    const response = await fetch(base, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        structuredQuery: {
-          from: [{ collectionId: "utilizatori" }],
-          where: {
-            fieldFilter: {
-              field: { fieldPath },
-              op: "EQUAL",
-              value: { stringValue: String(value) }
-            }
-          },
-          limit: 1
-        }
-      })
-    });
-
-    if (!response.ok) continue;
+  const responses = await Promise.all(fields.map(fieldPath => fetch(base, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId: "utilizatori" }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath },
+            op: "EQUAL",
+            value: { stringValue: String(fieldPath === "email" ? email : discordId) }
+          }
+        },
+        limit: 1
+      }
+    })
+  }).then(async response => {
+    if (!response.ok) return null;
     const rows = await response.json().catch(() => []);
-    if (Array.isArray(rows)) {
-      const row = rows.find(item => item.document);
-      if (row?.document) return row.document;
-    }
-  }
+    if (!Array.isArray(rows)) return null;
+    return rows.find(item => item.document)?.document || null;
+  }).catch(() => null)));
 
-  return null;
+  const profile = responses.find(Boolean) || null;
+  profileCache.set(cacheKey, { profile, expiresAt: Date.now() + PROFILE_TTL });
+  return profile;
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Cache-Control", "private, no-store");
   if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Method Not Allowed" });
 
   const session = readSession(req);
