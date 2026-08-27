@@ -31,19 +31,8 @@ function ensureStyle() {
 .step::before{width:40px;height:40px;border-radius:13px;font-size:.75rem;}
 .step strong{font-size:.9rem !important;}
 .step span{font-size:.78rem !important;}
-.cookie-user-profile{position:relative;}
-.cookie-profile-btn{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:8px 11px 8px 15px;color:#fff;background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.035));box-shadow:0 10px 28px rgba(0,0,0,.20),inset 0 1px rgba(255,255,255,.10);cursor:pointer;}
-.cookie-profile-avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#64d2ff,#0a84ff);color:#05101a;font-weight:800;font-size:.82rem;}
-.cookie-profile-dropdown{position:absolute;right:0;top:calc(100% + 12px);z-index:1200;width:230px;border:1px solid rgba(255,255,255,.13);border-radius:20px;padding:10px;background:linear-gradient(150deg,rgba(27,35,53,.97),rgba(12,17,29,.95));backdrop-filter:blur(30px);box-shadow:0 28px 70px rgba(0,0,0,.5);display:none;}
-.cookie-profile-dropdown.show{display:block;}
-.cookie-profile-info{padding:10px 11px 12px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:6px;}
-.cookie-profile-info span{display:block;color:#8e9ab0;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;}
-.cookie-profile-info strong{display:block;margin-top:4px;color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.cookie-profile-item{display:block;width:100%;padding:10px 11px;border-radius:12px;border:0;background:transparent;color:#eaf0f8;text-decoration:none;text-align:left;cursor:pointer;font-weight:650;font-size:.86rem;}
-.cookie-profile-item:hover{background:rgba(255,255,255,.07);}
-.cookie-profile-item.danger{color:#ff8f8f;}
 @media(max-width:900px){.topbar-container{grid-template-columns:1fr auto !important;padding:12px 18px !important}.nav-premium{display:none !important}.brand-text span{display:none !important}}
-@media(max-width:560px){.topbar-container{min-height:74px !important}.brand-logo-wrapper{width:44px !important;height:44px !important}.header-actions-premium{gap:7px !important}.notification-btn-premium{width:42px !important;height:42px !important}.hero-meta{margin-top:22px !important;}.hero-meta div{min-height:82px !important;}.cookie-profile-btn>span{display:none;}}
+@media(max-width:560px){.topbar-container{min-height:74px !important}.brand-logo-wrapper{width:44px !important;height:44px !important}.header-actions-premium{gap:7px !important}.notification-btn-premium{width:42px !important;height:42px !important}.hero-meta{margin-top:22px !important;}.hero-meta div{min-height:82px !important;}}
   `;
   document.head.appendChild(style);
 }
@@ -59,7 +48,6 @@ function reorderHomeSections() {
 
   const hero = document.querySelector(".portal-hero");
   const process = document.getElementById("proces");
-
   if (!hero || !process) return;
 
   [hero, process].forEach(section => main.appendChild(section));
@@ -73,28 +61,40 @@ function renderCookieUser(user) {
   const initial = (name.charAt(0) || "U").toUpperCase();
 
   authContainer.innerHTML = `
-    <div class="cookie-user-profile">
-      <button class="cookie-profile-btn" id="cookieProfileToggle" type="button" aria-expanded="false">
+    <div class="user-profile-premium">
+      <button class="profile-btn-premium" id="profileToggle" type="button">
         <span>Salut, ${escapeHtml(name)}</span>
-        <div class="cookie-profile-avatar">${escapeHtml(initial)}</div>
+        <div class="profile-avatar">${escapeHtml(initial)}</div>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </button>
-      <div class="cookie-profile-dropdown" id="cookieProfileDropdown">
-        <div class="cookie-profile-info"><span>Conectat cu Discord</span><strong>${escapeHtml(name)}</strong></div>
-        <a class="cookie-profile-item" href="cererile_mele.html">Cererile Mele</a>
-        <a class="cookie-profile-item" href="setari.html">Setări cont</a>
-        <button class="cookie-profile-item danger" id="cookieLogout" type="button">Deconectare</button>
+      <div class="profile-dropdown-premium" id="profileDropdown">
+        <div class="dropdown-user-info"><span>Conectat</span><strong>${escapeHtml(name)}</strong></div>
+        <div class="dropdown-divider"></div>
+        <a href="cererile_mele.html" class="dropdown-item-premium">Cererile Mele</a>
+        <a href="setari.html" class="dropdown-item-premium">Setări cont</a>
+        <div class="dropdown-divider"></div>
+        <button id="btnLogout" class="dropdown-item-premium" style="color:#ff6b6b;background:none;border:none;width:100%;text-align:left;cursor:pointer;">Deconectare</button>
       </div>
     </div>`;
 
-  const toggle = document.getElementById("cookieProfileToggle");
-  const dropdown = document.getElementById("cookieProfileDropdown");
-  toggle?.addEventListener("click", event => {
-    event.stopPropagation();
-    const open = dropdown?.classList.toggle("show") || false;
-    toggle.setAttribute("aria-expanded", open ? "true" : "false");
-  });
-  document.getElementById("cookieLogout")?.addEventListener("click", async () => {
+  const profileToggle = document.getElementById("profileToggle");
+  const profileDropdown = document.getElementById("profileDropdown");
+  if (profileToggle && profileDropdown) {
+    profileToggle.onclick = event => {
+      event.stopPropagation();
+      profileDropdown.classList.toggle("show");
+    };
+    if (!window.__pclsProfileClickBound) {
+      window.__pclsProfileClickBound = true;
+      document.addEventListener("click", event => {
+        const t = document.getElementById("profileToggle");
+        const d = document.getElementById("profileDropdown");
+        if (t && d && !t.contains(event.target) && !d.contains(event.target)) d.classList.remove("show");
+      });
+    }
+  }
+
+  document.getElementById("btnLogout")?.addEventListener("click", async () => {
     try {
       await fetch("/api/logout", { method: "POST", credentials: "same-origin", cache: "no-store" });
     } finally {
@@ -112,13 +112,11 @@ function escapeHtml(value) {
 async function initCookieAuth() {
   const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
   if (!isIndex) return;
-
   try {
     const response = await fetch("/api/me", { credentials: "same-origin", cache: "no-store" });
     if (!response.ok) return;
     const data = await response.json().catch(() => ({}));
-    if (!data.ok || !data.user) return;
-    renderCookieUser(data.user);
+    if (data.ok && data.user) renderCookieUser(data.user);
   } catch (error) {
     console.error("Cookie Discord auth:", error);
   }
