@@ -121,24 +121,29 @@ module.exports = async function handler(req, res) {
     const profile = await findUserProfile(accessToken, String(session.discordId), String(session.email || "").trim());
     const fields = profile?.fields || {};
     const role = decodeString(fields, "role") || decodeString(fields, "rol") || "user";
-    const displayName = decodeString(fields, "nume") || String(session.name || "Utilizator Discord");
+    const username = String(session.username || session.name || "Utilizator Discord");
 
     return res.status(200).json({
       ok: true,
       user: {
         discordId: String(session.discordId),
-        name: displayName,
+        name: username,
+        username,
+        globalName: String(session.globalName || username),
         email: String(session.email || ""),
         role
       }
     });
   } catch (error) {
     console.error("Discord session profile error:", error);
+    const username = String(session.username || session.name || "Utilizator Discord");
     return res.status(200).json({
       ok: true,
       user: {
         discordId: String(session.discordId),
-        name: String(session.name || "Utilizator Discord"),
+        name: username,
+        username,
+        globalName: String(session.globalName || username),
         email: String(session.email || ""),
         role: "user"
       }
