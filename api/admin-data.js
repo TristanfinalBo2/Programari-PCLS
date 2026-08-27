@@ -1,0 +1,190 @@
+const crypto = require("crypto");
+const PROJECT_ID = "pcls-portal";
+const SESSION_COOKIE = "pcls_discord_session";
+const MAX_AGE = 60 * 60 * 24 * 7;
+
+const ROLE_PERMISSIONS = {
+  superadmin: ["all"],
+  admin: ["all"],
+  conducere: ["isuls", "dsls", "mmls", "ssmls"],
+  isuls: ["isuls"],
+  dsls: ["dsls"],
+  mmls: ["mmls", "mm"],
+  ssmls: ["ssmls", "ssmmls"]
+};
+const VALID_ROLES = Object.keys(ROLE_PERMISSIONS);
+
+function json(res, status, body) { return res.status(status).json(body); }
+function parseCookie(req, name) {
+  const raw = String(req.headers.cookie || "");
+  for (const part of raw.split(";")) {
+    const [key, ...rest] = part.trim().split("=");
+    if (key === name) return decodeURIComponent(rest.join("="));
+  }
+  return "";
+}
+function readSession(req) {
+  const raw = parseCookie(req, SESSION_COOKIE);
+  const secret = String(process.env.DISCORD_CLIENT_SECRET || "").trim();
+  if (!raw || !secret) return null;
+  const [body, signature] = raw.split(".");
+  if (!body || !signature) return null;
+  const expected = crypto.createHmac("sha256", secret).update(body).digest("base64url");
+  if (signature.length !== expected.length) return null;
+  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    const now = Math.floor(Date.now() / 1000);
+    if (!payload?.discordId || !payload?.exp || payload.exp <= now || payload.exp > now + MAX_AGE + 60) return null;
+    return payload;
+  } catch { return null; }
+}
+function fv(v) {
+  if (typeof v === "boolean") return { booleanValue: v };
+  if (typeof v === "number" && Number.isFinite(v)) return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  return { stringValue: String(v ?? "") };
+}
+function decode(fields = {}) {
+  const out = {};
+  for (const [k, v] of Object.entries(fields)) {
+    if (v.stringValue !== undefined) out[k] = v.stringValue;
+    else if (v.integerValue !== undefined) out[k] = Number(v.integerValue);
+    else if (v.doubleValue !== undefined) out[k] = v.doubleValue;
+    else if (v.booleanValue !== undefined) out[k] = v.booleanValue;
+    else if (v.timestampValue !== undefined) out[k] = v.timestampValue;
+    else if (v.nullValue !== undefined) out[k] = null;
+    else if (v.mapValue) out[k] = decode(v.mapValue.fields || {});
+    else if (v.arrayValue) out[k] = (v.arrayValue.values || []).map(x => decode({x}).x);
+  }
+  return out;
+}
+function encodeFields(obj = {}) {
+  const fields = {};
+  for (const [k, v] of Object.entries(obj)) fields[k] = fv(v);
+  return fields;
+}
+function b64(value) {
+  return Buffer.from(value).toString("base64url");
+}
+function signJwt(header, payload, privateKey) {
+  const input = `${b64(JSON.stringify(header))}.${b64(JSON.stringify(payload))}`;
+  const sig = crypto.createSign("RSA-SHA256").update(input).end().sign(privateKey);
+  return `${input}.${sig.toString("base64url")}`;
+}
+async function serviceAccount() {
+  const raw = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "").trim();
+  if (!raw) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON lipsește.");
+  const sa = JSON.parse(raw);
+  if (!sa.client_email || !sa.private_key) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON invalid.");
+  return sa;
+}
+async function accessToken(sa) {
+  const now = Math.floor(Date.now() / 1000);
+  const assertion = signJwt({alg:"RS256",typ:"JWT"},{iss:sa.client_email,sub:sa.client_email,aud:"https://oauth2.googleapis.com/token",iat:now,exp:now+3600,scope:"https://www.googleapis.com/auth/datastore"},sa.private_key.replace(/\\n/g,"\n"));
+  const r = await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({grant_type:"urn:ietf:params:oauth:grant-type:jwt-bearer",assertion}).toString()});
+  const d = await r.json().catch(()=>({}));
+  if (!r.ok || !d.access_token) throw new Error("Google token indisponibil.");
+  return d.access_token;
+}
+async function runQuery(token, collectionId, fieldPath, value, limit=50) {
+  const r = await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,{
+    method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},
+    body:JSON.stringify({structuredQuery:{from:[{collectionId}],where:{fieldFilter:{field:{fieldPath},op:"EQUAL",value:fv(value)}},limit}})
+  });
+  if (!r.ok) return [];
+  const rows = await r.json().catch(()=>[]);
+  return Array.isArray(rows) ? rows.filter(x=>x.document).map(x=>({id:String(x.document.name).split("/").pop(),...decode(x.document.fields||{})})) : [];
+}
+async function listCollection(token, collectionId) {
+  const out=[]; let pageToken="";
+  do {
+    const url = new URL(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}`);
+    url.searchParams.set("pageSize","1000"); if(pageToken) url.searchParams.set("pageToken",pageToken);
+    const r=await fetch(url,{headers:{Authorization:`Bearer ${token}`}}); const d=await r.json().catch(()=>({}));
+    if(!r.ok) break;
+    for(const doc of (d.documents||[])) out.push({id:String(doc.name).split("/").pop(),...decode(doc.fields||{})});
+    pageToken=d.nextPageToken||"";
+  } while(pageToken);
+  return out;
+}
+async function patchDoc(token, collectionId, id, data) {
+  const url=new URL(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}/${encodeURIComponent(id)}`);
+  for(const key of Object.keys(data)) url.searchParams.append("updateMask.fieldPaths",key);
+  const r=await fetch(url,{method:"PATCH",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({fields:encodeFields(data)})});
+  if(!r.ok) throw new Error("Nu s-a putut actualiza cererea.");
+}
+async function deleteDoc(token, collectionId, id) {
+  const r=await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}/${encodeURIComponent(id)}`,{method:"DELETE",headers:{Authorization:`Bearer ${token}`}});
+  if(!r.ok) throw new Error("Nu s-a putut șterge documentul.");
+}
+async function createDoc(token, collectionId, data) {
+  const r=await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionId}`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({fields:encodeFields(data)})});
+  if(!r.ok) throw new Error("Nu s-a putut crea documentul.");
+  return r.json();
+}
+async function findProfile(token, session) {
+  const checks=[
+    ["discordId",session.discordId],["discord_id",session.discordId],["discord",session.discordId],
+    ["email",session.email]
+  ];
+  for(const [field,value] of checks){ if(!value) continue; const rows=await runQuery(token,"utilizatori",field,value,5); if(rows[0]) return rows[0]; }
+  const all=await listCollection(token,"utilizatori");
+  const sid=String(session.discordId||"").toLowerCase(), sem=String(session.email||"").toLowerCase();
+  return all.find(u=>[u.discordId,u.discord_id,u.discord,u.email].some(v=>String(v||"").toLowerCase()===(sid||sem)))||null;
+}
+function normalizeRole(v){
+  const r=String(v||"").trim().toLowerCase().replace(/\s+/g,"");
+  if(r==="conducerea") return "conducere";
+  if(r==="mm" || r==="mmlls") return "mmls";
+  if(r==="ssmmls") return "ssmls";
+  return r;
+}
+async function authorize(token, session){
+  const profile=await findProfile(token,session);
+  const role=normalizeRole(profile?.role||profile?.rol||"");
+  if(!VALID_ROLES.includes(role)) return {ok:false,role,profile};
+  return {ok:true,role,profile};
+}
+function canSee(role,item){
+  if(role==="superadmin"||role==="admin") return true;
+  const text=[item.departament,item.departament_medical,item.department,item.dept,item.tip_cerere,item.tip,item.eveniment].filter(Boolean).join(" ").toLowerCase();
+  return (ROLE_PERMISSIONS[role]||[]).some(k=>k!=="all" && text.includes(k));
+}
+module.exports=async function(req,res){
+  res.setHeader("Cache-Control","no-store");
+  const session=readSession(req); if(!session) return json(res,401,{ok:false,error:"Nu ești autentificat cu Discord."});
+  try{
+    const sa=await serviceAccount(); const token=await accessToken(sa); const auth=await authorize(token,session);
+    if(!auth.ok) return json(res,403,{ok:false,error:"Nu ai un rol de administrator.",role:auth.role||null});
+
+    if(req.method==="GET"){
+      const all=await listCollection(token,"cereri");
+      const requests=all.filter(x=>canSee(auth.role,x)).sort((a,b)=>Date.parse(String(b.created_at||b.data_creare||b.createdAt||b.data||""))-Date.parse(String(a.created_at||a.data_creare||a.createdAt||a.data||"")));
+      return json(res,200,{ok:true,user:{discordId:session.discordId,name:session.name||"",email:session.email||"",role:auth.role},role:auth.role,requests});
+    }
+    if(req.method!=="POST") return json(res,405,{ok:false,error:"Method Not Allowed"});
+    const body=typeof req.body==="object"&&req.body?req.body:{}; const action=String(body.action||"");
+    if(action==="generateInvite"){
+      if(!["superadmin","admin","conducere"].includes(auth.role)) return json(res,403,{ok:false,error:"Nu ai permisiunea."});
+      const selected=String(body.role||"isuls").toLowerCase();
+      if(!["isuls","dsls","mmls","ssmls"].includes(selected)) return json(res,400,{ok:false,error:"Rol invalid."});
+      const code=`${selected.toUpperCase()}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
+      await createDoc(token,"invite_codes",{code,role:selected,used:false,created_at:new Date().toISOString(),created_by:session.email||session.name||session.discordId});
+      return json(res,200,{ok:true,code});
+    }
+    const id=String(body.id||""); if(!id) return json(res,400,{ok:false,error:"ID lipsă."});
+    const all=await listCollection(token,"cereri"); const item=all.find(x=>x.id===id); if(!item||!canSee(auth.role,item)) return json(res,404,{ok:false,error:"Cererea nu există sau nu ai acces."});
+    const actor=session.email||session.name||session.discordId;
+    const now=new Date().toLocaleString("ro-RO");
+    if(action==="status"){
+      const status=String(body.status||"");
+      const data={status,procesat_de:`${actor} (${String(body.actionName||status)})`,data_procesare:now,deleted:status==="in_cos"};
+      await patchDoc(token,"cereri",id,data); return json(res,200,{ok:true});
+    }
+    if(action==="archive"){
+      const yes=Boolean(body.value); await patchDoc(token,"cereri",id,{arhivat:yes,archived:yes,procesat_de:`${actor} (${yes?"Arhivat":"Desarhivat"})`,data_procesare:now}); return json(res,200,{ok:true});
+    }
+    if(action==="delete") { await deleteDoc(token,"cereri",id); return json(res,200,{ok:true}); }
+    return json(res,400,{ok:false,error:"Acțiune necunoscută."});
+  }catch(e){ console.error("admin-data error",e); return json(res,500,{ok:false,error:e?.message||"Eroare server."}); }
+};
