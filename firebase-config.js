@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.addEventListener("DOMContentLoaded", () => {
   import("./discord-id-guard.js").catch(error => console.error("Discord ID guard:", error));
-  import("./notification-center.js?v=20260814").catch(error => console.error("Centrul de notificări:", error));
+  import("./notification-center.js?v=20260828-cookie-notifications-1").catch(error => console.error("Centrul de notificări:", error));
   import("./rejection-popup-fix.js?v=20260814-rejection-popup-2").catch(error => console.error("Rejection popup fix:", error));
   import("./approval-copy-fix.js?v=20260816-approval-copy-1").catch(error => console.error("Approval copy fix:", error));
   if (window.location.pathname.toLowerCase().endsWith("/audit.html")) {
@@ -209,4 +209,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-27-cookie-discord-fullpage";
+export const FIREBASE_CONFIG_VERSION = "2026-08-28-cookie-notifications-1";
