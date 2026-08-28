@@ -1384,7 +1384,7 @@ async function connectDiscord() {
             await setDoc(userRef, {
                 discordId,
                 numeDiscord: discordName,
-                ultimaLogare: serverTimestamp()
+                ultimaLogare: new Date().toISOString()
             }, { merge: true });
         } else {
             throw new Error("Nu s-a putut obține ID-ul Discord.");
@@ -1595,7 +1595,7 @@ onAuthStateChanged(auth, async (user) => {
                 }
 
                 // SALVARE ÎN FIREBASE (Populează Meniul de Admin)
-                await addDoc(collection(db, "cereri"), {
+                await window.__pclsSubmitPublicCerere( {
                     tip_cerere: "Eveniment",
                     cod_eveniment: uniqueEventCode,
                     cod: uniqueEventCode,
@@ -1618,7 +1618,7 @@ onAuthStateChanged(auth, async (user) => {
                     status: "in_asteptare",
                     arhivat: false,
                     created_at: new Date().toISOString(),
-                    data_creare: serverTimestamp()
+                    data_creare: new Date().toISOString()
                 });
 
                 // DISCORD WEBHOOK
@@ -1665,6 +1665,9 @@ onAuthStateChanged(auth, async (user) => {
             }
         });
     }
+</script>
+<script>
+window.__pclsSubmitPublicCerere = window.__pclsSubmitPublicCerere || async function(data){const r=await fetch("/api/submit-public-request",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},credentials:"same-origin",body:JSON.stringify({data})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||("Server error ("+r.status+")"));return d;};
 </script>
 </body>
 </html>

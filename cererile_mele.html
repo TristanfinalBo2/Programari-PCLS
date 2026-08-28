@@ -161,10 +161,6 @@ body.modal-open { overflow: hidden; }
 </div>
 
 <script type="module">
-    import { auth, db } from "./firebase-config.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
     const container = document.getElementById("requests-list");
     const modal = document.getElementById("details-modal");
     const modalTitle = document.getElementById("modal-request-title");
@@ -467,43 +463,33 @@ body.modal-open { overflow: hidden; }
     modal.addEventListener("click", event => { if (event.target === modal) closeDetails(); });
     document.addEventListener("keydown", event => { if (event.key === "Escape" && modal.classList.contains("open")) closeDetails(); });
 
-    onAuthStateChanged(auth, user => {
-        unsubscribeListeners.forEach(unsubscribe => unsubscribe());
-        unsubscribeListeners = [];
-        requestsBySource.discord.clear();
-        requestsBySource.discord_id.clear();
-        listenerErrors = 0;
-        listenerUpdates = 0;
+    async function loadRequests() {
+        try {
+            const response = await fetch("/api/my-requests", { credentials: "same-origin", cache: "no-store" });
+            const data = await response.json().catch(() => ({}));
+            if (response.status === 401) {
+                window.location.href = "auth.html";
+                return;
+            }
+            if (!response.ok || !data.ok) throw new Error(data.error || "Nu s-au putut încărca cererile.");
 
-        if (!user) {
-            window.location.href = "auth.html";
-            return;
+            requestsBySource.discord.clear();
+            requestsBySource.discord_id.clear();
+            for (const request of (data.requests || [])) {
+                requestsBySource.discord.set(request.id, request);
+            }
+            listenerUpdates += 1;
+            mergeAndRender();
+        } catch (error) {
+            console.error("Eroare la încărcarea cererilor:", error);
+            listenerErrors = 2;
+            container.innerHTML = `<div class="empty-state">${escapeHtml(error.message || "A apărut o eroare la încărcarea cererilor.")}</div>`;
         }
+    }
 
-        const accountIdentifier = user.providerData?.[0]?.uid || user.uid;
-        const queryDefinitions = [
-            { source: "discord", field: "discord" },
-            { source: "discord_id", field: "discord_id" }
-        ];
-
-        queryDefinitions.forEach(definition => {
-            const requestQuery = query(collection(db, "cereri"), where(definition.field, "==", accountIdentifier));
-            const unsubscribe = onSnapshot(requestQuery, snapshot => {
-                const sourceMap = new Map();
-                snapshot.forEach(docSnap => sourceMap.set(docSnap.id, { id: docSnap.id, col: "cereri", ...docSnap.data() }));
-                requestsBySource[definition.source] = sourceMap;
-                listenerUpdates += 1;
-                mergeAndRender();
-            }, error => {
-                console.error(`Eroare la citirea cererilor după ${definition.field}:`, error);
-                listenerErrors += 1;
-                if (listenerErrors >= queryDefinitions.length && activeRequests.size === 0) {
-                    container.innerHTML = `<div class="empty-state">A apărut o eroare la încărcarea cererilor.</div>`;
-                }
-            });
-            unsubscribeListeners.push(unsubscribe);
-        });
-    });
+    loadRequests();
+    setInterval(loadRequests, 30000);
+    window.addEventListener("focus", loadRequests);
 </script>
 
 </body>

@@ -16,9 +16,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Vercel Web Analytics for this static HTML project.
-// The Vercel production script is served from the project's /_vercel/insights route
-// after Web Analytics is enabled for the Vercel project.
 if (typeof window !== "undefined" && typeof document !== "undefined") {
   window.va = window.va || function (...args) {
     (window.vaq = window.vaq || []).push(args);
@@ -31,10 +28,92 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     analyticsScript.dataset.pclsVercelAnalytics = "true";
     document.head.appendChild(analyticsScript);
   }
+
+  // Discord auth always uses the server-side OAuth cookie flow.
+  // Capture phase runs before every legacy Firebase popup listener.
+  document.addEventListener("click", event => {
+    const button = event.target?.closest?.(
+      "#btnDiscordLogin, #discord-modal-connect, #discord-trigger, #discordModalConnect, #discordIdConnect, #discordIdVerify, [data-discord-connect]"
+    );
+    if (!button) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+
+    const returnTo = window.location.pathname + window.location.search + window.location.hash;
+    window.location.assign(`/api/discord-auth?return_to=${encodeURIComponent(returnTo)}`);
+  }, true);
+
+  function applyDiscordSession(user) {
+    const discordId = String(user?.discordId || "").trim();
+    if (!/^\d{17,20}$/.test(discordId)) return false;
+
+    const username = String(user?.username || user?.name || "").trim();
+    window.PCLSDiscordSession = {
+      discordId,
+      username,
+      name: username,
+      email: String(user?.email || "")
+    };
+
+    document.querySelectorAll(
+      'input[name="discord"], input[name="discord_id"], input[name="discordId"], #discordIdInput, #discord-input'
+    ).forEach(input => {
+      input.value = discordId;
+      input.setAttribute("value", discordId);
+      input.readOnly = true;
+      input.dataset.pclsDiscordAuto = "true";
+    });
+
+    const connectedBox = document.getElementById("discord-connected-box") || document.getElementById("discordConnectedBox");
+    const loginBox = document.getElementById("discord-login-box") || document.getElementById("discordLoginBox");
+    const submit = document.getElementById("submit");
+    if (connectedBox) connectedBox.style.display = "flex";
+    if (loginBox) loginBox.style.display = "none";
+    if (submit) submit.disabled = false;
+
+    document.dispatchEvent(new CustomEvent("pcls:discord-session-ready", { detail: window.PCLSDiscordSession }));
+    return true;
+  }
+
+  async function readDiscordSession() {
+    try {
+      const response = await fetch("/api/me", {
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok || !data?.user) return false;
+      return applyDiscordSession(data.user);
+    } catch (error) {
+      console.warn("Discord cookie session unavailable:", error);
+      return false;
+    }
+  }
+
+  // Public promise for pages that need the server-side Discord identity.
+  window.PCLSDiscordSessionPromise = readDiscordSession();
+
+  // Re-apply briefly after page load because legacy Firebase onAuthStateChanged
+  // handlers may initially report null and clear the old visible Discord field.
+  window.addEventListener("DOMContentLoaded", () => {
+    let attempts = 0;
+    const timer = window.setInterval(async () => {
+      attempts += 1;
+      await readDiscordSession();
+      if (attempts >= 12) window.clearInterval(timer);
+    }, 250);
+  });
 }
 
 if (window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html")) {
   import("./index-modernizer.js?v=20260814").catch(error => console.error("Index modernizer:", error));
+}
+
+if (window.location.pathname.toLowerCase().endsWith("/auth.html")) {
+  import("./discord-custom-auth.js?v=20260827-cookie-redirect").catch(error => console.error("Custom Discord auth:", error));
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -65,23 +144,23 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const emailPart = user.email ? user.email.split("@")[0] : "User";
-    const displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
+    let displayName = user.displayName || (emailPart.charAt(0).toUpperCase() + emailPart.slice(1));
     const initial = displayName.charAt(0).toUpperCase();
     let isAdmin = user.email === "tsplayer18@gmail.com";
-    if (!isAdmin) {
-      try {
-        const snap = await getDoc(doc(db, "utilizatori", user.uid));
-        if (snap.exists()) {
-          const role = String(snap.data()?.role || snap.data()?.rol || "").toLowerCase();
-          isAdmin = ["admin", "superadmin", "isuls", "dsls", "mmls", "ssmls"].includes(role);
-        }
-      } catch (error) { console.error("Eroare verificare rol admin:", error); }
-    }
+    try {
+      const snap = await getDoc(doc(db, "utilizatori", user.uid));
+      if (snap.exists()) {
+        const profile = snap.data() || {};
+        displayName = profile.nume || profile.name || displayName;
+        const role = String(profile.role || profile.rol || "").toLowerCase();
+        isAdmin = isAdmin || ["admin", "superadmin", "isuls", "dsls", "mmls", "ssmls"].includes(role);
+      }
+    } catch (error) { console.error("Eroare verificare profil/rol:", error); }
     authContainer.innerHTML = `
       <div class="user-profile-premium">
         <button class="profile-btn-premium" id="profileToggle" type="button"><span>Salut, ${displayName}</span><div class="profile-avatar">${initial}</div><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
         <div class="profile-dropdown-premium" id="profileDropdown">
-          <div class="dropdown-user-info"><span>Conectat cu adresa</span><strong>${user.email ? displayName : "Discord: " + displayName}</strong></div>
+          <div class="dropdown-user-info"><span>Conectat</span><strong>${displayName}</strong></div>
           <div class="dropdown-divider"></div>
           ${isAdmin ? `<a href="admin.html" class="dropdown-item-premium">Admin Panel</a>` : ""}
           <a href="setari.html" class="dropdown-item-premium">Setări cont</a>
@@ -102,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
-    document.getElementById("btnLogout")?.addEventListener("click", async () => { try { await signOut(auth); window.location.reload(); } catch (error) { console.error("Eroare logout:", error); } });
+    document.getElementById("btnLogout")?.addEventListener("click", async () => { try { await signOut(auth); await fetch("/api/logout", { method: "POST", credentials: "same-origin" }).catch(() => {}); window.location.reload(); } catch (error) { console.error("Eroare logout:", error); } });
   });
 });
 
@@ -130,4 +209,4 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-18-vercel-analytics";
+export const FIREBASE_CONFIG_VERSION = "2026-08-27-cookie-discord-fullpage";

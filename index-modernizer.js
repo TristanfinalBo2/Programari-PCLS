@@ -24,13 +24,7 @@ function ensureStyle() {
 .hero-meta{margin-top:30px !important;gap:10px !important;}
 .hero-meta div{min-height:94px !important;padding:16px !important;border-radius:18px !important;}
 .hero-meta strong{font-size:1.42rem !important;}
-#proces{margin-top:56px !important;margin-bottom:54px !important;padding:30px !important;border-radius:28px !important;gap:24px !important;}
-#proces h2{font-size:clamp(1.75rem,3vw,2.55rem) !important;}
-.step-list{gap:10px !important;}
-.step{min-height:135px !important;padding:15px !important;border-radius:18px !important;}
-.step::before{width:40px;height:40px;border-radius:13px;font-size:.75rem;}
-.step strong{font-size:.9rem !important;}
-.step span{font-size:.78rem !important;}
+.cookie-user-profile{position:relative;}
 @media(max-width:900px){.topbar-container{grid-template-columns:1fr auto !important;padding:12px 18px !important}.nav-premium{display:none !important}.brand-text span{display:none !important}}
 @media(max-width:560px){.topbar-container{min-height:74px !important}.brand-logo-wrapper{width:44px !important;height:44px !important}.header-actions-premium{gap:7px !important}.notification-btn-premium{width:42px !important;height:42px !important}.hero-meta{margin-top:22px !important;}.hero-meta div{min-height:82px !important;}}
   `;
@@ -45,14 +39,113 @@ function removeRedundantSections() {
 function reorderHomeSections() {
   const main = document.querySelector("main");
   if (!main || main.getAttribute(ORDER_READY_ATTR) === "1") return;
-
   const hero = document.querySelector(".portal-hero");
   const process = document.getElementById("proces");
-
   if (!hero || !process) return;
-
   [hero, process].forEach(section => main.appendChild(section));
   main.setAttribute(ORDER_READY_ATTR, "1");
+}
+
+function isAdminRole(role) {
+  const normalized = String(role || "").trim().toLowerCase().replace(/\s+/g, "");
+  return [
+    "admin",
+    "superadmin",
+    "conducere",
+    "conducerea",
+    "isuls",
+    "dsls",
+    "mmls",
+    "mmlls",
+    "ssmls",
+    "adminisuls",
+    "admindsls",
+    "adminmmls",
+    "adminssmls"
+  ].includes(normalized);
+}
+
+function renderAdminNav(user) {
+  const container = document.getElementById("admin-nav-container");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!isAdminRole(user?.role)) return;
+
+  const link = document.createElement("a");
+  link.href = "admin.html";
+  link.className = "nav-item";
+  link.textContent = "Cereri Admin";
+  container.appendChild(link);
+}
+
+function renderCookieUser(user) {
+  const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
+  if (!authContainer) return;
+  const name = String(user?.name || "Utilizator Discord").trim();
+  const initial = (name.charAt(0) || "U").toUpperCase();
+
+  renderAdminNav(user);
+
+  authContainer.innerHTML = `
+    <div class="user-profile-premium">
+      <button class="profile-btn-premium" id="profileToggle" type="button">
+        <span>Salut, ${escapeHtml(name)}</span>
+        <div class="profile-avatar">${escapeHtml(initial)}</div>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <div class="profile-dropdown-premium" id="profileDropdown">
+        <div class="dropdown-user-info"><span>Conectat</span><strong>${escapeHtml(name)}</strong></div>
+        <div class="dropdown-divider"></div>
+        <a href="cererile_mele.html" class="dropdown-item-premium">Cererile Mele</a>
+        <a href="setari.html" class="dropdown-item-premium">Setări cont</a>
+        <div class="dropdown-divider"></div>
+        <button id="btnLogout" class="dropdown-item-premium" style="color:#ff6b6b;background:none;border:none;width:100%;text-align:left;cursor:pointer;">Deconectare</button>
+      </div>
+    </div>`;
+
+  const profileToggle = document.getElementById("profileToggle");
+  const profileDropdown = document.getElementById("profileDropdown");
+  if (profileToggle && profileDropdown) {
+    profileToggle.onclick = event => {
+      event.stopPropagation();
+      profileDropdown.classList.toggle("show");
+    };
+    if (!window.__pclsProfileClickBound) {
+      window.__pclsProfileClickBound = true;
+      document.addEventListener("click", event => {
+        const t = document.getElementById("profileToggle");
+        const d = document.getElementById("profileDropdown");
+        if (t && d && !t.contains(event.target) && !d.contains(event.target)) d.classList.remove("show");
+      });
+    }
+  }
+
+  document.getElementById("btnLogout")?.addEventListener("click", async () => {
+    try {
+      await fetch("/api/logout", { method: "POST", credentials: "same-origin", cache: "no-store" });
+    } finally {
+      window.location.href = "auth.html";
+    }
+  });
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>'"]/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;"
+  })[char]);
+}
+
+async function initCookieAuth() {
+  const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
+  if (!isIndex) return;
+  try {
+    const response = await fetch("/api/me", { credentials: "same-origin", cache: "no-store" });
+    if (!response.ok) return;
+    const data = await response.json().catch(() => ({}));
+    if (data.ok && data.user) renderCookieUser(data.user);
+  } catch (error) {
+    console.error("Cookie Discord auth:", error);
+  }
 }
 
 function init() {
@@ -62,6 +155,7 @@ function init() {
   document.getElementById("pcls-command-hub")?.remove();
   removeRedundantSections();
   reorderHomeSections();
+  setTimeout(initCookieAuth, 500);
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
