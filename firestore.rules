@@ -57,12 +57,8 @@ service cloud.firestore {
     }
 
     match /notificari/{notificationId} {
-      // UI-ul principal nu folosește notificari pentru statusul cererii, dar păstrăm
-      // colecția funcțională pentru notificări directe/istorice.
       allow read: if request.auth != null && resource.data.recipientId == request.auth.uid;
 
-      // Administratorul care creează notificarea trebuie să fie autentificat și
-      // să își înscrie propriul UID în actorUid. Acceptăm și rolurile existente.
       allow create: if request.auth != null
         && request.resource.data.actorUid == request.auth.uid
         && isStaff();
