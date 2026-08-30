@@ -49,26 +49,15 @@ function reorderHomeSections() {
 function isAdminRole(role) {
   const normalized = String(role || "").trim().toLowerCase().replace(/\s+/g, "");
   return [
-    "admin",
-    "superadmin",
-    "conducere",
-    "conducerea",
-    "isuls",
-    "dsls",
-    "mmls",
-    "mmlls",
-    "ssmls",
-    "adminisuls",
-    "admindsls",
-    "adminmmls",
-    "adminssmls"
+    "admin", "superadmin", "conducere", "conducerea",
+    "isuls", "dsls", "mmls", "mmlls", "ssmls", "ssmmls",
+    "adminisuls", "admindsls", "adminmmls", "adminssmls"
   ].includes(normalized);
 }
 
 function renderAdminNav(user) {
   const container = document.getElementById("admin-nav-container");
-  if (!container) return;
-  if (!isAdminRole(user?.role)) return;
+  if (!container || !isAdminRole(user?.role)) return;
   const alreadyPresent = container.querySelector('a[href="admin.html"]');
   if (alreadyPresent) return;
   const link = document.createElement("a");
@@ -92,7 +81,7 @@ function renderCookieUser(user) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </button>
       <div class="profile-dropdown-premium" id="profileDropdown">
-        <div class="dropdown-user-info"><span>Conectat</span><strong>${escapeHtml(name)}</strong></div>
+        <div class="dropdown-user-info"><span>Conectat prin Discord</span><strong>${escapeHtml(name)}</strong></div>
         <div class="dropdown-divider"></div>
         ${isAdminRole(user?.role) ? `<a href="admin.html" class="dropdown-item-premium">Cereri Admin</a>` : ""}
         <a href="cererile_mele.html" class="dropdown-item-premium">Cererile Mele</a>
@@ -136,6 +125,7 @@ function escapeHtml(value) {
 
 let cookieSessionUser = null;
 let cookieSessionTimer = null;
+let cookieUiObserver = null;
 
 async function readCookieSession() {
   const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
@@ -151,31 +141,50 @@ async function readCookieSession() {
   return null;
 }
 
+function installCookieUiGuard() {
+  if (cookieUiObserver || !cookieSessionUser) return;
+  const guard = () => {
+    if (!cookieSessionUser) return;
+    const authContainer = document.getElementById("auth-section-premium") || document.getElementById("auth-links");
+    const adminContainer = document.getElementById("admin-nav-container");
+    const hasCookieProfile = Boolean(authContainer?.querySelector(".user-profile-premium"));
+    const hasAdmin = Boolean(adminContainer?.querySelector('a[href="admin.html"]'));
+    const needsAdmin = isAdminRole(cookieSessionUser.role);
+    if (!hasCookieProfile || (needsAdmin && !hasAdmin)) {
+      renderCookieUser(cookieSessionUser);
+    }
+  };
+  cookieUiObserver = new MutationObserver(() => {
+    window.requestAnimationFrame(guard);
+  });
+  cookieUiObserver.observe(document.body, { childList: true, subtree: true });
+  guard();
+}
+
 async function initCookieAuth() {
   const user = await readCookieSession();
   cookieSessionUser = user;
-  if (user) {
-    // This flag lets the legacy Firebase listener know that the Discord cookie
-    // session owns the index header. It prevents the header from being replaced
-    // with the signed-out Firebase state a moment later.
-    window.PCLS_COOKIE_AUTH_ACTIVE = true;
-    renderCookieUser(user);
+  if (!user) return;
 
-    clearInterval(cookieSessionTimer);
-    cookieSessionTimer = window.setInterval(async () => {
-      if (document.visibilityState !== "visible") return;
-      const latest = await readCookieSession();
-      if (latest) {
-        cookieSessionUser = latest;
-        window.PCLS_COOKIE_AUTH_ACTIVE = true;
-        renderCookieUser(latest);
-      } else {
-        cookieSessionUser = null;
-        window.PCLS_COOKIE_AUTH_ACTIVE = false;
-        clearInterval(cookieSessionTimer);
-      }
-    }, 5000);
-  }
+  window.PCLS_COOKIE_AUTH_ACTIVE = true;
+  renderCookieUser(user);
+  installCookieUiGuard();
+
+  clearInterval(cookieSessionTimer);
+  cookieSessionTimer = window.setInterval(async () => {
+    if (document.visibilityState !== "visible") return;
+    const latest = await readCookieSession();
+    if (latest) {
+      cookieSessionUser = latest;
+      window.PCLS_COOKIE_AUTH_ACTIVE = true;
+      renderCookieUser(latest);
+    } else {
+      cookieSessionUser = null;
+      window.PCLS_COOKIE_AUTH_ACTIVE = false;
+      if (cookieUiObserver) { cookieUiObserver.disconnect(); cookieUiObserver = null; }
+      clearInterval(cookieSessionTimer);
+    }
+  }, 10000);
 }
 
 function init() {
@@ -185,7 +194,6 @@ function init() {
   document.getElementById("pcls-command-hub")?.remove();
   removeRedundantSections();
   reorderHomeSections();
-  // Start immediately; do not wait 500ms before the Discord cookie session owns the header.
   initCookieAuth();
 }
 
