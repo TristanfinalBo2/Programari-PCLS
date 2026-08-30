@@ -68,15 +68,9 @@ function isAdminRole(role) {
 function renderAdminNav(user) {
   const container = document.getElementById("admin-nav-container");
   if (!container) return;
-
-  // Never clear an Admin link that was already established by the main
-  // Firebase auth renderer. The old behavior caused the link to appear and
-  // then disappear when the cookie session probe returned without a role.
   if (!isAdminRole(user?.role)) return;
-
   const alreadyPresent = container.querySelector('a[href="admin.html"]');
   if (alreadyPresent) return;
-
   const link = document.createElement("a");
   link.href = "admin.html";
   link.className = "nav-item";
@@ -89,9 +83,7 @@ function renderCookieUser(user) {
   if (!authContainer) return;
   const name = String(user?.name || "Utilizator Discord").trim();
   const initial = (name.charAt(0) || "U").toUpperCase();
-
   renderAdminNav(user);
-
   authContainer.innerHTML = `
     <div class="user-profile-premium">
       <button class="profile-btn-premium" id="profileToggle" type="button">
@@ -102,6 +94,7 @@ function renderCookieUser(user) {
       <div class="profile-dropdown-premium" id="profileDropdown">
         <div class="dropdown-user-info"><span>Conectat</span><strong>${escapeHtml(name)}</strong></div>
         <div class="dropdown-divider"></div>
+        ${isAdminRole(user?.role) ? `<a href="admin.html" class="dropdown-item-premium">Cereri Admin</a>` : ""}
         <a href="cererile_mele.html" class="dropdown-item-premium">Cererile Mele</a>
         <a href="setari.html" class="dropdown-item-premium">Setări cont</a>
         <div class="dropdown-divider"></div>
@@ -141,16 +134,47 @@ function escapeHtml(value) {
   })[char]);
 }
 
-async function initCookieAuth() {
+let cookieSessionUser = null;
+let cookieSessionTimer = null;
+
+async function readCookieSession() {
   const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
-  if (!isIndex) return;
+  if (!isIndex) return null;
   try {
-    const response = await fetch("/api/me", { credentials: "same-origin", cache: "no-store" });
-    if (!response.ok) return;
+    const response = await fetch("/api/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
+    if (!response.ok) return null;
     const data = await response.json().catch(() => ({}));
-    if (data.ok && data.user) renderCookieUser(data.user);
+    if (data.ok && data.user) return data.user;
   } catch (error) {
     console.error("Cookie Discord auth:", error);
+  }
+  return null;
+}
+
+async function initCookieAuth() {
+  const user = await readCookieSession();
+  cookieSessionUser = user;
+  if (user) {
+    // This flag lets the legacy Firebase listener know that the Discord cookie
+    // session owns the index header. It prevents the header from being replaced
+    // with the signed-out Firebase state a moment later.
+    window.PCLS_COOKIE_AUTH_ACTIVE = true;
+    renderCookieUser(user);
+
+    clearInterval(cookieSessionTimer);
+    cookieSessionTimer = window.setInterval(async () => {
+      if (document.visibilityState !== "visible") return;
+      const latest = await readCookieSession();
+      if (latest) {
+        cookieSessionUser = latest;
+        window.PCLS_COOKIE_AUTH_ACTIVE = true;
+        renderCookieUser(latest);
+      } else {
+        cookieSessionUser = null;
+        window.PCLS_COOKIE_AUTH_ACTIVE = false;
+        clearInterval(cookieSessionTimer);
+      }
+    }, 5000);
   }
 }
 
@@ -161,7 +185,8 @@ function init() {
   document.getElementById("pcls-command-hub")?.remove();
   removeRedundantSections();
   reorderHomeSections();
-  setTimeout(initCookieAuth, 500);
+  // Start immediately; do not wait 500ms before the Discord cookie session owns the header.
+  initCookieAuth();
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
