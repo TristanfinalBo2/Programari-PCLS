@@ -68,8 +68,14 @@ function isAdminRole(role) {
 function renderAdminNav(user) {
   const container = document.getElementById("admin-nav-container");
   if (!container) return;
-  container.innerHTML = "";
+
+  // Never clear an Admin link that was already established by the main
+  // Firebase auth renderer. The old behavior caused the link to appear and
+  // then disappear when the cookie session probe returned without a role.
   if (!isAdminRole(user?.role)) return;
+
+  const alreadyPresent = container.querySelector('a[href="admin.html"]');
+  if (alreadyPresent) return;
 
   const link = document.createElement("a");
   link.href = "admin.html";
