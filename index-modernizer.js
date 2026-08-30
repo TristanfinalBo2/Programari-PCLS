@@ -126,6 +126,30 @@ function escapeHtml(value) {
 let cookieSessionUser = null;
 let cookieSessionTimer = null;
 let cookieUiObserver = null;
+let cookieRoleResolved = false;
+
+async function resolveCookieRole(user) {
+  if (!user) return user;
+  if (isAdminRole(user.role)) return user;
+
+  try {
+    const response = await fetch("/api/admin-data", {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data?.ok && data?.role) {
+      return { ...user, role: data.role };
+    }
+  } catch (error) {
+    console.warn("Nu s-a putut rezolva rolul Discord din admin-data:", error);
+  }
+
+  // Keep the session usable for normal users; never grant admin access on failure.
+  return user;
+}
 
 async function readCookieSession() {
   const isIndex = window.location.pathname === "/" || window.location.pathname.toLowerCase().endsWith("/index.html");
@@ -134,7 +158,8 @@ async function readCookieSession() {
     const response = await fetch("/api/me", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
     if (!response.ok) return null;
     const data = await response.json().catch(() => ({}));
-    if (data.ok && data.user) return data.user;
+    if (!(data.ok && data.user)) return null;
+    return await resolveCookieRole(data.user);
   } catch (error) {
     console.error("Cookie Discord auth:", error);
   }
@@ -154,9 +179,7 @@ function installCookieUiGuard() {
       renderCookieUser(cookieSessionUser);
     }
   };
-  cookieUiObserver = new MutationObserver(() => {
-    window.requestAnimationFrame(guard);
-  });
+  cookieUiObserver = new MutationObserver(() => window.requestAnimationFrame(guard));
   cookieUiObserver.observe(document.body, { childList: true, subtree: true });
   guard();
 }
@@ -164,6 +187,7 @@ function installCookieUiGuard() {
 async function initCookieAuth() {
   const user = await readCookieSession();
   cookieSessionUser = user;
+  cookieRoleResolved = Boolean(user?.role);
   if (!user) return;
 
   window.PCLS_COOKIE_AUTH_ACTIVE = true;
@@ -176,10 +200,12 @@ async function initCookieAuth() {
     const latest = await readCookieSession();
     if (latest) {
       cookieSessionUser = latest;
+      cookieRoleResolved = Boolean(latest?.role);
       window.PCLS_COOKIE_AUTH_ACTIVE = true;
       renderCookieUser(latest);
     } else {
       cookieSessionUser = null;
+      cookieRoleResolved = false;
       window.PCLS_COOKIE_AUTH_ACTIVE = false;
       if (cookieUiObserver) { cookieUiObserver.disconnect(); cookieUiObserver = null; }
       clearInterval(cookieSessionTimer);
