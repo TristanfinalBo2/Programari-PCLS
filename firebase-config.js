@@ -93,11 +93,8 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     }
   }
 
-  // Public promise for pages that need the server-side Discord identity.
   window.PCLSDiscordSessionPromise = readDiscordSession();
 
-  // Re-apply briefly after page load because legacy Firebase onAuthStateChanged
-  // handlers may initially report null and clear the old visible Discord field.
   window.addEventListener("DOMContentLoaded", () => {
     let attempts = 0;
     const timer = window.setInterval(async () => {
@@ -152,8 +149,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (snap.exists()) {
         const profile = snap.data() || {};
         displayName = profile.nume || profile.name || displayName;
-        const role = String(profile.role || profile.rol || "").toLowerCase();
-        isAdmin = isAdmin || ["admin", "superadmin", "isuls", "dsls", "mmls", "ssmls"].includes(role);
+        const role = String(profile.role || profile.rol || "").trim().toLowerCase();
+        isAdmin = isAdmin || [
+          "admin", "superadmin", "conducere",
+          "isuls", "dsls", "mmls", "mm", "ssmls", "ssmmls"
+        ].includes(role);
       }
     } catch (error) { console.error("Eroare verificare profil/rol:", error); }
     authContainer.innerHTML = `
