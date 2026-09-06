@@ -224,7 +224,8 @@ window.addEventListener("DOMContentLoaded", () => {
   if (pathname.endsWith("/setari.html")) {
     import("./gestionare-utilizatori-v2.js?v=20260906-cookie-users").catch(error => console.error("Gestionare utilizatori:", error));
     import("./discord-id-profile-loader.js").catch(error => console.error("Discord ID profil:", error));
+    import("./settings-cookie-fix.js?v=20260906-profile-save").catch(error => console.error("Settings cookie profile fix:", error));
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-09-06-cookie-user-management";
+export const FIREBASE_CONFIG_VERSION = "2026-09-06-cookie-profile-save";
