@@ -92,6 +92,20 @@ async function patchProfile(token, id, data) {
   const response = await fetch(url, { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields: encodeFields(data) }) });
   if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error?.message || `Firestore ${response.status}`); }
 }
+async function createProfile(token, id, data) {
+  const url = new URL(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/utilizatori`);
+  url.searchParams.set("documentId", id);
+  const response = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields: encodeFields(data) }) });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    const message = err?.error?.message || `Firestore create ${response.status}`;
+    if (response.status === 409 || /already exists|already exists/i.test(message)) {
+      await patchProfile(token, id, data);
+      return;
+    }
+    throw new Error(message);
+  }
+}
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Method Not Allowed" });
@@ -102,6 +116,7 @@ module.exports = async function handler(req, res) {
     const discordId = String(session.discordId);
     const email = String(session.email || "").trim();
     let profile = await queryProfile(token, discordId, email);
+    const nowIso = new Date().toISOString();
     if (!profile) {
       const id = `discord_${discordId}`;
       const username = String(session.username || session.name || "Utilizator Discord");
@@ -109,12 +124,25 @@ module.exports = async function handler(req, res) {
         discordId, discord_id: discordId, username, globalName: String(session.globalName || username),
         nume: username, name: username, email, role: null, rol: null,
         active: true, activ: true, enabled: true, authProvider: "discord",
-        createdAt: new Date().toISOString(), ultimaLogare: new Date().toISOString(), lastLogin: new Date().toISOString()
+        createdAt: nowIso, ultimaLogare: nowIso, lastLogin: nowIso,
+        lastSeen: nowIso, authSource: "discord-cookie"
       };
-      await patchProfile(token, id, data);
+      await createProfile(token, id, data);
       profile = { id, ...data };
     } else {
-      try { await patchProfile(token, profile.id, { ultimaLogare: new Date().toISOString(), lastLogin: new Date().toISOString(), discordId }); } catch (_) {}
+      try {
+        await patchProfile(token, profile.id, {
+          ultimaLogare: nowIso,
+          lastLogin: nowIso,
+          lastSeen: nowIso,
+          discordId,
+          discord_id: discordId,
+          username: String(session.username || session.name || profile.username || "Utilizator Discord"),
+          globalName: String(session.globalName || session.username || profile.globalName || "Utilizator Discord"),
+          authProvider: profile.authProvider || "discord",
+          authSource: "discord-cookie"
+        });
+      } catch (_) {}
     }
     const username = String(session.username || session.name || profile.nume || "Utilizator Discord");
     const role = profile.role ?? profile.rol ?? "user";
