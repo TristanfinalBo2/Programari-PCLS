@@ -222,10 +222,9 @@ window.addEventListener("DOMContentLoaded", () => {
     import("./admin-notification-monitor.js?v=20260814-rejection-reason-3").catch(error => console.error("Monitor notificări admin:", error));
   }
   if (pathname.endsWith("/setari.html")) {
-    import("./gestionare-utilizatori-v2.js").catch(error => console.error("Gestionare utilizatori:", error));
-    import("./gestionare-utilizatori-role-null.js?v=20260826-role-null-1").catch(error => console.error("Gestionare utilizatori role null:", error));
+    import("./gestionare-utilizatori-v2.js?v=20260906-cookie-users").catch(error => console.error("Gestionare utilizatori:", error));
     import("./discord-id-profile-loader.js").catch(error => console.error("Discord ID profil:", error));
   }
 });
 
-export const FIREBASE_CONFIG_VERSION = "2026-08-30-single-auth-index-fix";
+export const FIREBASE_CONFIG_VERSION = "2026-09-06-cookie-user-management";
